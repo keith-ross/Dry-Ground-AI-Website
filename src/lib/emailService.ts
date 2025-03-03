@@ -1,47 +1,37 @@
 import sgMail from '@sendgrid/mail';
 
-// Function to send emails using SendGrid
-export const sendEmail = async (
-  to: string, 
-  subject: string, 
-  html: string, 
-  from = 'noreply@drygroundai.com'
-) => {
+// Initialize SendGrid with API key from environment variable
+const initSendgrid = () => {
+  const apiKey = process.env.SENDGRID_API_KEY;
+
+  if (!apiKey) {
+    console.error('SENDGRID_API_KEY is not set in environment variables');
+    throw new Error('SendGrid API key is missing');
+  }
+
+  sgMail.setApiKey(apiKey);
+};
+
+export async function sendEmail(to: string, subject: string, htmlContent: string) {
   try {
-    // Get SendGrid API key from environment variables
-    const apiKey = process.env.SENDGRID_API_KEY;
+    // Initialize SendGrid if not already initialized
+    initSendgrid();
 
-    if (!apiKey) {
-      console.error('SendGrid API key is not configured');
-      return { 
-        success: false, 
-        error: 'Email service is not properly configured' 
-      };
-    }
-
-    // Set SendGrid API key
-    sgMail.setApiKey(apiKey);
-
-    // Create message
     const msg = {
       to,
-      from,
+      from: process.env.FROM_EMAIL || 'info@drygroundai.com',
       subject,
-      html,
+      html: htmlContent,
     };
 
-    // Send email
-    await sgMail.send(msg);
-    console.log(`Email sent successfully to ${to}`);
-    return { success: true };
+    const result = await sgMail.send(msg);
+    console.log('Email sent successfully');
+    return { success: true, result };
   } catch (error) {
     console.error('Error sending email:', error);
-    return { 
-      success: false, 
-      error: error.message || 'Failed to send email' 
-    };
+    return { success: false, error };
   }
-};
+}
 
 // Function to send confirmation email to user
 export const sendConfirmationEmail = async (name: string, email: string, message: string) => {
@@ -59,7 +49,7 @@ export const sendConfirmationEmail = async (name: string, email: string, message
       <p>Best regards,<br>The Dry Ground AI Team</p>
     </div>
   `;
-  
+
   return await sendEmail(email, subject, html);
 };
 
@@ -78,6 +68,6 @@ export const sendAdminNotificationEmail = async (name: string, email: string, me
       <p>This message was submitted via the Dry Ground AI website contact form.</p>
     </div>
   `;
-  
+
   return await sendEmail(adminEmail, subject, html);
 };

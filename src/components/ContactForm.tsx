@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { Send } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
-const ContactForm = () => {
+const ContactForm: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
@@ -20,6 +21,10 @@ const ContactForm = () => {
         },
         body: JSON.stringify({ name, email, message }),
       });
+
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+      }
 
       const data = await response.json();
 

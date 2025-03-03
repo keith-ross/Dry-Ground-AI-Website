@@ -1,8 +1,18 @@
 
 const { spawn } = require('child_process');
 const chalk = require('chalk');
+const path = require('path');
+const fs = require('fs');
+
+// Ensure data directory exists
+const dataDir = path.join(process.cwd(), 'data');
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+  console.log(chalk.green('Created data directory for SQLite database'));
+}
 
 // Start API server
+console.log(chalk.blue('Starting API server...'));
 const apiServer = spawn('node', ['--loader', 'ts-node/esm', 'src/api/server.ts'], {
   env: process.env
 });
@@ -16,6 +26,7 @@ apiServer.stderr.on('data', (data) => {
 });
 
 // Start Vite dev server
+console.log(chalk.green('Starting Vite development server...'));
 const viteServer = spawn('vite', [], {
   env: process.env
 });
@@ -30,7 +41,10 @@ viteServer.stderr.on('data', (data) => {
 
 // Handle process termination
 process.on('SIGINT', () => {
+  console.log(chalk.yellow('Shutting down servers...'));
   apiServer.kill();
   viteServer.kill();
   process.exit();
 });
+
+console.log(chalk.cyan('✨ Development servers started'));
