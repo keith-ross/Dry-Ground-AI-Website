@@ -4,10 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "dev": "node start-server.js",
+    "api": "ts-node --esm src/api/server.ts",
+    "build": "tsc && vite build",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "start": "node --loader ts-node/esm src/api/server.ts"
   },
   "dependencies": {
     "@sendgrid/mail": "^7.7.0",

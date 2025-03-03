@@ -154,3 +154,198 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
 };
 
 export default ContactForm;
+import React, { useState } from 'react';
+
+interface FormState {
+  name: string;
+  email: string;
+  message: string;
+}
+
+interface FormErrors {
+  name?: string;
+  email?: string;
+  message?: string;
+}
+
+const ContactForm: React.FC = () => {
+  const [formData, setFormData] = useState<FormState>({
+    name: '',
+    email: '',
+    message: ''
+  });
+  
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    success?: boolean;
+    message?: string;
+  }>({});
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+    
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (!formData.message.trim()) {
+      newErrors.message = 'Message is required';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error when user types
+    if (errors[name as keyof FormErrors]) {
+      setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setSubmitStatus({});
+    
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setSubmitStatus({
+          success: true,
+          message: 'Thank you for your message! We will get back to you soon.',
+        });
+        // Reset form
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        setSubmitStatus({
+          success: false,
+          message: data.error || 'Failed to send message. Please try again later.',
+        });
+      }
+    } catch (error) {
+      setSubmitStatus({
+        success: false,
+        message: 'An error occurred. Please try again later.',
+      });
+      console.error('Error submitting form:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Contact Us</h2>
+      
+      {submitStatus.success && (
+        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
+          {submitStatus.message}
+        </div>
+      )}
+      
+      {submitStatus.success === false && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+          {submitStatus.message}
+        </div>
+      )}
+      
+      <form onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label htmlFor="name" className="block text-gray-700 dark:text-gray-300 mb-2">
+            Name
+          </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
+              errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+            }`}
+          />
+          {errors.name && (
+            <p className="mt-1 text-red-500 text-sm">{errors.name}</p>
+          )}
+        </div>
+        
+        <div className="mb-4">
+          <label htmlFor="email" className="block text-gray-700 dark:text-gray-300 mb-2">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
+              errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+            }`}
+          />
+          {errors.email && (
+            <p className="mt-1 text-red-500 text-sm">{errors.email}</p>
+          )}
+        </div>
+        
+        <div className="mb-4">
+          <label htmlFor="message" className="block text-gray-700 dark:text-gray-300 mb-2">
+            Message
+          </label>
+          <textarea
+            id="message"
+            name="message"
+            value={formData.message}
+            onChange={handleChange}
+            rows={4}
+            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
+              errors.message ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+            }`}
+          />
+          {errors.message && (
+            <p className="mt-1 text-red-500 text-sm">{errors.message}</p>
+          )}
+        </div>
+        
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className={`w-full py-2 px-4 rounded-md text-white font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300 ${
+            isSubmitting
+              ? 'bg-blue-400 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700'
+          }`}
+        >
+          {isSubmitting ? 'Sending...' : 'Send Message'}
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default ContactForm;
