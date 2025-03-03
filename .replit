@@ -9,7 +9,7 @@ run = ["sh", "-c", "npx vite preview --host 0.0.0.0 --port 3000"]
 build = ["sh", "-c", "npm run build"]
 
 [workflows]
-runButton = "Start Dev Server"
+runButton = "Run Dev Server"
 
 [[workflows.workflow]]
 name = "Run Dev Server"
@@ -17,7 +17,7 @@ author = 37597866
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "node start-server.js"
 
 [[workflows.workflow]]
 name = "Start Dev Server"
