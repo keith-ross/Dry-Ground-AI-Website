@@ -3,7 +3,9 @@ const { spawn } = require('child_process');
 const chalk = require('chalk');
 
 // Start API server
-const apiServer = spawn('node', ['--loader', 'ts-node/esm', 'src/api/server.ts']);
+const apiServer = spawn('node', ['--loader', 'ts-node/esm', 'src/api/server.ts'], {
+  env: process.env
+});
 
 apiServer.stdout.on('data', (data) => {
   console.log(chalk.blue('[API] ') + data.toString().trim());
@@ -14,7 +16,9 @@ apiServer.stderr.on('data', (data) => {
 });
 
 // Start Vite dev server
-const viteServer = spawn('vite');
+const viteServer = spawn('vite', [], {
+  env: process.env
+});
 
 viteServer.stdout.on('data', (data) => {
   console.log(chalk.green('[Vite] ') + data.toString().trim());

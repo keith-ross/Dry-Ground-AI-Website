@@ -1,25 +1,23 @@
 
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
-import fs from 'fs';
+import { promises as fs } from 'fs';
 import path from 'path';
 
-// Ensure database directory exists
-const dbDir = path.join(process.cwd(), 'data');
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
-}
+// Ensure data directory exists
+const dataDir = path.join(process.cwd(), 'data');
+fs.mkdir(dataDir, { recursive: true }).catch(console.error);
 
-const dbPath = path.join(dbDir, 'contact_submissions.db');
+const dbPath = path.join(dataDir, 'contact_submissions.db');
 
-// Initialize the database connection
-export const getDbConnection = async () => {
+// Initialize database
+async function initializeDb() {
   const db = await open({
     filename: dbPath,
     driver: sqlite3.Database
   });
-  
-  // Create the contact_submissions table if it doesn't exist
+
+  // Create contact_submissions table if it doesn't exist
   await db.exec(`
     CREATE TABLE IF NOT EXISTS contact_submissions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,13 +27,13 @@ export const getDbConnection = async () => {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
-  
-  return db;
-};
 
-// Function to store a new contact submission
-export const storeContactSubmission = async (name: string, email: string, message: string) => {
-  const db = await getDbConnection();
+  return db;
+}
+
+// Save contact submission to database
+export async function saveContactSubmission(name, email, message) {
+  const db = await initializeDb();
   
   try {
     const result = await db.run(
@@ -43,25 +41,36 @@ export const storeContactSubmission = async (name: string, email: string, messag
       [name, email, message]
     );
     
-    return { success: true, id: result.lastID };
-  } catch (error) {
-    console.error('Error storing contact submission:', error);
-    return { success: false, error };
+    return {
+      id: result.lastID,
+      name,
+      email,
+      message,
+      created_at: new Date().toISOString()
+    };
   } finally {
     await db.close();
   }
-};
+}
 
-// Function to get all contact submissions
-export const getAllContactSubmissions = async () => {
-  const db = await getDbConnection();
+// Get all contact submissions
+export async function getAllContactSubmissions() {
+  const db = await initializeDb();
   
   try {
     return await db.all('SELECT * FROM contact_submissions ORDER BY created_at DESC');
-  } catch (error) {
-    console.error('Error retrieving contact submissions:', error);
-    return [];
   } finally {
     await db.close();
   }
-};
+}
+
+// Get a single contact submission by ID
+export async function getContactSubmissionById(id) {
+  const db = await initializeDb();
+  
+  try {
+    return await db.get('SELECT * FROM contact_submissions WHERE id = ?', [id]);
+  } finally {
+    await db.close();
+  }
+}

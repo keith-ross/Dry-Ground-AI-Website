@@ -1,5 +1,3 @@
-
-import nodemailer from 'nodemailer';
 import sgMail from '@sendgrid/mail';
 
 // Function to send emails using SendGrid
@@ -12,14 +10,18 @@ export const sendEmail = async (
   try {
     // Get SendGrid API key from environment variables
     const apiKey = process.env.SENDGRID_API_KEY;
-    
+
     if (!apiKey) {
-      throw new Error('SendGrid API key is not configured');
+      console.error('SendGrid API key is not configured');
+      return { 
+        success: false, 
+        error: 'Email service is not properly configured' 
+      };
     }
-    
+
     // Set SendGrid API key
     sgMail.setApiKey(apiKey);
-    
+
     // Create message
     const msg = {
       to,
@@ -27,13 +29,17 @@ export const sendEmail = async (
       subject,
       html,
     };
-    
+
     // Send email
     await sgMail.send(msg);
+    console.log(`Email sent successfully to ${to}`);
     return { success: true };
   } catch (error) {
     console.error('Error sending email:', error);
-    return { success: false, error };
+    return { 
+      success: false, 
+      error: error.message || 'Failed to send email' 
+    };
   }
 };
 
