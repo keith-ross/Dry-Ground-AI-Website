@@ -1,81 +1,64 @@
-
-import fs from 'fs';
-import path from 'path';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Create data directory if it doesn't exist
-const dataDir = path.join(process.cwd(), 'data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
+// Get the directory name in ESM
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const dbPath = path.join(dataDir, 'contact_submissions.db');
+// Create a database connection
+const dbPromise = open({
+  filename: path.join(process.cwd(), 'data', 'contacts.db'),
+  driver: sqlite3.Database
+});
 
 // Initialize database
-async function initializeDb() {
-  try {
-    const db = await open({
-      filename: dbPath,
-      driver: sqlite3.Database
-    });
+export async function initializeDatabase() {
+  const db = await dbPromise;
 
-    // Create contact_submissions table if it doesn't exist
-    await db.exec(`
-      CREATE TABLE IF NOT EXISTS contact_submissions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL,
-        message TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+  // Create contacts table if it doesn't exist
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS contacts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 
-    return db;
-  } catch (error) {
-    console.error('Database initialization error:', error);
-    throw error;
-  }
+  console.log('Database initialized');
 }
 
-// Save contact submission to database
-export async function saveContactSubmission(name, email, message) {
-  let db;
-  
+// Add a new contact to the database
+export async function addContact({ name, email, message }) {
+  const db = await dbPromise;
+
   try {
-    db = await initializeDb();
-    
+    // Ensure the database is initialized
+    await initializeDatabase();
+
+    // Insert the contact
     const result = await db.run(
-      'INSERT INTO contact_submissions (name, email, message) VALUES (?, ?, ?)',
+      'INSERT INTO contacts (name, email, message) VALUES (?, ?, ?)',
       [name, email, message]
     );
-    
-    return {
-      id: result.lastID,
-      name,
-      email,
-      message,
-      created_at: new Date().toISOString()
-    };
+
+    return { id: result.lastID };
   } catch (error) {
-    console.error('Error saving contact submission:', error);
-    throw error;
-  } finally {
-    if (db) await db.close();
+    console.error('Database error:', error);
+    throw new Error('Failed to save contact to database');
   }
 }
 
-// Get all contact submissions
-export async function getAllContactSubmissions() {
-  let db;
-  
+// Get all contacts
+export async function getAllContacts() {
+  const db = await dbPromise;
+
   try {
-    db = await initializeDb();
-    return await db.all('SELECT * FROM contact_submissions ORDER BY created_at DESC');
+    return await db.all('SELECT * FROM contacts ORDER BY created_at DESC');
   } catch (error) {
-    console.error('Error getting contact submissions:', error);
-    throw error;
-  } finally {
-    if (db) await db.close();
+    console.error('Database error:', error);
+    throw new Error('Failed to retrieve contacts from database');
   }
 }

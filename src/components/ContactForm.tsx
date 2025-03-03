@@ -1,13 +1,18 @@
-
 import React, { useState } from 'react';
-import { Send } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const ContactForm: React.FC = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: '',
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,102 +24,76 @@ const ContactForm: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, message }),
+        body: JSON.stringify(formData),
       });
-
-      if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-      }
 
       const data = await response.json();
 
-      if (data.success) {
+      if (response.ok) {
         toast.success('Message sent successfully!');
-        // Reset form
-        setName('');
-        setEmail('');
-        setMessage('');
+        setFormData({ name: '', email: '', message: '' });
       } else {
-        toast.error(data.error || 'Failed to send message. Please try again.');
+        toast.error(data.error || 'Something went wrong. Please try again.');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
-      toast.error('An error occurred. Please try again later.');
+      toast.error('Network error. Please try again later.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-md mx-auto">
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-200">
+        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
           Name
         </label>
-        <div className="mt-1">
-          <input
-            id="name"
-            name="name"
-            type="text"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="block w-full rounded-md border border-gray-700 bg-gray-800 py-3 px-4 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary"
-            placeholder="Your name"
-          />
-        </div>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-primary focus:ring-brand-primary"
+        />
       </div>
-
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-200">
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
           Email
         </label>
-        <div className="mt-1">
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="block w-full rounded-md border border-gray-700 bg-gray-800 py-3 px-4 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary"
-            placeholder="your.email@example.com"
-          />
-        </div>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-primary focus:ring-brand-primary"
+        />
       </div>
-
       <div>
-        <label htmlFor="message" className="block text-sm font-medium text-gray-200">
+        <label htmlFor="message" className="block text-sm font-medium text-gray-700">
           Message
         </label>
-        <div className="mt-1">
-          <textarea
-            id="message"
-            name="message"
-            rows={4}
-            required
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="block w-full rounded-md border border-gray-700 bg-gray-800 py-3 px-4 text-white shadow-sm focus:border-brand-primary focus:ring-brand-primary"
-            placeholder="How can we help you?"
-          />
-        </div>
+        <textarea
+          id="message"
+          name="message"
+          rows={4}
+          value={formData.message}
+          onChange={handleChange}
+          required
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-primary focus:ring-brand-primary"
+        />
       </div>
-
-      <div className="flex justify-end">
+      <div>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="inline-flex items-center rounded-md border border-transparent bg-brand-primary px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-brand-accent focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-75 transition-colors"
+          className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-primary hover:bg-brand-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary"
         >
-          {isSubmitting ? (
-            'Sending...'
-          ) : (
-            <>
-              Send Message
-              <Send className="ml-2 -mr-1 h-5 w-5" />
-            </>
-          )}
+          {isSubmitting ? 'Sending...' : 'Send Message'}
         </button>
       </div>
     </form>
