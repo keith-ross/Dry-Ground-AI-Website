@@ -65,6 +65,7 @@ const ContactForm: React.FC<{ className?: string }> = ({ className = '' }) => {
     try {
       console.log('Submitting form data:', formData);
 
+      console.log('Submitting form data:', formData);
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
@@ -75,14 +76,21 @@ const ContactForm: React.FC<{ className?: string }> = ({ className = '' }) => {
 
       console.log('Response status:', response.status);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server error response:', errorText);
-        throw new Error(`Server returned ${response.status}`);
+      let data;
+      try {
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError);
+        throw new Error('Unable to parse server response');
       }
 
-      const data = await response.json();
       console.log('Response data:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || `Server returned ${response.status}`);
+      }
 
       if (data.success) {
         toast.success('Message sent successfully!');
@@ -97,7 +105,7 @@ const ContactForm: React.FC<{ className?: string }> = ({ className = '' }) => {
       }
     } catch (error) {
       console.error('Error submitting form:', error);
-      toast.error(`Error submitting form: ${error.message}`);
+      toast.error(`Error submitting form: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
     }

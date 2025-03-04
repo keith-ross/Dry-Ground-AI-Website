@@ -47,8 +47,16 @@ app.post('/api/contact', async (req, res) => {
     }
 
     // Save to database
-    const result = await saveContactSubmission({ name, email, company, message });
-    console.log('Saved to database:', result);
+    try {
+      const result = await saveContactSubmission({ name, email, company, message });
+      console.log('Saved to database:', result);
+    } catch (dbError) {
+      console.error('Error saving to database:', dbError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to save your message. Please try again later.'
+      });
+    }
 
     // Send confirmation email
     try {
@@ -58,6 +66,19 @@ app.post('/api/contact', async (req, res) => {
       console.error('Error sending confirmation email:', emailError);
       // We'll continue even if email fails
     }
+    
+    // Return success response
+    return res.status(200).json({
+      success: true,
+      message: 'Thank you for your message. We will get back to you soon!'
+    });
+  } catch (error) {
+    console.error('Unexpected error in contact endpoint:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'An unexpected error occurred. Please try again later.'
+    });
+  }
 
     return res.status(200).json({ 
       success: true, 
