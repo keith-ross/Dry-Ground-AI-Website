@@ -9,7 +9,7 @@ run = ["sh", "-c", "npx vite preview --host 0.0.0.0 --port 3000"]
 build = ["sh", "-c", "npm run build"]
 
 [workflows]
-runButton = "API Server"
+runButton = "Start Dev"
 
 [[workflows.workflow]]
 name = "Run Dev Server"
@@ -75,6 +75,14 @@ author = 37597866
 task = "shell.exec"
 args = "concurrently \"vite\" \"node start-server.js\""
 
+[[workflows.workflow]]
+name = "Start Dev"
+author = 37597866
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "concurrently \"vite\" \"node start-server.js\""
+
 [[ports]]
 localPort = 3000
 externalPort = 80
@@ -98,6 +106,10 @@ externalPort = 5000
 [[ports]]
 localPort = 3005
 externalPort = 6000
+
+[[ports]]
+localPort = 3006
+externalPort = 6800
 
 [[ports]]
 localPort = 5173
