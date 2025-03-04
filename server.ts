@@ -87,6 +87,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://0.0.0.0:${PORT}/api/health`);
+  console.log(`📑 API endpoints: http://0.0.0.0:${PORT}/api/contact`);
 });
 
 // Handle process termination
