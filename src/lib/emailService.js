@@ -45,11 +45,12 @@ export async function sendContactEmail(formData) {
     // Log the data being sent
     console.log('Sending form data to API:', formData);
     
-    // Update the API URL to explicitly specify the full URL
-    // This is important for cross-origin requests
-    const apiUrl = window.location.hostname.includes('replit.dev') 
-      ? 'http://0.0.0.0:3001/api/contact'  // Development mode
-      : '/api/contact';                    // Production mode
+    // Update the API URL to use the Replit domain
+    // Get the current hostname and construct the API URL
+    const hostname = window.location.hostname;
+    const apiUrl = hostname.includes('replit.dev') || hostname.includes('replit.app')
+      ? `https://${hostname}/api/contact`  // Use HTTPS with the same domain
+      : '/api/contact';                   // For production/deployment
     
     console.log('Using API URL:', apiUrl);
     

@@ -1,4 +1,3 @@
-
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -12,7 +11,26 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors());
+// CORS middleware with specific configuration
+app.use(cors({
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if(!origin) return callback(null, true);
+
+    // Allow all Replit domains and localhost
+    if(
+      origin.endsWith('.replit.dev') || 
+      origin.endsWith('.replit.app') || 
+      origin.endsWith('.repl.co') || 
+      origin.includes('localhost')
+    ) {
+      return callback(null, true);
+    }
+
+    callback(null, true); // Allow all origins for now
+  },
+  credentials: true
+}));
 app.use(bodyParser.json());
 
 // Set SendGrid API key
@@ -67,7 +85,7 @@ app.get('/api/health', (req, res) => {
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, company, message } = req.body;
-    
+
     // Validate required fields
     if (!name || !email || !message) {
       return res.status(400).json({
@@ -75,11 +93,11 @@ app.post('/api/contact', async (req, res) => {
         error: 'Missing required fields: name, email, and message are required'
       });
     }
-    
+
     // Save to database
     const savedContact = saveContact({ name, email, company, message });
     console.log('Contact saved:', savedContact);
-    
+
     // Send email (if SendGrid is configured)
     if (process.env.SENDGRID_API_KEY) {
       try {
@@ -90,7 +108,7 @@ app.post('/api/contact', async (req, res) => {
           subject: 'New Contact Form Submission',
           text: `
             New contact form submission:
-            
+
             Name: ${name}
             Email: ${email}
             Company: ${company || 'Not provided'}
@@ -104,7 +122,7 @@ app.post('/api/contact', async (req, res) => {
             <p><strong>Message:</strong> ${message}</p>
           `
         };
-        
+
         // Email to user
         const userMsg = {
           to: email,
@@ -112,9 +130,9 @@ app.post('/api/contact', async (req, res) => {
           subject: 'Thank you for contacting us',
           text: `
             Dear ${name},
-            
+
             Thank you for contacting us. We have received your message and will get back to you shortly.
-            
+
             Best regards,
             The Team
           `,
@@ -124,7 +142,7 @@ app.post('/api/contact', async (req, res) => {
             <p>Best regards,<br>The Team</p>
           `
         };
-        
+
         await sgMail.send(adminMsg);
         await sgMail.send(userMsg);
         console.log('Emails sent successfully');
@@ -133,14 +151,14 @@ app.post('/api/contact', async (req, res) => {
         // We still return success since the contact was saved
       }
     }
-    
+
     // Return success response
     return res.status(200).json({
       success: true,
       message: 'Contact form submitted successfully',
       id: savedContact.id
     });
-    
+
   } catch (error) {
     console.error('Error processing contact form:', error);
     return res.status(500).json({

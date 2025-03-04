@@ -10,8 +10,13 @@ async function testApiConnection() {
   console.log('----------------------------------');
   
   try {
+    // Get hostname from environment or use a default
+    const hostname = process.env.REPL_SLUG 
+      ? `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
+      : 'localhost:3001';
+      
     console.log('Testing API health endpoint...');
-    const healthResponse = await fetch('http://0.0.0.0:3001/api/health');
+    const healthResponse = await fetch(`https://${hostname}/api/health`);
     console.log('Response status:', healthResponse.status);
     
     const healthText = await healthResponse.text();
@@ -40,7 +45,12 @@ async function testApiConnection() {
     };
     
     console.log('Sending test data:', testData);
-    const response = await fetch('http://0.0.0.0:3001/api/contact', {
+    // Get hostname from environment or use a default
+    const hostname = process.env.REPL_SLUG 
+      ? `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
+      : 'localhost:3001';
+      
+    const response = await fetch(`https://${hostname}/api/contact`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
