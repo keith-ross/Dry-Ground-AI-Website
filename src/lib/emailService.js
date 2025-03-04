@@ -6,13 +6,13 @@ if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
   console.log('SendGrid API key found with length:', process.env.SENDGRID_API_KEY.length);
 } else {
-  console.error('SENDGRID_API_KEY not found in environment variables');
+  console.warn('SENDGRID_API_KEY not found in environment variables. Email service will not work.');
 }
 
 /**
- * Send contact form emails (to both admin and user)
+ * Send a confirmation email to the contact form submitter
  */
-async function sendContactEmail({ name, email, message, company = '' }) {
+async function sendContactConfirmationEmail({ name, email }) {
   if (!process.env.SENDGRID_API_KEY) {
     return { 
       success: false, 
@@ -21,17 +21,63 @@ async function sendContactEmail({ name, email, message, company = '' }) {
   }
   
   try {
-    console.log('Preparing to send emails for contact form submission');
+    const msg = {
+      to: email,
+      from: {
+        email: 'info@dryground.ai',
+        name: 'Dry Ground AI'
+      },
+      subject: 'Thank you for contacting Dry Ground AI',
+      text: `Hi ${name},\n\nThank you for reaching out to us. We've received your message and will get back to you as soon as possible.\n\nBest regards,\nThe Dry Ground AI Team`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Thank you for contacting us!</h2>
+          <p>Hi ${name},</p>
+          <p>Thank you for reaching out to Dry Ground AI. We've received your message and will get back to you as soon as possible.</p>
+          <p>Best regards,<br>The Dry Ground AI Team</p>
+        </div>
+      `
+    };
     
-    // Admin notification email
-    const adminMsg = {
+    console.log('Sending confirmation email to:', email);
+    await sgMail.send(msg);
+    console.log('Confirmation email sent successfully');
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending confirmation email:', error);
+    if (error.response) {
+      console.error(error.response.body);
+    }
+    return { 
+      success: false, 
+      error: error.message || 'Failed to send confirmation email' 
+    };
+  }
+}
+
+/**
+ * Send a notification email to the admin about a new contact form submission
+ */
+async function sendAdminNotificationEmail({ name, email, company, message }) {
+  if (!process.env.SENDGRID_API_KEY) {
+    return { 
+      success: false, 
+      error: 'SendGrid API key not configured' 
+    };
+  }
+  
+  try {
+    const msg = {
       to: 'info@dryground.ai',
       from: {
         email: 'info@dryground.ai',
         name: 'Dry Ground AI Website'
       },
-      subject: `New Contact Form Submission from ${name}`,
+      subject: 'New Contact Form Submission',
       text: `
+        New contact form submission:
+        
         Name: ${name}
         Email: ${email}
         Company: ${company || 'Not specified'}
@@ -53,82 +99,24 @@ async function sendContactEmail({ name, email, message, company = '' }) {
       `
     };
     
-    // Confirmation email to user
-    const userMsg = {
-      to: email,
-      from: {
-        email: 'info@dryground.ai',
-        name: 'Dry Ground AI'
-      },
-      subject: 'Thank you for contacting Dry Ground AI',
-      text: `
-        Dear ${name},
-        
-        Thank you for contacting Dry Ground AI. We have received your message and will get back to you as soon as possible.
-        
-        Best regards,
-        The Dry Ground AI Team
-      `,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Thank you for contacting us!</h2>
-          <p>Dear ${name},</p>
-          <p>Thank you for reaching out to Dry Ground AI. We have received your message and will get back to you as soon as possible.</p>
-          <p>Best regards,<br>The Dry Ground AI Team</p>
-        </div>
-      `
-    };
-    
-    // Send emails one at a time to isolate any issues
-    try {
-      console.log('Sending admin notification email');
-      await sgMail.send(adminMsg);
-      console.log('Admin notification email sent successfully');
-    } catch (adminError) {
-      console.error('Error sending admin notification email:', adminError);
-      if (adminError.response) {
-        console.error('SendGrid API error (admin):', adminError.response.body);
-      }
-      // Continue to try sending user email even if admin email fails
-    }
-    
-    try {
-      console.log('Sending user confirmation email');
-      await sgMail.send(userMsg);
-      console.log('User confirmation email sent successfully');
-    } catch (userError) {
-      console.error('Error sending user confirmation email:', userError);
-      if (userError.response) {
-        console.error('SendGrid API error (user):', userError.response.body);
-      }
-      return { 
-        success: false, 
-        error: 'Failed to send confirmation email',
-        details: userError.message
-      };
-    }
+    console.log('Sending admin notification email to: info@dryground.ai');
+    await sgMail.send(msg);
+    console.log('Admin notification email sent successfully');
     
     return { success: true };
-    
   } catch (error) {
-    console.error('Error in sendContactEmail function:', error);
-    
-    if (error.response && error.response.body) {
-      console.error('SendGrid API error response:', error.response.body);
-      return { 
-        success: false, 
-        error: `SendGrid API error: ${error.code || error.message}`, 
-        details: error.response.body 
-      };
+    console.error('Error sending admin notification email:', error);
+    if (error.response) {
+      console.error(error.response.body);
     }
-    
     return { 
       success: false, 
-      error: error.message || 'Unknown error sending email' 
+      error: error.message || 'Failed to send admin notification email' 
     };
   }
 }
 
 module.exports = {
-  sendContactEmail
+  sendContactConfirmationEmail,
+  sendAdminNotificationEmail
 };

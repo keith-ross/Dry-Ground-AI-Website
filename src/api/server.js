@@ -1,72 +1,99 @@
+
 const express = require('express');
 const cors = require('cors');
-const { sendContactEmail } = require('../lib/emailService');
+const { sendContactConfirmationEmail, sendAdminNotificationEmail } = require('../lib/emailService');
+const { saveContactSubmission } = require('../lib/db');
+
+// Configure environment variables
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
+// Configure CORS
+app.use(cors({
+  origin: '*', // In production, you would restrict this to your domain
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Parse JSON request body
 app.use(express.json());
 
-// Health check endpoint
+// Server health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'API is running' });
+  res.status(200).json({ status: 'ok', message: 'API server is running' });
 });
 
 // Contact form submission endpoint
 app.post('/api/contact', async (req, res) => {
-  try {
-    const { name, email, message, company } = req.body;
-
-    // Validate required fields
-    if (!name || !email || !message) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Missing required fields' 
-      });
-    }
-
-    console.log('Received contact form submission:', { name, email, company });
-
-    // Send emails
-    const result = await sendContactEmail({ name, email, message, company });
-
-    if (result.success) {
-      return res.json({ 
-        success: true, 
-        message: 'Contact form submitted successfully' 
-      });
-    } else {
-      console.error('Email sending failed:', result.error);
-      return res.status(500).json({ 
-        success: false, 
-        error: result.error,
-        details: result.details
-      });
-    }
-  } catch (error) {
-    console.error('Error processing contact form:', error);
-    res.status(500).json({ 
+  console.log('Received contact form submission');
+  
+  const { name, email, company, message } = req.body;
+  
+  // Validate required fields
+  if (!name || !email || !message) {
+    console.error('Missing required fields in contact form submission');
+    return res.status(400).json({ 
       success: false, 
-      error: error.message || 'An unexpected error occurred' 
+      message: 'Name, email, and message are required fields' 
+    });
+  }
+
+  try {
+    // Save submission to database if db module is available
+    try {
+      if (typeof saveContactSubmission === 'function') {
+        console.log('Saving contact submission to database...');
+        await saveContactSubmission({ name, email, company, message });
+        console.log('Contact submission saved to database');
+      }
+    } catch (dbError) {
+      console.error('Error saving to database, continuing with email sending:', dbError);
+      // Continue with email sending even if database saving fails
+    }
+
+    // Send notification email to admin
+    console.log('Sending admin notification email...');
+    const adminEmailResult = await sendAdminNotificationEmail({ name, email, company, message });
+    
+    if (!adminEmailResult.success) {
+      console.error('Failed to send admin notification:', adminEmailResult.error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to process your request due to email service issues',
+        error: adminEmailResult.error
+      });
+    }
+
+    // Send confirmation email to the user
+    console.log('Sending user confirmation email...');
+    const userEmailResult = await sendContactConfirmationEmail({ name, email });
+    
+    if (!userEmailResult.success) {
+      console.error('Failed to send user confirmation:', userEmailResult.error);
+      // Continue since the admin notification was sent successfully
+    }
+
+    // Return success
+    console.log('Contact form submission processed successfully');
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Form submitted successfully' 
+    });
+  } catch (error) {
+    console.error('Error processing contact form submission:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Server error processing your request',
+      error: error.message || 'Unknown error'
     });
   }
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
-});
-
-// Error handler
-app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  res.status(500).json({ error: 'Internal server error', details: err.message });
-});
-
-// Start the server
+// Start the API server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`API server running on port ${PORT}`);
-  console.log(`Health check available at: http://0.0.0.0:${PORT}/api/health`);
+  console.log(`API server running on http://0.0.0.0:${PORT}`);
 });
+
+module.exports = app; // Export for testing

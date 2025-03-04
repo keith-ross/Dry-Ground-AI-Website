@@ -1,5 +1,10 @@
 
-import { useState, FormEvent } from 'react';
+import React, { useState } from 'react';
+import { Send, Loader2 } from 'lucide-react';
+
+interface ContactFormProps {
+  className?: string;
+}
 
 interface FormData {
   name: string;
@@ -8,178 +13,223 @@ interface FormData {
   message: string;
 }
 
-export default function ContactForm() {
+interface FormErrors {
+  name?: string;
+  email?: string;
+  message?: string;
+}
+
+const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
     company: '',
-    message: '',
+    message: ''
   });
   
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<{
-    success?: boolean;
-    message?: string;
-    error?: string;
-  }>({});
-
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+    
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email';
+    }
+    
+    if (!formData.message.trim()) {
+      newErrors.message = 'Message is required';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error for this field if it exists
+    if (errors[name as keyof FormErrors]) {
+      setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
   };
-
-  const handleSubmit = async (e: FormEvent) => {
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Client-side validation
-    if (!formData.name || !formData.email || !formData.message) {
-      setSubmitStatus({
-        success: false,
-        error: 'Please fill out all required fields',
-      });
+    // Reset states
+    setErrorMessage('');
+    
+    // Validate form
+    if (!validateForm()) {
       return;
     }
     
-    // Reset status and set loading
-    setSubmitStatus({});
-    setIsSubmitting(true);
+    // Set submitting state
+    setStatus('submitting');
     
     try {
-      console.log('Submitting form data:', formData);
-      
+      // Make API request
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formData)
       });
       
+      // Parse response
       const result = await response.json();
       
-      if (response.ok && result.success) {
-        // Success
-        setSubmitStatus({
-          success: true,
-          message: 'Thank you! Your message has been sent.',
-        });
-        
-        // Reset form
-        setFormData({
-          name: '',
-          email: '',
-          company: '',
-          message: '',
-        });
-      } else {
-        // API returned an error
-        console.error('Form submission error:', result);
-        setSubmitStatus({
-          success: false,
-          error: result.error || 'Something went wrong. Please try again later.',
-        });
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to submit the form');
       }
-    } catch (error) {
-      // Network or other error
-      console.error('Form submission exception:', error);
-      setSubmitStatus({
-        success: false,
-        error: 'Network error. Please try again later.',
+      
+      // Success!
+      setStatus('success');
+      
+      // Reset form after successful submission
+      setFormData({
+        name: '',
+        email: '',
+        company: '',
+        message: ''
       });
-    } finally {
-      setIsSubmitting(false);
+      
+      // Reset form back to idle after 5 seconds
+      setTimeout(() => {
+        setStatus('idle');
+      }, 5000);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setStatus('error');
+      setErrorMessage(error instanceof Error ? error.message : 'An unexpected error occurred');
+      
+      // Reset error status after 5 seconds
+      setTimeout(() => {
+        setStatus('idle');
+      }, 5000);
     }
   };
-
+  
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Contact Us</h2>
+    <div className={className}>
+      <h3 className="text-xl font-semibold text-white mb-4">Get in Touch</h3>
       
-      {submitStatus.success && (
-        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
-          {submitStatus.message}
+      {status === 'success' ? (
+        <div className="bg-green-500/20 border border-green-500 rounded-lg p-4 text-green-200">
+          <p className="font-medium">Thank you for your message!</p>
+          <p className="text-sm mt-1">We'll get back to you as soon as possible.</p>
         </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {status === 'error' && (
+            <div className="bg-red-500/20 border border-red-500 rounded-lg p-4 text-red-200">
+              <p className="font-medium">Submission failed</p>
+              <p className="text-sm mt-1">{errorMessage || 'Please try again or contact us directly.'}</p>
+            </div>
+          )}
+          
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
+              Your Name*
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className={`w-full bg-brand-darker text-white px-4 py-2 rounded-md border ${
+                errors.name ? 'border-red-500' : 'border-gray-700'
+              } focus:outline-none focus:ring-2 focus:ring-brand-primary`}
+              disabled={status === 'submitting'}
+            />
+            {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
+          </div>
+          
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
+              Email Address*
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className={`w-full bg-brand-darker text-white px-4 py-2 rounded-md border ${
+                errors.email ? 'border-red-500' : 'border-gray-700'
+              } focus:outline-none focus:ring-2 focus:ring-brand-primary`}
+              disabled={status === 'submitting'}
+            />
+            {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+          </div>
+          
+          <div>
+            <label htmlFor="company" className="block text-sm font-medium text-gray-300 mb-1">
+              Company (Optional)
+            </label>
+            <input
+              type="text"
+              id="company"
+              name="company"
+              value={formData.company}
+              onChange={handleChange}
+              className="w-full bg-brand-darker text-white px-4 py-2 rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+              disabled={status === 'submitting'}
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-1">
+              Message*
+            </label>
+            <textarea
+              id="message"
+              name="message"
+              value={formData.message}
+              onChange={handleChange}
+              rows={4}
+              className={`w-full bg-brand-darker text-white px-4 py-2 rounded-md border ${
+                errors.message ? 'border-red-500' : 'border-gray-700'
+              } focus:outline-none focus:ring-2 focus:ring-brand-primary`}
+              disabled={status === 'submitting'}
+            />
+            {errors.message && <p className="text-red-400 text-xs mt-1">{errors.message}</p>}
+          </div>
+          
+          <button
+            type="submit"
+            disabled={status === 'submitting'}
+            className="w-full py-2.5 px-4 bg-brand-primary hover:bg-brand-primary/90 text-white font-medium rounded-md flex items-center justify-center transition-colors disabled:opacity-70"
+          >
+            {status === 'submitting' ? (
+              <>
+                <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <Send className="mr-2 h-4 w-4" />
+                Send Message
+              </>
+            )}
+          </button>
+          
+          <p className="text-gray-400 text-xs">* Required fields</p>
+        </form>
       )}
-      
-      {submitStatus.error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-          {submitStatus.error}
-        </div>
-      )}
-      
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="name" className="block text-gray-700 mb-2">
-            Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-        
-        <div className="mb-4">
-          <label htmlFor="email" className="block text-gray-700 mb-2">
-            Email <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-        
-        <div className="mb-4">
-          <label htmlFor="company" className="block text-gray-700 mb-2">
-            Company
-          </label>
-          <input
-            type="text"
-            id="company"
-            name="company"
-            value={formData.company}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        
-        <div className="mb-4">
-          <label htmlFor="message" className="block text-gray-700 mb-2">
-            Message <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            id="message"
-            name="message"
-            value={formData.message}
-            onChange={handleChange}
-            rows={5}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          ></textarea>
-        </div>
-        
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className={`w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
-          {isSubmitting ? 'Sending...' : 'Send Message'}
-        </button>
-      </form>
     </div>
   );
-}
+};
+
+export default ContactForm;
