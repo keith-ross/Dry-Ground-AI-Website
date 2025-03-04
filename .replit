@@ -41,7 +41,7 @@ author = 37597866
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "npm run dev & node start-server.js"
 
 [[ports]]
 localPort = 3000
@@ -58,11 +58,14 @@ externalPort = 3002
 [[ports]]
 localPort = 5173
 externalPort = 5173
+exposeLocalhost = true
 
 [[ports]]
 localPort = 5174
 externalPort = 3000
+exposeLocalhost = true
 
 [[ports]]
 localPort = 5175
 externalPort = 3003
+exposeLocalhost = true
