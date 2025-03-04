@@ -3,6 +3,7 @@
 import fetch from 'node-fetch';
 import { exec } from 'child_process';
 import dotenv from 'dotenv';
+import fs from 'fs';
 
 // Load environment variables
 dotenv.config();
@@ -13,10 +14,21 @@ const API_URL = `http://localhost:${PORT}/api/health`;
 console.log('Checking API server status...');
 console.log(`Testing API health endpoint: ${API_URL}`);
 
+// Check for SendGrid API key
+console.log('\nEnvironment check:');
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+console.log('SendGrid API Key configured:', SENDGRID_API_KEY ? '✅ Yes' : '❌ No');
+if (SENDGRID_API_KEY) {
+  console.log('  Key format valid:', SENDGRID_API_KEY.startsWith('SG.') ? '✅ Yes' : '❌ No');
+  console.log('  Key length:', SENDGRID_API_KEY.length);
+}
+console.log('FROM_EMAIL configured:', process.env.FROM_EMAIL ? `✅ ${process.env.FROM_EMAIL}` : '❌ No');
+console.log('ADMIN_EMAIL configured:', process.env.ADMIN_EMAIL ? `✅ ${process.env.ADMIN_EMAIL}` : '❌ No');
+
 // Try to fetch the API health endpoint
 async function checkServer() {
   try {
-    console.log('Attempting to connect to API server...');
+    console.log('\nAttempting to connect to API server...');
     
     const response = await fetch(API_URL, { 
       timeout: 5000,
@@ -51,6 +63,35 @@ async function checkServer() {
         console.log('  From Email:', data.emailService.fromEmail);
         console.log('  Admin Email:', data.emailService.adminEmail);
       }
+    }
+
+    // Test contact form endpoint
+    console.log('\nTesting contact form endpoint...');
+    const testData = {
+      name: 'Test User',
+      email: 'test@example.com',
+      company: 'Test Company',
+      message: 'This is a test message from the server check script.'
+    };
+
+    try {
+      const contactResponse = await fetch(`http://localhost:${PORT}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(testData)
+      });
+
+      console.log('Contact API response status:', contactResponse.status);
+      const contactData = await contactResponse.json();
+      console.log('Contact API response:', JSON.stringify(contactData, null, 2));
+
+      if (contactResponse.ok && contactData.success) {
+        console.log('✅ Contact endpoint working correctly');
+      } else {
+        console.log('❌ Contact endpoint test failed');
+      }
+    } catch (error) {
+      console.log('❌ Contact endpoint test error:', error.message);
     }
 
     return true;

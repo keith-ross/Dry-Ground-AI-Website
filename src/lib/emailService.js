@@ -1,6 +1,9 @@
 // src/lib/emailService.js
 import sgMail from '@sendgrid/mail';
 
+// Create a version that works in both browser and Node.js environments
+const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
+
 // Initialize the SendGrid client with the API key
 export function initSendGrid() {
   const apiKey = process.env.SENDGRID_API_KEY;
@@ -19,57 +22,40 @@ export function initSendGrid() {
   }
 }
 
-// Send contact form email
+/**
+ * Send contact form data to the backend API
+ * @param {Object} formData - Contact form data
+ * @returns {Promise<Object>} - Response from the API
+ */
 export async function sendContactEmail(formData) {
-  if (!process.env.SENDGRID_API_KEY) {
-    return { 
-      success: false, 
-      error: 'SendGrid API key is not configured' 
-    };
-  }
-
-  if (!process.env.FROM_EMAIL || !process.env.ADMIN_EMAIL) {
-    return { 
-      success: false, 
-      error: 'Email addresses not properly configured' 
-    };
-  }
-
-  const { name, email, company, message } = formData;
-
   try {
-    const emailContent = {
-      to: process.env.ADMIN_EMAIL,
-      from: process.env.FROM_EMAIL,
-      subject: `Contact Form: ${name}`,
-      text: `
-Name: ${name}
-Email: ${email}
-Company: ${company || 'Not provided'}
-Message: ${message}
-      `,
-      html: `
-<h3>New Contact Form Submission</h3>
-<p><strong>Name:</strong> ${name}</p>
-<p><strong>Email:</strong> ${email}</p>
-<p><strong>Company:</strong> ${company || 'Not provided'}</p>
-<p><strong>Message:</strong> ${message}</p>
-      `
-    };
+    // In browser, call the API
+    const apiUrl = '/api/contact';
 
-    await sgMail.send(emailContent);
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
 
-    return { success: true };
-  } catch (error) {
-    console.error('Email sending error:', error);
-
-    if (error.response) {
-      console.error('SendGrid API error:', error.response.body);
+    if (!response.ok) {
+      let errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        return { success: false, error: errorJson.error || 'Server error' };
+      } catch (e) {
+        return { success: false, error: errorText || 'Server error' };
+      }
     }
 
+    return await response.json();
+  } catch (error) {
+    console.error('Error sending contact email:', error);
     return { 
       success: false, 
-      error: 'Failed to send email. Please try again later.' 
+      error: error.message || 'Failed to connect to server' 
     };
   }
 }

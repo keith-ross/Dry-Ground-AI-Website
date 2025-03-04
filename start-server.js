@@ -1,3 +1,4 @@
+
 // start-server.js
 import { spawn } from 'child_process';
 import path from 'path';
@@ -16,6 +17,7 @@ const SERVER_PATH = path.join(__dirname, 'src', 'api', 'server.js');
 
 console.log('Starting API server...');
 console.log('Server path:', SERVER_PATH);
+console.log('PORT:', PORT);
 
 // Verify the server file exists
 if (!fs.existsSync(SERVER_PATH)) {
@@ -23,10 +25,16 @@ if (!fs.existsSync(SERVER_PATH)) {
   process.exit(1);
 }
 
+// Check if environment variables are set
+console.log('\nEnvironment variables:');
+console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY ? 'Set (length: ' + process.env.SENDGRID_API_KEY.length + ')' : 'Not set');
+console.log('FROM_EMAIL:', process.env.FROM_EMAIL || 'Not set');
+console.log('ADMIN_EMAIL:', process.env.ADMIN_EMAIL || 'Not set');
+
 // Start the server
 function startServer() {
   try {
-    console.log('Starting the API server...');
+    console.log('\nStarting the API server...');
     const serverProcess = spawn('node', [SERVER_PATH], {
       stdio: 'inherit',
       env: {
