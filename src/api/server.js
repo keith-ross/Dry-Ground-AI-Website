@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { sendEmail } from '../lib/emailService.js';
+import { sendEmail } from './emailService.js';
 import { initDb, saveContactSubmission } from './database.js';
 
 // Load environment variables
