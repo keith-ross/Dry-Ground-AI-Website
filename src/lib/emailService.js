@@ -4,79 +4,74 @@
 
 import sgMail from '@sendgrid/mail';
 
-// Initialize SendGrid with API key
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-  console.log('SendGrid API key is configured');
-} else {
-  console.warn('WARNING: SendGrid API key is not configured');
-}
-
+// Email service using SendGrid
 /**
- * Send contact form data to the API
- * @param {Object} formData - Form data containing name, email, company, and message
- * @returns {Promise<Object>} Result of sending the email
+ * Send a contact form email
+ * @param {Object} data - Contact form data
+ * @returns {Promise<Object>} - Response object
  */
-export async function sendContactEmail(formData) {
-  console.log('Submitting form data:', formData);
-
+export async function sendContactEmail(data) {
   try {
-    // Use relative API URL for both local and production environments
-    const apiUrl = '/api/contact';
-    console.log('Sending form data to API:', formData);
+    // Get SendGrid API key from environment
+    const apiKey = process.env.SENDGRID_API_KEY;
 
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(formData),
+    if (!apiKey) {
+      console.error('SENDGRID_API_KEY is not configured');
+      return { success: false, message: 'Email service is not configured properly' };
+    }
+
+    // Configure SendGrid
+    sgMail.setApiKey(apiKey);
+
+    // Validate required fields
+    if (!data.email || !data.name || !data.message) {
+      return { success: false, message: 'Required fields missing' };
+    }
+
+    // Format email
+    const msg = {
+      to: process.env.TO_EMAIL || 'keith.ross@anchoredup.org', // Default recipient
+      from: process.env.FROM_EMAIL || 'contact@anchoredup.org', // Default sender
+      subject: `Contact form submission from ${data.name}`,
+      text: `
+Name: ${data.name}
+Email: ${data.email}
+${data.company ? `Company: ${data.company}` : ''}
+
+Message:
+${data.message}
+      `,
+      html: `
+<h3>New Contact Form Submission</h3>
+<p><strong>Name:</strong> ${data.name}</p>
+<p><strong>Email:</strong> ${data.email}</p>
+${data.company ? `<p><strong>Company:</strong> ${data.company}</p>` : ''}
+<p><strong>Message:</strong></p>
+<p>${data.message.replace(/\n/g, '<br>')}</p>
+      `
+    };
+
+    // Log debug info
+    console.log('Sending email with data:', {
+      to: msg.to,
+      from: msg.from,
+      subject: msg.subject,
+      name: data.name,
+      email: data.email
     });
 
-    console.log('API response status:', response.status);
+    // Send the email
+    await sgMail.send(msg);
 
-    // Handle non-JSON responses gracefully
-    const responseText = await response.text();
-    console.log('Raw API response:', responseText);
-
-    let data;
-    try {
-      // Only try to parse if there's actual content
-      if (responseText && responseText.trim()) {
-        data = JSON.parse(responseText);
-        console.log('Parsed API response:', data);
-      } else {
-        console.log('Empty API response');
-        return { 
-          success: false, 
-          error: 'Empty response from server' 
-        };
-      }
-    } catch (e) {
-      console.error('Failed to parse API response as JSON:', e);
-      return { 
-        success: false, 
-        error: 'Invalid response from server' 
-      };
-    }
-
-    if (!response.ok) {
-      return { 
-        success: false, 
-        error: data?.error || `Server returned error: ${response.status}` 
-      };
-    }
-
-    return { 
-      success: true, 
-      message: data?.message || 'Message sent successfully' 
-    };
+    return { success: true, message: 'Email sent successfully' };
   } catch (error) {
-    console.error('Contact form API error:', error);
-    return {
+    console.error('Error sending email:', error);
+    // Return structured error for easier debugging
+    return { 
       success: false, 
-      error: error.message || 'Failed to fetch'
+      message: 'Failed to send email',
+      error: error.message || 'Unknown error',
+      code: error.code || 'UNKNOWN_ERROR'
     };
   }
 }
