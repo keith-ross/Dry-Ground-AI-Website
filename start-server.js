@@ -1,3 +1,4 @@
+
 const { spawn } = require('child_process');
 const chalk = require('chalk');
 
@@ -5,7 +6,8 @@ console.log(chalk.blue('Starting API server...'));
 
 const server = spawn('node', ['--loader', 'ts-node/esm', 'src/api/server.ts'], {
   stdio: 'pipe',
-  shell: true
+  shell: true,
+  env: { ...process.env, NODE_ENV: 'development' }
 });
 
 server.stdout.on('data', (data) => {
@@ -31,6 +33,10 @@ server.on('close', (code) => {
       process.exit();
     }, 5000);
   }
+});
+
+process.on('uncaughtException', (err) => {
+  console.error(chalk.red('[Uncaught Exception]'), err);
 });
 
 process.on('SIGINT', () => {

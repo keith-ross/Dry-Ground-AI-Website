@@ -1,4 +1,3 @@
-
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -35,7 +34,7 @@ app.get('/api/health', (req, res) => {
 app.post('/api/contact', async (req, res) => {
   try {
     console.log('Received contact form submission:', req.body);
-    
+
     const { name, email, company, message } = req.body;
 
     if (!name || !email || !message) {
@@ -66,7 +65,7 @@ app.post('/api/contact', async (req, res) => {
       console.error('Error sending confirmation email:', emailError);
       // We'll continue even if email fails
     }
-    
+
     // Return success response
     return res.status(200).json({
       success: true,
@@ -77,19 +76,6 @@ app.post('/api/contact', async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'An unexpected error occurred. Please try again later.'
-    });
-  }
-
-    return res.status(200).json({ 
-      success: true, 
-      message: 'Contact form submission successful' 
-    });
-  } catch (error) {
-    console.error('Error processing contact form submission:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: 'An error occurred processing your request',
-      error: error.message
     });
   }
 });
@@ -106,7 +92,7 @@ app.use((err, req, res, next) => {
 
 // Start the API server
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
   console.log(`API server running on port ${PORT}`);
 });
 
