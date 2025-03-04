@@ -79,6 +79,56 @@ const ContactForm: React.FC = () => {
       success: null,
       message: ''
     });
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      setSubmitResult({
+        success: false,
+        message: 'Please fix the errors in the form.'
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Use the API endpoint from the correct port
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Clear form on success
+        setFormData({
+          name: '',
+          email: '',
+          company: '',
+          message: ''
+        });
+        
+        setSubmitResult({
+          success: true,
+          message: data.message || 'Thank you for your message! We will get back to you soon.'
+        });
+      } else {
+        throw new Error(data.message || 'Failed to submit form');
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setSubmitResult({
+        success: false,
+        message: error.message || 'An error occurred while submitting the form. Please try again.'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
     if (!validateForm()) {
       return;
