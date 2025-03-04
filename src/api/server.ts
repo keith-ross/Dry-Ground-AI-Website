@@ -1,66 +1,50 @@
 import express from 'express';
 import cors from 'cors';
-import { addContact } from '../lib/db.js';
-import { sendEmail } from '../lib/emailService.js';
+import { initDb, saveContactSubmission } from '../lib/db';
+import { sendConfirmationEmail } from '../lib/emailService';
 
 const app = express();
-const port = process.env.PORT || 3001;
+const PORT = 3001;
+
+// Initialize the database
+initDb().catch(err => {
+  console.error('Failed to initialize database:', err);
+  process.exit(1);
+});
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Contact form submission endpoint
+// Contact form endpoint
 app.post('/api/contact', async (req, res) => {
-  const { name, email, message } = req.body;
-
-  // Validate input
-  if (!name || !email || !message) {
-    return res.status(400).json({ 
-      success: false, 
-      error: 'Name, email, and message are required' 
-    });
-  }
-
   try {
+    const { name, email, company, message } = req.body;
+
+    // Basic validation
+    if (!name || !email || !message) {
+      return res.status(400).json({ success: false, message: 'Name, email, and message are required' });
+    }
+
     // Save to database
-    await addContact({ name, email, message });
+    await saveContactSubmission({ name, email, company, message });
 
     // Send confirmation email
-    await sendEmail({
-      to: email,
-      subject: 'Thank you for contacting Dry Ground AI',
-      text: `Dear ${name},\n\nThank you for reaching out to us. We have received your message and will get back to you shortly.\n\nBest regards,\nDry Ground AI Team`,
-      html: `<p>Dear ${name},</p><p>Thank you for reaching out to us. We have received your message and will get back to you shortly.</p><p>Best regards,<br>Dry Ground AI Team</p>`
-    });
+    try {
+      await sendConfirmationEmail(email, name);
+    } catch (emailError) {
+      console.error('Failed to send confirmation email:', emailError);
+      // We'll continue even if email fails
+    }
 
-    // Send notification to admin
-    const adminEmail = process.env.ADMIN_EMAIL || 'info@drygroundai.com';
-    await sendEmail({
-      to: adminEmail,
-      subject: 'New Contact Form Submission',
-      text: `New contact form submission:\n\nName: ${name}\nEmail: ${email}\nMessage: ${message}`,
-      html: `<h3>New contact form submission</h3><p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Message:</strong> ${message}</p>`
-    });
-
-    return res.status(200).json({ success: true });
+    res.status(200).json({ success: true, message: 'Contact form submission successful' });
   } catch (error) {
-    console.error('Error processing contact form:', error);
-    return res.status(500).json({ 
-      success: false, 
-      error: 'Failed to process your request. Please try again later.' 
-    });
+    console.error('Error processing contact form submission:', error);
+    res.status(500).json({ success: false, message: 'An error occurred processing your request' });
   }
-});
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
 });
 
 // Start server
-app.listen(port, '0.0.0.0', () => {
-  console.log(`API server listening on port ${port}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`API server running on port ${PORT}`);
 });
-
-export default app;

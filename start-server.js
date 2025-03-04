@@ -13,7 +13,7 @@ if (!fs.existsSync(dataDir)) {
 
 // Start API server
 console.log(chalk.blue('Starting API server...'));
-const apiServer = spawn('node', ['--experimental-specifier-resolution=node', '--loader', 'ts-node/esm', 'src/api/server.ts'], {
+const apiServer = spawn('npx', ['ts-node', 'src/api/server.ts'], {
   env: { ...process.env, NODE_ENV: 'development' }
 });
 
@@ -27,7 +27,7 @@ apiServer.stderr.on('data', (data) => {
 
 // Start Vite dev server
 console.log(chalk.green('Starting Vite development server...'));
-const viteServer = spawn('vite', [], {
+const viteServer = spawn('npx', ['vite'], {
   env: { ...process.env, NODE_ENV: 'development' }
 });
 
