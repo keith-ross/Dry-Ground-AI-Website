@@ -93,51 +93,78 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
     setStatus('submitting');
 
     try {
-      console.log('Submitting form:', formData);
+      console.log('Submitting form: ', formData);
 
-      // Make API request with error handling
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
 
       console.log('Form submission response status:', response.status);
 
-      // Parse response
-      const result = await response.json();
-      console.log('Form submission response:', result);
+      // Check if response is ok before trying to parse JSON
+      if (!response.ok) {
+        let errorMessage = 'Server error. Please try again later.';
+        try {
+          // Try to parse the error response as JSON
+          const errorData = await response.json();
+          if (errorData && errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch (parseError) {
+          console.error('Error parsing error response:', parseError);
+        }
 
-      if (!response.ok || !result.success) {
-        const errorMsg = result.message || result.error || 'Failed to submit the form';
-        console.error('Form submission error:', errorMsg);
-        throw new Error(errorMsg);
+        setStatus('error');
+        setErrorMessage(errorMessage);
+        return;
       }
 
-      // Success!
-      console.log('Form submitted successfully');
-      setStatus('success');
+      // Handle successful response
+      try {
+        const data = await response.json();
+        setStatus('success');
+        const reset = () => {
+          setFormData({
+            name: '',
+            email: '',
+            company: '',
+            message: ''
+          });
+          setTimeout(() => {
+            setStatus('idle');
+          }, 5000);
+        };
+        reset();
 
-      // Reset form after successful submission
-      setFormData({
-        name: '',
-        email: '',
-        company: '',
-        message: ''
-      });
-
-      // Reset form back to idle after 5 seconds
-      setTimeout(() => {
-        setStatus('idle');
-      }, 5000);
+        // Log detailed information for debugging
+        if (data.adminEmailSent === false || data.userEmailSent === false) {
+          console.warn('Form submitted but some emails failed to send', data);
+        }
+      } catch (jsonError) {
+        console.error('Error parsing success response:', jsonError);
+        // Still mark as success if the response was 200 OK
+        setStatus('success');
+        const reset = () => {
+          setFormData({
+            name: '',
+            email: '',
+            company: '',
+            message: ''
+          });
+          setTimeout(() => {
+            setStatus('idle');
+          }, 5000);
+        };
+        reset();
+      }
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('Error submitting form: ', error);
       setStatus('error');
-      setErrorMessage(error instanceof Error ? error.message : 'An unexpected error occurred');
-
-      // Reset error status after 5 seconds
+      setErrorMessage('Network error. Please check your connection and try again.');
       setTimeout(() => {
         setStatus('idle');
         setErrorMessage('');

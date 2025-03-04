@@ -4,7 +4,7 @@ const sgMail = require('@sendgrid/mail');
 // Set SendGrid API key
 if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-  console.log('SendGrid API key found with length:', process.env.SENDGRID_API_KEY.length);
+  console.log('SendGrid API key configured successfully');
 } else {
   console.warn('SENDGRID_API_KEY not found in environment variables. Email service will not work.');
 }
@@ -41,28 +41,35 @@ async function sendContactConfirmationEmail({ name, email }) {
     };
     
     console.log('Attempting to send confirmation email to:', email);
-    const [response] = await sgMail.send(msg);
     
-    if (response && response.statusCode && response.statusCode >= 200 && response.statusCode < 300) {
-      console.log('Confirmation email sent successfully, status code:', response.statusCode);
-      return { success: true };
-    } else {
-      console.error('Unexpected response from SendGrid:', response);
-      return {
-        success: false,
-        error: `Unexpected response: ${JSON.stringify(response)}`
+    try {
+      const [response] = await sgMail.send(msg);
+      
+      if (response && response.statusCode && response.statusCode >= 200 && response.statusCode < 300) {
+        console.log('Confirmation email sent successfully, status code:', response.statusCode);
+        return { success: true };
+      } else {
+        console.warn('Unexpected response from SendGrid:', response);
+        return { 
+          success: false, 
+          error: 'Unexpected response from email service' 
+        };
+      }
+    } catch (sendError) {
+      console.error('Error in sgMail.send():', sendError);
+      
+      // Return a more detailed error for debugging
+      return { 
+        success: false, 
+        error: sendError.message || 'Error sending email',
+        details: sendError.response ? sendError.response.body : null
       };
     }
   } catch (error) {
-    console.error('Error sending confirmation email:', error);
-    // Extract the detailed SendGrid error if available
-    const sgError = error.response && error.response.body ? 
-      JSON.stringify(error.response.body) : 
-      error.message || 'Unknown error';
-    
+    console.error('Error preparing confirmation email:', error);
     return { 
       success: false, 
-      error: `Failed to send confirmation email: ${sgError}`
+      error: error.message || 'Failed to send confirmation email' 
     };
   }
 }
@@ -112,28 +119,35 @@ async function sendAdminNotificationEmail({ name, email, company, message }) {
     };
     
     console.log('Attempting to send admin notification email to: info@dryground.ai');
-    const [response] = await sgMail.send(msg);
     
-    if (response && response.statusCode && response.statusCode >= 200 && response.statusCode < 300) {
-      console.log('Admin notification email sent successfully, status code:', response.statusCode);
-      return { success: true };
-    } else {
-      console.error('Unexpected response from SendGrid:', response);
-      return {
-        success: false,
-        error: `Unexpected response: ${JSON.stringify(response)}`
+    try {
+      const [response] = await sgMail.send(msg);
+      
+      if (response && response.statusCode && response.statusCode >= 200 && response.statusCode < 300) {
+        console.log('Admin notification email sent successfully, status code:', response.statusCode);
+        return { success: true };
+      } else {
+        console.warn('Unexpected response from SendGrid for admin email:', response);
+        return { 
+          success: false, 
+          error: 'Unexpected response from email service' 
+        };
+      }
+    } catch (sendError) {
+      console.error('Error in sgMail.send() for admin email:', sendError);
+      
+      // Return a more detailed error for debugging
+      return { 
+        success: false, 
+        error: sendError.message || 'Error sending admin email',
+        details: sendError.response ? sendError.response.body : null
       };
     }
   } catch (error) {
-    console.error('Error sending admin notification email:', error);
-    // Extract the detailed SendGrid error if available
-    const sgError = error.response && error.response.body ? 
-      JSON.stringify(error.response.body) : 
-      error.message || 'Unknown error';
-    
+    console.error('Error preparing admin notification email:', error);
     return { 
       success: false, 
-      error: `Failed to send admin notification email: ${sgError}`
+      error: error.message || 'Failed to send admin notification email' 
     };
   }
 }

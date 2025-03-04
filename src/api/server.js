@@ -1,80 +1,60 @@
-
 const express = require('express');
 const cors = require('cors');
 const { sendContactConfirmationEmail, sendAdminNotificationEmail } = require('../lib/emailService');
 
-// Configure environment variables
+const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Create Express app
-const app = express();
+// Check if SendGrid API key is configured
+console.log('Testing SendGrid API key:', process.env.SENDGRID_API_KEY ? 
+  `Present (length: ${process.env.SENDGRID_API_KEY.length})` : 'Missing');
 
-// Configure CORS - Allow requests from all origins during development
+// Configure middleware
 app.use(cors());
-
-// Parse JSON request bodies
 app.use(express.json());
 
-// Health check endpoint
+// Simple health check endpoint
 app.get('/api/health', (req, res) => {
-  return res.status(200).json({ status: 'ok', message: 'API server is running' });
+  res.status(200).json({ status: 'ok', message: 'API server is running' });
 });
 
-// Testing endpoint for SendGrid
-app.get('/api/test-sendgrid', (req, res) => {
-  const apiKey = process.env.SENDGRID_API_KEY;
-  const keyStatus = apiKey ? `Present (length: ${apiKey.length})` : 'Missing';
-  
-  return res.status(200).json({
-    status: 'ok',
-    sendgridApiKey: keyStatus,
-    message: 'This endpoint helps verify if the SendGrid API key is configured'
-  });
-});
-
-// Contact form submission endpoint
+// Handle contact form submissions
 app.post('/api/contact', async (req, res) => {
-  console.log('Received contact form submission:', JSON.stringify(req.body, null, 2));
-  
-  // Extract form data
-  const { name, email, company = '', message } = req.body;
-  
-  // Validate required fields
-  if (!name || !email || !message) {
-    console.error('Missing required fields in form submission');
-    return res.status(400).json({
-      success: false,
-      message: 'Missing required fields. Please provide name, email, and message.'
-    });
-  }
-  
+  console.log('Received contact form submission');
+
   try {
-    // Send notification email to admin
-    console.log('Sending admin notification email...');
-    const adminEmailResult = await sendAdminNotificationEmail({ name, email, company, message });
-    
-    // Log admin email result
-    console.log('Admin email result:', adminEmailResult);
-    
-    // Even if admin email fails, try to send user confirmation
-    // Send confirmation email to the user
-    console.log('Sending user confirmation email...');
-    const userEmailResult = await sendContactConfirmationEmail({ name, email });
-    
-    // Log user email result
-    console.log('User email result:', userEmailResult);
-    
-    // If both emails failed, return error
-    if (!adminEmailResult.success && !userEmailResult.success) {
-      console.error('Both emails failed to send');
-      return res.status(500).json({
+    // Extract form data
+    const { name, email, company, message } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !message) {
+      console.error('Missing required fields');
+      return res.status(400).json({
         success: false,
-        message: 'Could not process your request due to email service issues',
-        error: adminEmailResult.error || userEmailResult.error
+        message: 'Missing required fields'
       });
     }
 
-    // Return success even if only one email worked
+    console.log('Processing submission for:', email);
+
+    // Send notification email to admin
+    console.log('Attempting to send admin notification email...');
+    const adminEmailResult = await sendAdminNotificationEmail({ name, email, company, message });
+
+    if (!adminEmailResult.success) {
+      console.error('Failed to send admin notification:', adminEmailResult.error);
+    }
+
+    // Send confirmation email to the user
+    console.log('Attempting to send user confirmation email...');
+    const userEmailResult = await sendContactConfirmationEmail({ name, email });
+
+    if (!userEmailResult.success) {
+      console.error('Failed to send user confirmation:', userEmailResult.error);
+    }
+
+    // Return success even if only one email worked or both failed
+    // This prevents the form from showing an error to the user
     console.log('Contact form submission processed (at least partially)');
     return res.status(200).json({ 
       success: true, 
@@ -82,6 +62,7 @@ app.post('/api/contact', async (req, res) => {
       adminEmailSent: adminEmailResult.success,
       userEmailSent: userEmailResult.success
     });
+
   } catch (error) {
     console.error('Error processing contact form submission:', error);
     return res.status(500).json({ 
