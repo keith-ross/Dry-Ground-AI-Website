@@ -60,7 +60,7 @@ function startProcess(command, args, name) {
 }
 
 // Start backend API server
-const apiServer = startProcess('node', ['--loader=ts-node/esm', 'server.ts'], 'API server');
+const apiServer = startProcess('npx', ['ts-node', '--esm', 'server.ts'], 'API server');
 
 // Start frontend dev server
 const frontendServer = startProcess('npm', ['run', 'dev'], 'Frontend');

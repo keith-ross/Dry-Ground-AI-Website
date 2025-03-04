@@ -88,6 +88,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://0.0.0.0:${PORT}/api/health`);
   console.log(`📑 API endpoints: http://0.0.0.0:${PORT}/api/contact`);
+  console.log(`💻 Server address: 0.0.0.0:${PORT}`);
 });
 
 // Handle process termination
