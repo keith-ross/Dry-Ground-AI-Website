@@ -1,117 +1,93 @@
-
 import sgMail from '@sendgrid/mail';
 
-// Initialize SendGrid with API key from environment variable
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'info@drygroundai.com';
-
-// Debug logging for environment variables
-console.log('EmailService initialization:');
-console.log('- SENDGRID_API_KEY exists:', !!SENDGRID_API_KEY);
-console.log('- SENDGRID_API_KEY length:', SENDGRID_API_KEY ? SENDGRID_API_KEY.length : 0);
-console.log('- ADMIN_EMAIL:', ADMIN_EMAIL);
-
-if (SENDGRID_API_KEY) {
-  sgMail.setApiKey(SENDGRID_API_KEY);
-  console.log('SendGrid API key set successfully');
+// Initialize SendGrid
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log('SendGrid initialized successfully');
 } else {
-  console.error('⚠️ SendGrid API key is missing! Please add it to your Replit Secrets.');
+  console.error('SENDGRID_API_KEY is not set in environment variables');
 }
 
-/**
- * Send confirmation email to the user who submitted the contact form
- */
-export async function sendContactConfirmationEmail({ name, email }) {
+// Send email to admin when a contact form is submitted
+export async function sendAdminNotificationEmail({ name, email, company, message }) {
   try {
-    if (!SENDGRID_API_KEY) {
-      console.warn('Skipping email send: SendGrid API key not configured');
-      return { 
-        success: false, 
-        message: 'Email service not configured - missing API key',
-        error: new Error('SendGrid API key not found')
-      };
+    console.log('Preparing to send admin notification email');
+    console.log(`SENDGRID_API_KEY exists: ${!!process.env.SENDGRID_API_KEY}`);
+    console.log(`SENDGRID_API_KEY length: ${process.env.SENDGRID_API_KEY ? process.env.SENDGRID_API_KEY.length : 0}`);
+
+    if (!process.env.SENDGRID_API_KEY) {
+      throw new Error('SendGrid API key not configured');
     }
 
-    console.log(`Attempting to send confirmation email to ${email}`);
-    
     const msg = {
-      to: email,
-      from: ADMIN_EMAIL,
-      subject: 'Thank you for contacting Dry Ground AI',
-      text: `Hello ${name},\n\nThank you for reaching out to us. We have received your message and will get back to you as soon as possible.\n\nBest regards,\nThe Dry Ground AI Team`,
-      html: `<p>Hello ${name},</p><p>Thank you for reaching out to us. We have received your message and will get back to you as soon as possible.</p><p>Best regards,<br>The Dry Ground AI Team</p>`,
+      to: 'admin@drygoundai.com', // Replace with your admin email
+      from: 'noreply@drygoundai.com', // Replace with verified sender
+      subject: 'New Contact Form Submission',
+      text: `
+        Name: ${name}
+        Email: ${email}
+        Company: ${company || 'N/A'}
+        Message: ${message}
+      `,
+      html: `
+        <h3>New Contact Form Submission</h3>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Company:</strong> ${company || 'N/A'}</p>
+        <p><strong>Message:</strong> ${message}</p>
+      `,
     };
 
-    try {
-      const response = await sgMail.send(msg);
-      console.log('Confirmation email sent successfully:', response[0].statusCode);
-      return { success: true };
-    } catch (sendError) {
-      console.error('SendGrid error sending confirmation:', sendError);
-      if (sendError.response) {
-        console.error('SendGrid API error response:', sendError.response.body);
-      }
-      return { 
-        success: false, 
-        message: 'Failed to send confirmation email', 
-        error: sendError
-      };
-    }
+    const response = await sgMail.send(msg);
+    console.log('Admin notification email sent successfully', response[0].statusCode);
+    return { success: true };
   } catch (error) {
-    console.error('Error in sendContactConfirmationEmail:', error);
+    console.error('Error sending admin notification email:', error);
+    console.error('Error details:', error.response ? error.response.body : 'No response details');
     return { 
       success: false, 
-      message: error.message || 'Failed to send confirmation email',
-      error
+      error: error.message || 'Failed to send admin notification'
     };
   }
 }
 
-/**
- * Send notification email to the admin about a new contact form submission
- */
-export async function sendAdminNotificationEmail({ name, email, company, message }) {
+// Send confirmation email to user who submitted the contact form
+export async function sendContactConfirmationEmail({ name, email }) {
   try {
-    if (!SENDGRID_API_KEY) {
-      console.warn('Skipping email send: SendGrid API key not configured');
-      return { 
-        success: false, 
-        message: 'Email service not configured - missing API key',
-        error: new Error('SendGrid API key not found')
-      };
+    console.log('Preparing to send user confirmation email');
+
+    if (!process.env.SENDGRID_API_KEY) {
+      throw new Error('SendGrid API key not configured');
     }
 
-    console.log(`Attempting to send admin notification email to ${ADMIN_EMAIL}`);
-    
     const msg = {
-      to: ADMIN_EMAIL,
-      from: ADMIN_EMAIL,
-      subject: 'New Contact Form Submission',
-      text: `New contact form submission:\n\nName: ${name}\nEmail: ${email}\nCompany: ${company || 'N/A'}\nMessage: ${message}`,
-      html: `<h3>New contact form submission</h3><p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Company:</strong> ${company || 'N/A'}</p><p><strong>Message:</strong> ${message}</p>`,
+      to: email,
+      from: 'noreply@drygoundai.com', // Replace with verified sender
+      subject: 'Thank you for contacting us',
+      text: `
+        Dear ${name},
+
+        Thank you for contacting Dry Ground AI. We have received your inquiry and will respond as soon as possible.
+
+        Best regards,
+        The Dry Ground AI Team
+      `,
+      html: `
+        <p>Dear ${name},</p>
+        <p>Thank you for contacting Dry Ground AI. We have received your inquiry and will respond as soon as possible.</p>
+        <p>Best regards,<br>The Dry Ground AI Team</p>
+      `,
     };
 
-    try {
-      const response = await sgMail.send(msg);
-      console.log('Admin notification email sent successfully:', response[0].statusCode);
-      return { success: true };
-    } catch (sendError) {
-      console.error('SendGrid error:', sendError);
-      if (sendError.response) {
-        console.error('SendGrid API error response:', sendError.response.body);
-      }
-      return { 
-        success: false, 
-        message: 'Failed to send admin notification email', 
-        error: sendError
-      };
-    }
+    const response = await sgMail.send(msg);
+    console.log('User confirmation email sent successfully', response[0].statusCode);
+    return { success: true };
   } catch (error) {
-    console.error('Error in sendAdminNotificationEmail:', error);
+    console.error('Error sending user confirmation email:', error);
+    console.error('Error details:', error.response ? error.response.body : 'No response details');
     return { 
       success: false, 
-      message: error.message || 'Failed to send admin notification',
-      error 
+      error: error.message || 'Failed to send confirmation email'
     };
   }
 }

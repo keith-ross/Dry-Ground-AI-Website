@@ -21,7 +21,14 @@ if (!process.env.SENDGRID_API_KEY) {
   console.log('\x1b[33m%s\x1b[0m', '   Please ensure it is set in the Replit Secrets tool.\n');
 } else {
   console.log('\x1b[32m%s\x1b[0m', '✅ SENDGRID_API_KEY found in environment variables.');
-  console.log('\x1b[32m%s\x1b[0m', `   Key length: ${process.env.SENDGRID_API_KEY.length} characters\n`);
+  console.log('\x1b[32m%s\x1b[0m', `   Key length: ${process.env.SENDGRID_API_KEY.length} characters`);
+  
+  // Validate basic API key format
+  if (process.env.SENDGRID_API_KEY.startsWith('SG.') && process.env.SENDGRID_API_KEY.length > 50) {
+    console.log('\x1b[32m%s\x1b[0m', '   Key format appears to be valid (starts with SG. and has sufficient length)\n');
+  } else {
+    console.log('\x1b[33m%s\x1b[0m', '   ⚠️ WARNING: Key format may be invalid (should start with SG. and be 50+ characters)\n');
+  }
 }
 
 // Set default port if not provided

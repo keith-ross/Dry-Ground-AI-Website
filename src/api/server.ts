@@ -41,47 +41,48 @@ app.get('/api/health', (req, res) => {
 
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
+  console.log('Received contact form submission:', req.body);
   try {
     const { name, email, company, message } = req.body;
 
-    console.log('Received contact form submission:', { name, email, company, message });
-
+    // Basic validation
     if (!name || !email || !message) {
+      console.log('Validation failed:', { name, email, message });
       return res.status(400).json({ 
         success: false, 
         message: 'Name, email, and message are required' 
       });
     }
 
-    // Check if SendGrid API key is available
-    if (!process.env.SENDGRID_API_KEY) {
-      console.error('SendGrid API key is missing. Form will be processed, but emails cannot be sent.');
-      return res.status(500).json({
-        success: false,
-        message: 'Email service not configured properly - contact form cannot be processed'
-      });
+    // Log current environment status
+    console.log('Processing contact form with:');
+    console.log('- SENDGRID_API_KEY exists:', !!process.env.SENDGRID_API_KEY);
+    console.log('- SENDGRID_API_KEY length:', process.env.SENDGRID_API_KEY ? process.env.SENDGRID_API_KEY.length : 0);
+
+    // Save to database
+    try {
+      const dbResult = await saveContactSubmission({ name, email, company, message });
+      console.log('Saved to database with ID:', dbResult.id);
+    } catch (dbError) {
+      console.error('Database error when saving contact:', dbError);
+      // Continue processing to still try sending emails
     }
 
-    // Send admin notification email
-    const adminEmailResult = await sendAdminNotificationEmail({ 
-      name, email, company, message 
-    });
+    // Send admin notification
+    console.log('Attempting to send admin notification email...');
+    const adminEmailResult = await sendAdminNotificationEmail({ name, email, company, message });
 
     if (!adminEmailResult.success) {
       console.error('Failed to send admin notification:', adminEmailResult.error);
-
-      // If there's a SendGrid API error with a response, log it
-      if (adminEmailResult.error && adminEmailResult.error.response) {
-        console.error('SendGrid API response:', adminEmailResult.error.response.body);
-      }
-
       return res.status(500).json({
         success: false,
-        message: 'Failed to process your request due to email service issues'
+        message: 'Failed to process your request due to email service issues',
+        error: adminEmailResult.error
       });
     }
 
     // Send confirmation email to the user
+    console.log('Attempting to send user confirmation email...');
     const userEmailResult = await sendContactConfirmationEmail({ name, email });
 
     if (!userEmailResult.success) {
@@ -90,6 +91,7 @@ app.post('/api/contact', async (req, res) => {
     }
 
     // Return success
+    console.log('Contact form submission processed successfully');
     return res.status(200).json({ 
       success: true, 
       message: 'Form submitted successfully' 
@@ -99,7 +101,8 @@ app.post('/api/contact', async (req, res) => {
     return res.status(500).json({ 
       success: false, 
       message: 'Server error processing your request',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
