@@ -3,9 +3,11 @@
  * Development server script
  * Runs both the API server and the frontend dev server
  */
-require('dotenv').config();
-const { spawn } = require('child_process');
-const fs = require('fs');
+import dotenv from 'dotenv';
+import { spawn } from 'child_process';
+import fs from 'fs';
+
+dotenv.config();
 
 // Verify environment variables
 if (!process.env.DATABASE_URL) {
