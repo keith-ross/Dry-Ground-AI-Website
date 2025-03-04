@@ -1,3 +1,4 @@
+
 const sgMail = require('@sendgrid/mail');
 
 /**
@@ -54,21 +55,21 @@ async function sendContactEmail(formData) {
         error: errorData.error || 'Failed to send message'
       };
     }
-
+    
     const data = await response.json();
     return {
       success: true,
-      message: data.message || 'Message sent successfully!'
+      data
     };
   } catch (error) {
-    console.error('Error sending contact form:', error);
     return {
       success: false,
-      error: 'Network error occurred while sending your message'
+      error: error.message || 'An unexpected error occurred'
     };
   }
 }
 
+// Export functions individually
 module.exports = {
   testSendGridApiKey,
   sendContactEmail
