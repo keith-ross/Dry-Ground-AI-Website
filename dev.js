@@ -1,43 +1,60 @@
 
 import { spawn } from 'child_process';
-import path from 'path';
+import dotenv from 'dotenv';
 
-// Start Express server
-const apiServer = spawn('node', ['--loader', 'ts-node/esm', 'server.ts'], {
-  stdio: 'inherit',
-  env: { ...process.env, PORT: '3001' }
-});
+// Load environment variables
+dotenv.config();
 
-// Start Vite dev server
-const devServer = spawn('npx', ['vite'], {
-  stdio: 'inherit'
-});
-
-// Handle cleanup on exit
-process.on('SIGINT', () => {
-  console.log('Shutting down servers...');
-  apiServer.kill();
-  devServer.kill();
-  process.exit();
-});
+// Ensure DATABASE_URL is set
+if (!process.env.DATABASE_URL) {
+  console.error('ERROR: DATABASE_URL environment variable is missing!');
+  console.error('Please create a .env file with the required variables.');
+  process.exit(1);
+}
 
 console.log('🚀 Development servers started');
 console.log('📱 Frontend: http://localhost:3000');
 console.log('🔌 API: http://localhost:3001');
 
-// Forward exit codes
-apiServer.on('close', code => {
+// Start the frontend (Vite) dev server
+const frontendProcess = spawn('npx', ['vite'], {
+  stdio: 'inherit',
+  shell: true
+});
+
+// Start the backend API server
+const backendProcess = spawn('node', ['--loader', 'ts-node/esm', 'server.ts'], {
+  stdio: 'inherit',
+  shell: true,
+  env: { ...process.env }
+});
+
+// Handle process exit
+process.on('SIGINT', () => {
+  console.log('\nShutting down development servers...');
+  frontendProcess.kill();
+  backendProcess.kill();
+  process.exit(0);
+});
+
+// Handle process errors
+frontendProcess.on('error', (error) => {
+  console.error('Frontend process error:', error);
+});
+
+backendProcess.on('error', (error) => {
+  console.error('Backend process error:', error);
+});
+
+// Handle process exit
+frontendProcess.on('exit', (code) => {
   if (code !== 0 && code !== null) {
-    console.error(`API server exited with code ${code}`);
-    devServer.kill();
-    process.exit(code);
+    console.error(`Frontend process exited with code ${code}`);
   }
 });
 
-devServer.on('close', code => {
+backendProcess.on('exit', (code) => {
   if (code !== 0 && code !== null) {
-    console.error(`Dev server exited with code ${code}`);
-    apiServer.kill();
-    process.exit(code);
+    console.error(`Backend process exited with code ${code}`);
   }
 });
