@@ -67,7 +67,7 @@ if (clientApiKey) {
 }
 
 /**
- * Sends contact form data to our API server
+ * Sends contact form data to our API endpoint
  */
 export const sendContactEmail = async (formData) => {
   try {
@@ -80,26 +80,22 @@ export const sendContactEmail = async (formData) => {
       body: JSON.stringify(formData),
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to send message');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Server responded with ${response.status}`);
     }
 
-    return { success: true };
+    return await response.json();
   } catch (error) {
-    console.error('Error sending contact form:', error);
-    return { 
-      success: false, 
-      error: error.message || 'Failed to send message'
-    };
+    console.error('Error sending contact email:', error);
+    throw new Error(error.message || 'Failed to send email. Please try again later.');
   }
 };
 
-// Export check functions for diagnostics
+// Check if email service is properly configured
 export const checkEmailConfig = () => {
   return {
-    apiKeyExists: !!clientApiKey,
+    apiKeyExists: Boolean(clientApiKey),
     fromEmail: clientFromEmail,
     adminEmail: clientAdminEmail,
     clientSide: "Uses API call"
