@@ -1,101 +1,120 @@
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 
-const ContactForm = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    company: "",
-    message: ""
+interface FormData {
+  name: string;
+  email: string;
+  company: string;
+  message: string;
+}
+
+interface FormStatus {
+  submitting: boolean;
+  submitted: boolean;
+  success: boolean;
+  error: string;
+}
+
+const ContactForm: React.FC = () => {
+  // Form state
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    email: '',
+    company: '',
+    message: ''
   });
   
-  const [status, setStatus] = useState({
+  // Form status
+  const [status, setStatus] = useState<FormStatus>({
     submitting: false,
     submitted: false,
     success: false,
-    error: "" 
+    error: ''
   });
-
+  
+  // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
-
+  
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Reset status
+    // Set submitting state
     setStatus({
       submitting: true,
       submitted: false,
       success: false,
-      error: ""
+      error: ''
     });
     
     try {
-      console.log("Submitting form: ", formData);
+      // Basic client-side validation
+      if (!formData.name || !formData.email || !formData.message) {
+        throw new Error('Please fill in all required fields');
+      }
       
-      // Submit to API
-      const response = await fetch("/api/contact", {
-        method: "POST",
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        throw new Error('Please enter a valid email address');
+      }
+      
+      // Send the form data to the API
+      const response = await fetch('/api/contact', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json"
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(formData)
       });
       
-      console.log("Response status:", response.status);
+      // Parse the response
+      const data = await response.json();
       
-      // Get response data (carefully handling json parsing)
-      let data;
-      const responseText = await response.text();
-      
-      try {
-        if (responseText) {
-          data = JSON.parse(responseText);
-        }
-      } catch (parseError) {
-        console.error("Error parsing response: ", parseError);
-        console.log("Raw response text:", responseText);
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to submit the form');
       }
-
-      if (response.ok) {
-        setStatus({
-          submitting: false,
-          submitted: true,
-          success: true,
-          error: ""
-        });
-        
-        // Reset form on success
-        setFormData({
-          name: "",
-          email: "",
-          company: "",
-          message: ""
-        });
-      } else {
-        const errorMessage = data?.message || 'Server returned error';
-        throw new Error(errorMessage);
-      }
-    } catch (error: any) {
-      console.error("Error submitting form: ", error);
       
+      // Success!
+      setStatus({
+        submitting: false,
+        submitted: true,
+        success: true,
+        error: ''
+      });
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        company: '',
+        message: ''
+      });
+      
+    } catch (error) {
+      // Error handling
       setStatus({
         submitting: false,
         submitted: true,
         success: false,
-        error: error.message || "Something went wrong. Please try again."
+        error: error instanceof Error ? error.message : 'An unknown error occurred'
       });
     }
   };
-
+  
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-semibold mb-6 text-center">Get in Touch</h2>
       
-      {status.submitted && status.success ? (
+      {/* Success message */}
+      {status.submitted && status.success && (
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -103,9 +122,10 @@ const ContactForm = () => {
         >
           <p>Thank you for your message! We'll get back to you soon.</p>
         </motion.div>
-      ) : null}
+      )}
       
-      {status.submitted && !status.success ? (
+      {/* Error message */}
+      {status.submitted && !status.success && (
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -113,9 +133,11 @@ const ContactForm = () => {
         >
           <p>Sorry, there was a problem: {status.error}</p>
         </motion.div>
-      ) : null}
+      )}
       
+      {/* Contact form */}
       <form onSubmit={handleSubmit}>
+        {/* Name field */}
         <div className="mb-4">
           <label htmlFor="name" className="block text-gray-700 mb-2">
             Name *
@@ -131,6 +153,7 @@ const ContactForm = () => {
           />
         </div>
         
+        {/* Email field */}
         <div className="mb-4">
           <label htmlFor="email" className="block text-gray-700 mb-2">
             Email *
@@ -146,6 +169,7 @@ const ContactForm = () => {
           />
         </div>
         
+        {/* Company field (optional) */}
         <div className="mb-4">
           <label htmlFor="company" className="block text-gray-700 mb-2">
             Company
@@ -160,7 +184,8 @@ const ContactForm = () => {
           />
         </div>
         
-        <div className="mb-4">
+        {/* Message field */}
+        <div className="mb-6">
           <label htmlFor="message" className="block text-gray-700 mb-2">
             Message *
           </label>
@@ -170,20 +195,21 @@ const ContactForm = () => {
             value={formData.message}
             onChange={handleChange}
             required
-            rows={4}
+            rows={5}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
           />
         </div>
         
+        {/* Submit button */}
         <div className="text-center">
           <button
             type="submit"
             disabled={status.submitting}
-            className={`px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-              status.submitting ? "opacity-70 cursor-not-allowed" : ""
+            className={`px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors ${
+              status.submitting ? 'opacity-70 cursor-not-allowed' : ''
             }`}
           >
-            {status.submitting ? "Sending..." : "Send Message"}
+            {status.submitting ? 'Submitting...' : 'Send Message'}
           </button>
         </div>
       </form>

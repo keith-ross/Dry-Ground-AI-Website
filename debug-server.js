@@ -1,6 +1,18 @@
 #!/usr/bin/env node
 
 const fetch = require('node-fetch');
+const dotenv = require('dotenv');
+const path = require('path');
+const fs = require('fs');
+
+// Load environment variables
+const envPath = path.join(__dirname, '.env');
+if (fs.existsSync(envPath)) {
+  console.log(`Loading environment variables from ${envPath}`);
+  dotenv.config({ path: envPath });
+} else {
+  console.log('No .env file found, using environment variables from Replit Secrets');
+}
 
 /**
  * Test if the SendGrid API key is configured correctly
@@ -37,6 +49,80 @@ async function testSendGridApiKey() {
 }
 
 /**
+ * Test API server connection
+ */
+async function testApiServer() {
+  try {
+    const healthResponse = await fetch('http://localhost:3001/api/health');
+
+    if (healthResponse.ok) {
+      const healthData = await healthResponse.json();
+      return {
+        success: true,
+        data: healthData
+      };
+    } else {
+      const errorText = await healthResponse.text();
+      return {
+        success: false,
+        error: `Status ${healthResponse.status}: ${errorText || '(empty response)'}`
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message || 'Unknown error connecting to API server'
+    };
+  }
+}
+
+/**
+ * Test contact form submission
+ */
+async function testContactFormSubmission() {
+  const testData = {
+    name: 'Test User',
+    email: 'test@example.com',
+    company: 'Test Company',
+    message: 'This is a test message from the debug script.'
+  };
+
+  try {
+    const submitResponse = await fetch('http://localhost:3001/api/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(testData)
+    });
+
+    // Get raw response
+    const rawText = await submitResponse.text();
+
+    // Try to parse as JSON
+    let jsonData;
+    try {
+      jsonData = JSON.parse(rawText);
+    } catch (e) {
+      // Not valid JSON
+    }
+
+    return {
+      success: submitResponse.ok && jsonData?.success,
+      status: submitResponse.status,
+      rawResponse: rawText,
+      jsonData: jsonData,
+      error: jsonData?.error || null
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message || 'Unknown error testing contact form'
+    };
+  }
+}
+
+/**
  * Run all tests
  */
 async function runTests() {
@@ -56,194 +142,46 @@ async function runTests() {
 
   // Test API server connection
   console.log('Testing server connection...');
-  try {
-    const healthResponse = await fetch('http://localhost:3001/api/health');
-
-    if (healthResponse.ok) {
-      const healthData = await healthResponse.json();
-      console.log('✅ API server is running');
-      console.log('   Response:', healthData);
-    } else {
-      console.log('❌ API server returned status:', healthResponse.status);
-      try {
-        const errorText = await healthResponse.text();
-        console.log('   Response:', errorText || '(empty)');
-      } catch (e) {
-        console.log('   Could not read response');
-      }
-    }
-  } catch (error) {
-    console.log('❌ Could not connect to API server:', error.message);
-    console.log('   Make sure the server is running on port 3001');
+  const serverResult = await testApiServer();
+  if (serverResult.success) {
+    console.log('✅ API server is running');
+    console.log('   Response:', serverResult.data);
+  } else {
+    console.log(`❌ API server issue: ${serverResult.error}`);
+    console.log('   Make sure the server is running on port 3001\n');
   }
 
   console.log('\n-------------------------------------');
 
   // Test contact form submission
   console.log('Testing contact form submission...');
+  const formResult = await testContactFormSubmission();
 
-  const testData = {
-    name: 'Test User',
-    email: 'test@example.com',
-    company: 'Test Company',
-    message: 'This is a test message from the debug script.'
-  };
+  console.log('Response status:', formResult.status);
+  console.log('Raw response:', formResult.rawResponse);
 
-  try {
-    const submitResponse = await fetch('http://localhost:3001/api/contact', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(testData)
-    });
-
-    console.log('Response status:', submitResponse.status);
-
-    // Get raw response text first
-    const rawText = await submitResponse.text();
-    console.log('Raw response:', rawText);
-
-    // Try to parse JSON if possible
-    try {
-      if (rawText) {
-        const data = JSON.parse(rawText);
-        console.log('Parsed response:', data);
-      }
-    } catch (parseError) {
-      console.log('Error parsing response as JSON:', parseError.message);
+  if (formResult.success) {
+    console.log('✅ Contact form submission successful');
+  } else {
+    console.log(`❌ Contact form submission failed: ${formResult.error || 'Unknown error'}`);
+    if (formResult.jsonData) {
+      console.log('   JSON Response:', JSON.stringify(formResult.jsonData, null, 2));
     }
-
-  } catch (error) {
-    console.error('❌ Error testing contact endpoint:', error.message);
   }
 
   console.log('\n-------------------------------------');
-  console.log('🏁 Diagnostics complete');
-}
-
-const dotenv = require('dotenv');
-const path = require('path');
-const fs = require('fs');
-//const { testSendGridApiKey } = require('./src/lib/emailService'); //Removed as it's redefined
-
-// Load environment variables
-dotenv.config();
-
-async function runDiagnostics() {
-  console.log('🔍 Running server diagnostics...');
+  console.log('DEBUG SUMMARY:');
   console.log('-------------------------------------');
+  console.log(`SendGrid API key: ${sendgridResult.success ? '✅' : '❌'}`);
+  console.log(`API server: ${serverResult.success ? '✅' : '❌'}`);
+  console.log(`Contact form: ${formResult.success ? '✅' : '❌'}`);
+  console.log('-------------------------------------\n');
 
-  // Check environment variables
-  console.log('📋 Environment Variables:');
-  const sendgridKey = process.env.SENDGRID_API_KEY || 'Not set';
-
-  if (sendgridKey === 'Not set') {
-    console.log('❌ SENDGRID_API_KEY is not set');
-  } else {
-    console.log('✅ SENDGRID_API_KEY is set');
-    console.log(`   Length: ${sendgridKey.length}`);
-    console.log(`   Prefix: ${sendgridKey.substring(0, 7)}...`);
-  }
-
-  console.log('\n📂 File System:');
-  // Check data directory
-  const dataDir = path.join(__dirname, 'data');
-  if (!fs.existsSync(dataDir)) {
-    console.log('❌ Data directory does not exist at:', dataDir);
-    console.log('   Creating data directory...');
-    fs.mkdirSync(dataDir, { recursive: true });
-    console.log('✅ Created data directory');
-  } else {
-    console.log('✅ Data directory exists at:', dataDir);
-  }
-
-  // Check database file
-  const dbPath = path.join(dataDir, 'contact_submissions.db');
-  if (fs.existsSync(dbPath)) {
-    const stats = fs.statSync(dbPath);
-    console.log('✅ Database file exists at:', dbPath);
-    console.log(`   Size: ${stats.size} bytes`);
-    console.log(`   Created: ${stats.birthtime}`);
-  } else {
-    console.log('❓ Database file does not exist at:', dbPath);
-    console.log('   It will be created when the server runs');
-  }
-
-  // Test server connection
-  console.log('\n🌐 Server Connection:');
-
-  try {
-    console.log('   Testing server connection...');
-    // Start the server in the background
-    require('./src/api/server');
-
-    // Wait for server to start
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Test health endpoint
-    const healthResponse = await fetch('http://localhost:3001/api/health');
-    const healthData = await healthResponse.json();
-
-    console.log('✅ Server health endpoint responded');
-    console.log('   Status:', healthData.status);
-    console.log('   Environment:', healthData.env);
-    console.log('   Email service configured:', healthData.emailServiceConfigured);
-
-    // Test debug endpoint
-    const debugResponse = await fetch('http://localhost:3001/api/debug');
-    const debugData = await debugResponse.json();
-
-    console.log('\n🔧 Server Debug Info:');
-    console.log('   Timestamp:', debugData.timestamp);
-    console.log('   Environment:', debugData.environment);
-    console.log('   API Key Info:', debugData.apiKeyInfo);
-    console.log('   Database Status:', debugData.dbStatus);
-    console.log('   CORS Settings:', debugData.corsSettings);
-
-    // Test a dummy contact submission
-    console.log('\n✉️ Testing Contact Submission:');
-    const testData = {
-      name: 'Test User',
-      email: 'test@example.com',
-      company: 'Test Company',
-      message: 'This is a test message from the diagnostic script'
-    };
-
-    const submitResponse = await fetch('http://localhost:3001/api/contact', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(testData)
-    });
-
-    if (submitResponse.ok) {
-      const submitData = await submitResponse.json();
-      console.log('✅ Contact form submission successful');
-      console.log('   Response:', submitData);
-    } else {
-      console.log('❌ Contact form submission failed');
-      console.log('   Status:', submitResponse.status);
-      try {
-        const errorData = await submitResponse.json();
-        console.log('   Error:', errorData);
-      } catch (e) {
-        console.log('   Could not parse error response');
-        const text = await submitResponse.text();
-        console.log('   Raw response:', text || '(empty)');
-      }
-    }
-
-  } catch (error) {
-    console.error('❌ Error testing server:', error);
-  }
-
-  console.log('\n-------------------------------------');
-  console.log('🏁 Diagnostics complete');
+  console.log('To test the form submission in your browser, make sure:');
+  console.log('1. The API server is running (npm run server)');
+  console.log('2. The SendGrid API key is properly configured in Replit Secrets');
+  console.log('3. Your frontend is connecting to the correct API URL');
 }
-
 
 // Run all tests
-runDiagnostics();
 runTests();

@@ -1,54 +1,54 @@
 
-// Initialize SendGrid
 const sgMail = require('@sendgrid/mail');
 
-// Get the SendGrid API key from environment variables
-const apiKey = process.env.SENDGRID_API_KEY;
-
-// Configure SendGrid if API key is available
-if (apiKey) {
-  sgMail.setApiKey(apiKey);
-  console.log('SendGrid API key: Present and length:', apiKey.length);
-  console.log('Key prefix:', apiKey.substring(0, 5) + '....');
-} else {
-  console.error('SENDGRID_API_KEY is not set in environment variables');
-}
-
 /**
- * Test if the SendGrid API key is configured and valid
+ * Test if the SendGrid API key is configured correctly
+ * @returns {Object} Result of the test
  */
 async function testSendGridApiKey() {
-  if (!apiKey) {
+  try {
+    const apiKey = process.env.SENDGRID_API_KEY;
+
+    if (!apiKey) {
+      return { 
+        success: false, 
+        error: 'SendGrid API key is not configured' 
+      };
+    }
+
+    // A valid SendGrid API key starts with "SG." and is typically 69 characters long
+    if (!apiKey.startsWith('SG.') || apiKey.length < 50) {
+      return { 
+        success: false, 
+        error: 'SendGrid API key format appears to be invalid' 
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
     return { 
       success: false, 
-      error: 'SendGrid API key is not configured' 
+      error: error.message || 'Unknown error testing SendGrid API key'
     };
   }
-  
-  // A valid SendGrid API key starts with "SG." and is typically 69 characters long
-  if (!apiKey.startsWith('SG.') || apiKey.length < 50) {
-    return { 
-      success: false, 
-      error: 'SendGrid API key format appears to be invalid' 
-    };
-  }
-  
-  return { success: true };
 }
 
 /**
- * Send an email notification for contact form submissions
+ * Send an email using SendGrid
+ * @param {Object} data Form data from the contact form
+ * @returns {Object} Result of the email sending operation
  */
-async function sendContactFormEmail({ name, email, company, message }) {
-  // Check if SendGrid is configured
-  if (!apiKey) {
-    return { 
-      success: false, 
-      error: 'Email service is not configured' 
-    };
-  }
-
+async function sendContactFormEmail(data) {
   try {
+    const { name, email, company, message } = data;
+    
+    // Set the API key
+    if (!process.env.SENDGRID_API_KEY) {
+      throw new Error('SendGrid API key is not configured');
+    }
+    
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    
     // Simplified email content
     const emailContent = {
       to: 'contact@anchoredup.org', // Change this to your actual email
