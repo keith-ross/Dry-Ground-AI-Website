@@ -1,35 +1,38 @@
-
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 
-// Load environment variables
+// Load environment variables if not already loaded
 dotenv.config();
 
-// Get database connection string
-const databaseUrl = process.env.DATABASE_URL;
-
-if (!databaseUrl) {
-  console.error('ERROR: DATABASE_URL environment variable is not set!');
-  console.error('Please make sure your .env file is properly configured.');
-  process.exit(1);
+if (!process.env.DATABASE_URL) {
+  console.error('ERROR: DATABASE_URL environment variable is missing!');
+  console.error('Make sure your .env file is properly configured.');
+  process.exit(1); // Exit if DATABASE_URL is not set
 }
 
-// Create a connection pool
+// Create a singleton pool instance for database connections
 export const pool = new Pool({
-  connectionString: databaseUrl,
+  connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  max: 20,              // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // How long a client is kept idle before being closed
-  connectionTimeoutMillis: 5000, // How long to wait for a connection
+  // Add connection pool settings
+  max: 20, // Maximum number of clients in the pool
+  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+  connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection can't be established
 });
 
-// Verify pool works on application startup
+// Test the database connection on startup
 pool.query('SELECT NOW()', (err, res) => {
   if (err) {
-    console.error('Database connection failed:', err);
+    console.error('Database connection error:', err);
+    process.exit(1); // Exit if connection fails
   } else {
     console.log('Database connected successfully at:', res.rows[0].now);
   }
+});
+
+// Handle connection errors
+pool.on('error', (err) => {
+  console.error('Unexpected database error:', err);
 });
 
 // Helper function for making queries
@@ -47,3 +50,5 @@ export async function query(text: string, params: any[] = []) {
     throw error;
   }
 }
+
+export default { pool };

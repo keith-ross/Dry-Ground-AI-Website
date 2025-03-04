@@ -1,28 +1,31 @@
 
-const { Pool } = require('pg');
+// Database connection test script
 require('dotenv').config();
+const { Pool } = require('pg');
 
-async function testDatabase() {
+async function testDatabaseConnection() {
   console.log('===== Database Connection Test =====');
   
   if (!process.env.DATABASE_URL) {
-    console.error('❌ DATABASE_URL is not set in environment variables!');
+    console.error('❌ ERROR: DATABASE_URL environment variable is not set!');
+    console.error('Please check your .env file.');
     process.exit(1);
   }
-  
-  console.log('DATABASE_URL is set. Attempting connection...');
-  
+
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: false
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   });
-  
+
   try {
-    // Test connection
-    const result = await pool.query('SELECT NOW()');
-    console.log('✅ Database connected successfully at:', result.rows[0].now);
+    console.log('🔍 Testing database connection...');
     
-    // Check if table exists
+    // Test basic connection
+    const result = await pool.query('SELECT NOW() as time');
+    console.log('✅ Database connection successful!');
+    console.log('✅ Server time:', result.rows[0].time);
+    
+    // Check if contact_messages table exists
     const tableCheck = await pool.query(`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
@@ -34,28 +37,37 @@ async function testDatabase() {
     if (tableCheck.rows[0].exists) {
       console.log('✅ contact_messages table exists');
       
-      // Count records
-      const countResult = await pool.query('SELECT COUNT(*) FROM contact_messages');
-      console.log(`ℹ️ Current record count: ${countResult.rows[0].count}`);
-      
-      // Show table structure
-      console.log('Table structure:');
-      const columns = await pool.query(`
-        SELECT column_name, data_type, is_nullable
-        FROM information_schema.columns
-        WHERE table_name = 'contact_messages'
-        ORDER BY ordinal_position;
-      `);
-      
-      console.table(columns.rows);
+      // Test RLS permissions by attempting an insert
+      try {
+        const testInsert = await pool.query(`
+          INSERT INTO contact_messages (name, email, message, created_at) 
+          VALUES ('Test User', 'test@example.com', 'This is a test message', NOW())
+          RETURNING id;
+        `);
+        console.log('✅ Successfully inserted test message with ID:', testInsert.rows[0].id);
+        
+        // Clean up test data
+        await pool.query('DELETE FROM contact_messages WHERE email = $1', ['test@example.com']);
+        console.log('✅ Test data cleaned up');
+      } catch (insertErr) {
+        console.error('❌ Error testing insert:', insertErr.message);
+        console.log('This might indicate Row Level Security issues.');
+      }
     } else {
       console.error('❌ contact_messages table does not exist!');
+      console.log('You may need to run database migrations.');
     }
+    
   } catch (err) {
-    console.error('❌ Database error:', err);
+    console.error('❌ Database connection failed:', err);
+    process.exit(1);
   } finally {
     await pool.end();
+    console.log('Database connection closed');
   }
 }
 
-testDatabase().catch(console.error);
+testDatabaseConnection().catch(err => {
+  console.error('Unhandled error:', err);
+  process.exit(1);
+});

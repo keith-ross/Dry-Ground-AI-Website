@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
-import { ContactFormData } from '../api/types';
+import { toast, Toaster } from 'react-hot-toast';
+import type { ContactFormData } from '../api/types';
 
 interface ContactFormProps {
   className?: string;
@@ -25,14 +26,15 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     setIsSubmitting(true);
-    
+
     try {
       console.log('Sending form data: ', formData);
-
-      // Make sure we're sending to the correct endpoint with the right base URL
-      const apiUrl = window.location.origin + '/api/contact';
+      
+      // Get the base URL from the current window location
+      const baseUrl = window.location.origin;
+      const apiUrl = `${baseUrl}/api/contact`;
+      
       console.log('Submitting to:', apiUrl);
       
       const response = await fetch(apiUrl, {
@@ -44,34 +46,31 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
       });
 
       console.log('Response status:', response.status);
-
-      // Get response as text first
+      
       let responseText = '';
       try {
         responseText = await response.text();
         console.log('Response text:', responseText);
-      } catch (textError) {
-        console.error('Error getting response text:', textError);
+      } catch (e) {
+        console.error('Error reading response text:', e);
       }
-
-      // Try to parse as JSON if there's content
-      let responseData: any = {};
-
-      if (responseText && responseText.trim()) {
+      
+      // Try to parse JSON response if available
+      let responseData = {};
+      if (responseText) {
         try {
           responseData = JSON.parse(responseText);
           console.log('Response data:', responseData);
-        } catch (parseError) {
-          console.error('Failed to parse response as JSON:', parseError);
-          // Continue execution even if parsing fails
+        } catch (e) {
+          console.error('Error parsing JSON:', e);
         }
       }
-
+      
       if (response.ok) {
-        // Show success message
-        toast.success(responseData.message || 'Message sent successfully!');
-
-        // Reset form after successful submission
+        // Success handling
+        toast.success(responseData?.message || 'Message sent successfully!');
+        
+        // Reset form
         setFormData({
           name: '',
           email: '',
@@ -79,16 +78,13 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
           message: ''
         });
       } else {
-        // Handle error response
-        const errorMessage = responseData.message || responseData.error || 
-          `Server error: ${response.status} - ${response.statusText || 'Unknown error'}`;
-        toast.error(errorMessage);
-        throw new Error(errorMessage);
+        // Error handling
+        const errorMsg = responseData?.message || 'Failed to send message. Please try again.';
+        toast.error(errorMsg);
       }
-
     } catch (error) {
       console.error('Error submitting form: ', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to send message. Please try again.');
+      toast.error('Network error. Please check your connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -110,6 +106,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
             onChange={handleChange}
             className="w-full px-4 py-2 bg-brand-darker border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             placeholder="Your name"
+            required
           />
         </div>
         <div>
@@ -123,6 +120,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
             onChange={handleChange}
             className="w-full px-4 py-2 bg-brand-darker border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             placeholder="your.email@example.com"
+            required
           />
         </div>
         <div>
@@ -135,7 +133,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
             value={formData.phone}
             onChange={handleChange}
             className="w-full px-4 py-2 bg-brand-darker border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-            placeholder="Your phone number"
+            placeholder="(123) 456-7890"
           />
         </div>
         <div>
@@ -144,17 +142,20 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
           </label>
           <textarea
             id="message"
-            rows={4}
             value={formData.message}
             onChange={handleChange}
+            rows={4}
             className="w-full px-4 py-2 bg-brand-darker border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-            placeholder="Your message"
+            placeholder="How can we help you?"
+            required
           />
         </div>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-brand-primary hover:bg-brand-primary-dark text-white font-medium py-2 px-4 rounded-md transition duration-300 disabled:opacity-50"
+          className={`w-full py-3 px-4 bg-brand-primary hover:bg-brand-primary-dark text-white font-semibold rounded-md transition-colors ${
+            isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+          }`}
         >
           {isSubmitting ? 'Sending...' : 'Send Message'}
         </button>
