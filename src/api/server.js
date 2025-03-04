@@ -25,9 +25,33 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Logger middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({ 
+    success: false, 
+    error: err.message || 'Internal server error'
+  });
+});
+
 // Configure SendGrid
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'your_sender_email@example.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'your_recipient_email@example.com';
+
+// Initialize SendGrid if API key is available
+if (SENDGRID_API_KEY) {
+  sgMail.setApiKey(SENDGRID_API_KEY);
+  console.log('SendGrid API key configured');
+} else {
+  console.warn('SendGrid API key not configured');
+}
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'your_recipient_email@example.com';
 
 if (SENDGRID_API_KEY) {

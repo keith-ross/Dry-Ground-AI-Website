@@ -35,6 +35,22 @@ console.log('ADMIN_EMAIL:', process.env.ADMIN_EMAIL || 'Not set');
 function startServer() {
   try {
     console.log('\nStarting the API server...');
+    
+    // Check for missing environment variables
+    const requiredEnvVars = [
+      { name: 'SENDGRID_API_KEY', present: Boolean(process.env.SENDGRID_API_KEY) },
+      { name: 'FROM_EMAIL', present: Boolean(process.env.FROM_EMAIL) },
+      { name: 'ADMIN_EMAIL', present: Boolean(process.env.ADMIN_EMAIL) }
+    ];
+    
+    const missingVars = requiredEnvVars.filter(v => !v.present);
+    if (missingVars.length > 0) {
+      console.warn('⚠️ Warning: Missing environment variables:');
+      missingVars.forEach(v => console.warn(`  - ${v.name}`));
+      console.warn('The server might not function correctly without these variables.');
+      console.warn('Consider adding them to your .env file or Replit Secrets.');
+    }
+    
     const serverProcess = spawn('node', [SERVER_PATH], {
       stdio: 'inherit',
       env: {
@@ -55,6 +71,18 @@ function startServer() {
         setTimeout(() => startServer(), 5000);
       }
     });
+
+    // Monitor for port usage
+    setTimeout(() => {
+      exec(`lsof -i:${PORT} | grep LISTEN`, (err, stdout) => {
+        if (err || !stdout) {
+          console.warn(`⚠️ Warning: No process seems to be listening on port ${PORT}`);
+          console.warn('This might indicate that the server failed to start properly.');
+        } else {
+          console.log(`✅ Server is listening on port ${PORT}`);
+        }
+      });
+    }, 2000);
 
     // Handle process termination signals
     process.on('SIGINT', () => {
