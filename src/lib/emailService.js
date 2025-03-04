@@ -58,7 +58,6 @@ ${formData.company ? `<p><strong>Company:</strong> ${formData.company}</p>` : ''
 
 // Email service for the contact form
 // Client-side uses import.meta.env
-import sgMail from '@sendgrid/mail';
 const clientApiKey = import.meta.env.VITE_SENDGRID_API_KEY;
 const clientFromEmail = import.meta.env.VITE_FROM_EMAIL || 'noreply@example.com';
 const clientAdminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com';
