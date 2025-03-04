@@ -89,7 +89,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
     console.log('Submitting form: ', formData);
     
     try {
-      // Use window.location.origin to ensure we're using the correct domain
+      // Use a fixed API URL
       const API_URL = '/api/contact';
       
       console.log('Sending form data to:', API_URL);
@@ -100,10 +100,15 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(formData),
-        credentials: 'same-origin'
+        credentials: 'include'
       });
       
       console.log('Form submission response status:', response.status);
+      
+      // Print out the form data for debugging
+      Object.entries(formData).forEach(([key, value]) => {
+        console.log(`${key}: "${value}"`);
+      });
       
       let responseData;
       try {
@@ -116,7 +121,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
           try {
             responseData = JSON.parse(text);
           } catch (jsonError) {
-            console.error('JSON parse error:', jsonError);
+            console.error('Error parsing response:', jsonError);
             // If we can't parse JSON, create a basic response object with the text
             responseData = { 
               success: false, 
