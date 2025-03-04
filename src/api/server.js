@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import { sendEmail } from './emailService.js';
 import { initDb, saveContactSubmission } from './database.js';
@@ -10,17 +11,12 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Configure CORS to allow requests from any origin in development
+app.use(cors());
 
-// Configure CORS to allow requests from any origin
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Parse JSON and URL-encoded request bodies
+app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Log all incoming requests for debugging
 app.use((req, res, next) => {
@@ -51,27 +47,28 @@ app.get('/api/health', (req, res) => {
   res.json(healthData);
 });
 
-// Contact form submission endpoint
+// Contact form endpoint
 app.post('/api/contact', async (req, res) => {
   try {
-    console.log('Received contact form submission:', req.body);
     const { name, email, company, message } = req.body;
 
-    // Validate required fields
+    // Basic validation
     if (!name || !email || !message) {
-      console.log('Missing required fields:', { name: !!name, email: !!email, message: !!message });
       return res.status(400).json({ 
         success: false, 
-        error: 'Missing required fields' 
+        error: 'Name, email, and message are required' 
       });
     }
 
-    // Save to database first
+    // Log the received data
+    console.log('Received contact form submission:', { name, email, company, message });
+
+    // Save to database
     console.log('Saving contact submission to database...');
     const dbResult = await saveContactSubmission({ name, email, company, message });
     console.log('Saved to database with ID:', dbResult?.id || 'unknown');
 
-    // Send email
+    // Send email notification
     console.log('Sending email notification...');
     const emailResult = await sendEmail({ name, email, company, message });
 
@@ -79,7 +76,7 @@ app.post('/api/contact', async (req, res) => {
       console.log('Email sent successfully');
       return res.status(200).json({ 
         success: true, 
-        message: 'Form submitted successfully' 
+        message: 'Contact form submitted successfully' 
       });
     } else {
       console.error('Email sending failed:', emailResult.error);
@@ -91,20 +88,26 @@ app.post('/api/contact', async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Error processing form submission:', error);
-    // Ensure we're sending a proper JSON response even in error cases
+    console.error('Error processing contact form:', error);
     return res.status(500).json({ 
       success: false, 
-      error: error?.message || 'Server error occurred'
+      error: error?.message || 'Server error processing your request' 
     });
   }
 });
 
 // Start the server - binding to 0.0.0.0 makes it accessible from outside
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`API server running on port ${PORT} and listening on all interfaces`);
+  console.log(`API server running on http://0.0.0.0:${PORT}`);
   console.log(`Health endpoint: http://localhost:${PORT}/api/health`);
   console.log(`Contact endpoint: http://localhost:${PORT}/api/contact`);
+});
+
+// Log environment info
+console.log('Environment:', {
+  NODE_ENV: process.env.NODE_ENV,
+  PORT: PORT,
+  HOST: process.env.HOST || '0.0.0.0'
 });
 
 export default app;

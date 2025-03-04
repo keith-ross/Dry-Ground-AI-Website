@@ -14,9 +14,13 @@ export const sendContactEmail = async (data) => {
       apiUrl = 'http://localhost:3001/api/contact';
     } else if (window.location.hostname.includes('replit.dev')) {
       // Replit development environment
-      // Use the same hostname but different port for API requests
-      const baseUrl = window.location.hostname.replace('-00-', '-01-');
-      apiUrl = `${window.location.protocol}//${baseUrl}/api/contact`;
+      // Replace the subdomain portion for API requests
+      const replitId = window.location.hostname.split('.')[0];
+      // Extract the base ID without the "-00-" part
+      const baseId = replitId.replace('-00-', '-');
+      // Construct API URL with "-01-" for the API server
+      const apiHostname = baseId.replace('-', '-01-');
+      apiUrl = `${window.location.protocol}//${apiHostname}.${window.location.hostname.split('.').slice(1).join('.')}/api/contact`;
     } else {
       // Production environment - use relative URL
       apiUrl = '/api/contact';
@@ -47,17 +51,18 @@ export const sendContactEmail = async (data) => {
       throw new Error(`Invalid JSON response: ${parseError.message}`);
     }
 
-    // Check if the request was successful
-    if (!response.ok) {
-      throw new Error(result.error || `Server error: ${response.status}`);
+    console.log('API result:', result);
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Unknown error');
     }
-
+    
     return result;
   } catch (error) {
-    console.error('Form submission exception: ', error);
-    return { 
-      success: false, 
-      error: error.message || 'Failed to submit form',
+    console.error('Form submission error:', error.message);
+    return {
+      success: false,
+      error: error.message || 'Unknown error',
       details: error.toString()
     };
   }

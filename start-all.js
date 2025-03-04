@@ -1,6 +1,6 @@
 
 // A script to start both the frontend and API server
-import { spawn } from 'child_process';
+import { spawn, exec } from 'child_process';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
