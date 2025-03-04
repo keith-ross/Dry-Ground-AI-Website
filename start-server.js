@@ -3,6 +3,7 @@
 import { spawn, exec } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,6 +14,12 @@ const SERVER_PATH = path.join(__dirname, 'src', 'api', 'server.js');
 console.log('Starting API server...');
 console.log('Server path:', SERVER_PATH);
 
+// Verify the server file exists
+if (!fs.existsSync(SERVER_PATH)) {
+  console.error(`ERROR: Server file not found at ${SERVER_PATH}`);
+  process.exit(1);
+}
+
 // Function to kill processes on a specific port
 function killProcessOnPort(port) {
   return new Promise((resolve) => {
@@ -21,12 +28,16 @@ function killProcessOnPort(port) {
     // Use different commands based on platform
     const command = process.platform === 'win32'
       ? `netstat -ano | findstr :${port}`
-      : `lsof -ti:${port} | xargs kill -9 2>/dev/null || true`;
+      : `lsof -ti:${port} || echo "No process found on port ${port}"`;
     
     exec(command, (error, stdout) => {
-      if (error && process.platform === 'win32') {
-        console.log('No process found on port, or error killing process');
-      } else if (process.platform === 'win32' && stdout) {
+      if (error) {
+        console.log('Error finding processes on port or no process found');
+        resolve();
+        return;
+      }
+      
+      if (process.platform === 'win32' && stdout) {
         // On Windows, parse the output to get PIDs
         const lines = stdout.split('\n');
         const pids = new Set();
@@ -43,6 +54,9 @@ function killProcessOnPort(port) {
             exec(`taskkill /F /PID ${pid}`, () => {});
           }
         });
+      } else if (stdout && !stdout.includes('No process')) {
+        // On Unix, the command already prepared the PIDs for killing
+        exec(`kill -9 $(${command})`, () => {});
       }
       
       resolve();
@@ -53,10 +67,12 @@ function killProcessOnPort(port) {
 // Start the server
 async function startServer() {
   try {
+    console.log('Checking for existing processes...');
     // Kill any existing process on the port
     await killProcessOnPort(PORT);
     
     // Add a small delay to ensure the port is fully released
+    console.log('Waiting for port to be released...');
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     console.log('Starting the API server...');
