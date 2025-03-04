@@ -6,6 +6,61 @@ import { sendContactConfirmationEmail } from '../lib/emailService.js';
 
 // Create Express API server
 const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Initialize database on startup
+initDb().catch(err => {
+  console.error('Failed to initialize database:', err);
+  process.exit(1);
+});
+
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+
+// Contact form endpoint
+app.post('/api/contact', async (req, res) => {
+  try {
+    const { name, email, company, message } = req.body;
+    
+    console.log('Received contact form submission:', { name, email, company, message });
+    
+    // Validate required fields
+    if (!name || !email || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Name, email, and message are required' 
+      });
+    }
+    
+    // Save to database
+    const saveResult = await saveContactSubmission({ name, email, company, message });
+    console.log('Saved to database with ID:', saveResult.id);
+    
+    // Send confirmation email
+    const emailResult = await sendContactConfirmationEmail({ name, email, company, message });
+    console.log('Email sending result:', emailResult);
+    
+    // Return success even if email fails, as long as we saved to the database
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Contact form submission received',
+      emailSent: emailResult.success
+    });
+    
+  } catch (error) {
+    console.error('Error processing contact form:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'An error occurred while processing your submission',
+      error: error.message
+    });
+  }
+});
+
+// Start the server
+export default app;
+const app = express();
 
 // Initialize database on startup
 (async () => {

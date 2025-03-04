@@ -10,42 +10,35 @@ if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
 }
 
-export async function sendContactConfirmationEmail({ name, email, message }) {
-  if (!SENDGRID_API_KEY) {
-    console.log('SendGrid API key not configured, skipping email send');
-    return;
-  }
-
+export async function sendContactConfirmationEmail({ name, email, company, message }) {
   try {
-    // Email to sender (confirmation)
-    const userMsg = {
-      to: email,
-      from: FROM_EMAIL,
-      subject: 'Thank you for contacting Dry Ground AI',
-      text: `Hi ${name},\n\nThank you for reaching out to us. We've received your message and will get back to you shortly.\n\nBest regards,\nThe Dry Ground AI Team`,
-      html: `<p>Hi ${name},</p><p>Thank you for reaching out to us. We've received your message and will get back to you shortly.</p><p>Best regards,<br>The Dry Ground AI Team</p>`
-    };
-
-    // Email to admin (notification)
-    const adminMsg = {
-      to: TO_EMAIL,
-      from: FROM_EMAIL,
-      subject: `New Contact Form Submission from ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
-      html: `<p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Message:</strong> ${message}</p>`
-    };
-
-    await Promise.all([
-      sgMail.send(userMsg),
-      sgMail.send(adminMsg)
-    ]);
-
-    return true;
-  } catch (error) {
-    console.error('SendGrid Error:', error);
-    if (error.response) {
-      console.error('SendGrid Error Response:', error.response.body);
+    if (!SENDGRID_API_KEY) {
+      console.log('SendGrid API key not found, skipping email send');
+      return { success: false, message: 'Email service not configured' };
     }
-    throw error;
+
+    const msg = {
+      to: email,
+      from: 'noreply@yourdomain.com', // Replace with your verified sender
+      subject: 'Thanks for contacting us!',
+      text: `Hello ${name},\n\nThank you for reaching out to us. We have received your message and will get back to you shortly.\n\nBest regards,\nDry Ground AI Team`,
+      html: `<p>Hello ${name},</p><p>Thank you for reaching out to us. We have received your message and will get back to you shortly.</p><p>Best regards,<br>Dry Ground AI Team</p>`,
+    };
+
+    console.log('Attempting to send email to:', email);
+    await sgMail.send(msg);
+    console.log('Email sent successfully to:', email);
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending email:', error);
+    if (error.response) {
+      console.error('SendGrid API error:', error.response.body);
+    }
+    return { 
+      success: false, 
+      message: 'Failed to send email',
+      error: error.message
+    };
   }
 }
