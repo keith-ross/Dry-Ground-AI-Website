@@ -1,20 +1,41 @@
 import React, { useState } from 'react';
 
-const initialFormData = {
-  name: '',
-  email: '',
-  company: '',
-  message: ''
-};
+interface FormData {
+  name: string;
+  email: string;
+  company: string;
+  message: string;
+}
 
-const ContactForm = () => {
-  const [formData, setFormData] = useState(initialFormData);
-  const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitResult, setSubmitResult] = useState({ success: null, message: '' });
+interface FormErrors {
+  name?: string;
+  email?: string;
+  message?: string;
+}
 
-  const validate = () => {
-    const newErrors = {};
+interface SubmitResult {
+  success: boolean | null;
+  message: string;
+  error?: any;
+}
+
+const ContactForm: React.FC = () => {
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    email: '',
+    company: '',
+    message: ''
+  });
+
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [submitResult, setSubmitResult] = useState<SubmitResult>({
+    success: null,
+    message: ''
+  });
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
 
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
@@ -22,8 +43,8 @@ const ContactForm = () => {
 
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
     }
 
     if (!formData.message.trim()) {
@@ -34,33 +55,40 @@ const ContactForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
 
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
+    // Clear error for this field if it exists
+    if (errors[name as keyof FormErrors]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: undefined
+      }));
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate form before submission
-    if (!validate()) {
+
+    // Reset submit result
+    setSubmitResult({
+      success: null,
+      message: ''
+    });
+
+    if (!validateForm()) {
       return;
     }
-    
+
     setIsSubmitting(true);
-    setSubmitResult({ success: null, message: '' });
 
-    // Reset validation errors
-    setErrors({});
-    
-    console.log('Submitting form data: ', formData);
-    
     try {
+      console.log('Submitting form data:', formData);
+
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
@@ -68,82 +96,9 @@ const ContactForm = () => {
         },
         body: JSON.stringify(formData),
       });
-      
+
       const data = await response.json();
-      
-      if (response.ok && data.success) {
-        setSubmitResult({ 
-          success: true, 
-          message: data.message || 'Thank you for your message! We will get back to you soon.'
-        });
-        // Reset form on success
-        setFormData({ name: '', email: '', company: '', message: '' });
-      } else {
-        throw new Error(
-          data.message || data.error || 
-          `Server error (${response.status}): Please check console logs for details`
-        );
-      }
-    } catch (error) {
-      console.error('Error submitting form: ', error);
-      
-      let errorMessage = 'Failed to submit the form';
-      
-      if (error.message) {
-        errorMessage = error.message;
-      } else if (error.response && error.response.data && error.response.data.message) {
-        errorMessage = error.response.data.message;
-      }
-      
-      setSubmitResult({ 
-        success: false, 
-        message: errorMessage
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-
-    // Validate form
-    const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
-    if (!formData.message.trim()) newErrors.message = 'Message is required';
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      console.log('Submitting form data: ', formData);
-
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      console.log('Response status:', response.status);
-
-      const rawResponse = await response.text();
-      console.log('Raw response: ', rawResponse);
-
-      let data;
-      try {
-        data = rawResponse ? JSON.parse(rawResponse) : {};
-        console.log('Response data: ', data);
-      } catch (e) {
-        console.error('Error parsing response:', e);
-        data = { 
-          success: false, 
-          message: 'Error parsing server response',
-          error: e.message
-        };
-      }
+      console.log('Response from server:', data);
 
       if (response.ok && data.success) {
         setSubmitResult({ 
@@ -153,22 +108,19 @@ const ContactForm = () => {
         // Reset form on success
         setFormData({ name: '', email: '', company: '', message: '' });
       } else {
-        throw new Error(
-          data.message || data.error || 
-          `Server error (${response.status}): Please check console logs for details`
-        );
+        const errorMsg = data.message || `Server error (${response.status})`;
+        console.error('Form submission error:', errorMsg);
+        throw new Error(errorMsg);
       }
     } catch (error) {
-      console.error('Error submitting form: ', error);
-      
-      let errorMessage = 'Failed to submit the form';
-      
-      if (error.message) {
+      console.error('Error submitting form:', error);
+
+      let errorMessage = 'Failed to submit the form. Please try again later.';
+
+      if (error instanceof Error) {
         errorMessage = error.message;
-      } else if (error.response && error.response.data && error.response.data.message) {
-        errorMessage = error.response.data.message;
       }
-      
+
       setSubmitResult({ 
         success: false, 
         message: errorMessage,
@@ -184,21 +136,19 @@ const ContactForm = () => {
       <h2 className="text-2xl font-semibold mb-6">Contact Us</h2>
 
       {submitResult.success === true && (
-        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
-          {submitResult.message || "Thank you for your message! We'll get back to you soon."}
-        </div>
-      )}
-      
-      {submitResult.success === false && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-          {submitResult.message || "There was an error submitting your form. Please try again later."}
+        <div className="mb-4 p-3 bg-green-100 text-green-700 border border-green-400 rounded">
+          {submitResult.message}
         </div>
       )}
 
       {submitResult.success === false && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-          <p><strong>Error:</strong> {submitResult.message || "An error occurred. Please try again later."}</p>
-          {submitResult.error && <p className="text-sm mt-1">Details: {typeof submitResult.error === 'string' ? submitResult.error : JSON.stringify(submitResult.error)}</p>}
+        <div className="mb-4 p-3 bg-red-100 text-red-700 border border-red-400 rounded">
+          <p><strong>Error:</strong> {submitResult.message}</p>
+          {submitResult.error && 
+            <p className="text-sm mt-1">
+              Please try again or contact us directly at info@dryground.ai
+            </p>
+          }
         </div>
       )}
 
@@ -275,16 +225,6 @@ const ContactForm = () => {
         >
           {isSubmitting ? 'Sending...' : 'Send Message'}
         </button>
-        
-        {submitResult.success !== null && (
-          <div className={`mt-4 p-3 rounded-md ${
-            submitResult.success 
-              ? 'bg-green-100 border border-green-400 text-green-700' 
-              : 'bg-red-100 border border-red-400 text-red-700'
-          }`}>
-            <p>{submitResult.message}</p>
-          </div>
-        )}
       </form>
     </div>
   );
