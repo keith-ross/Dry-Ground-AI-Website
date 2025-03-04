@@ -42,19 +42,36 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
     const toastId = toast.loading('Sending your message...');
 
     try {
-      // Insert the message into the database with no RLS
-      const { error } = await supabase
-        .from('contact_messages')
-        .insert({
-          name: formData.name,
-          email: formData.email,
-          message: formData.message
-        });
-
-      if (error) {
-        console.error('Error submitting form:', error);
-        throw new Error(error.message);
+      // Send the form data to our API endpoint
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit the form');
       }
+      
+      // Success! Clear the form
+      setFormData({
+        name: '',
+        email: '',
+        message: ''
+      });
+      
+      // Show success toast
+      toast.success('Message sent successfully!', { id: toastId });
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error(error.message || 'Failed to send message. Please try again.', { id: toastId });
+    } finally {
+      setIsSubmitting(false);
+    }
 
       // Show success message
       toast.success('Message sent successfully!', {
