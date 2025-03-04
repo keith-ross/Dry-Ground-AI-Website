@@ -2,12 +2,17 @@
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import { join } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-// Define the database path
-const dbPath = join(process.cwd(), 'data', 'contact_submissions.db');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Define the database path - go up to project root then to data directory
+const dbPath = join(dirname(dirname(__dirname)), 'data', 'contact_submissions.db');
 
 // Database connection
-let db: any = null;
+let db = null;
 
 // Initialize the database
 export async function initDb() {
@@ -35,12 +40,7 @@ export async function initDb() {
 }
 
 // Save a contact form submission
-export async function saveContactSubmission({ name, email, company, message }: {
-  name: string;
-  email: string;
-  company?: string;
-  message: string;
-}) {
+export async function saveContactSubmission({ name, email, company, message }) {
   if (!db) await initDb();
   
   return await db.run(

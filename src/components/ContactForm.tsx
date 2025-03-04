@@ -1,16 +1,10 @@
 
 import React, { useState } from 'react';
-import { toast } from 'react-hot-toast';
-
-interface FormData {
-  name: string;
-  email: string;
-  company: string;
-  message: string;
-}
+import { Send } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const ContactForm: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState({
     name: '',
     email: '',
     company: '',
@@ -20,15 +14,18 @@ const ContactForm: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
+    // Validate form
     if (!formData.name || !formData.email || !formData.message) {
-      toast.error('Please fill in all required fields');
+      toast.error('Please fill out all required fields');
       return;
     }
     
@@ -43,23 +40,23 @@ const ContactForm: React.FC = () => {
         body: JSON.stringify(formData)
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to submit form');
+      const data = await response.json();
+      
+      if (data.success) {
+        toast.success('Message sent successfully!');
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          company: '',
+          message: ''
+        });
+      } else {
+        toast.error(data.message || 'Failed to send message');
       }
-      
-      // Clear form
-      setFormData({
-        name: '',
-        email: '',
-        company: '',
-        message: ''
-      });
-      
-      toast.success('Thank you for your message! We will get back to you soon.');
     } catch (error) {
       console.error('Error submitting form:', error);
-      toast.error('Failed to submit form. Please try again later.');
+      toast.error('An error occurred while sending your message');
     } finally {
       setIsSubmitting(false);
     }
@@ -68,7 +65,9 @@ const ContactForm: React.FC = () => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-300">Name *</label>
+        <label htmlFor="name" className="block text-sm font-medium text-gray-300">
+          Name <span className="text-red-500">*</span>
+        </label>
         <input
           type="text"
           id="name"
@@ -76,12 +75,14 @@ const ContactForm: React.FC = () => {
           value={formData.name}
           onChange={handleChange}
           required
-          className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+          className="mt-1 block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md shadow-sm text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
         />
       </div>
       
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email *</label>
+        <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+          Email <span className="text-red-500">*</span>
+        </label>
         <input
           type="email"
           id="email"
@@ -89,24 +90,28 @@ const ContactForm: React.FC = () => {
           value={formData.email}
           onChange={handleChange}
           required
-          className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+          className="mt-1 block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md shadow-sm text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
         />
       </div>
       
       <div>
-        <label htmlFor="company" className="block text-sm font-medium text-gray-300">Company</label>
+        <label htmlFor="company" className="block text-sm font-medium text-gray-300">
+          Company
+        </label>
         <input
           type="text"
           id="company"
           name="company"
           value={formData.company}
           onChange={handleChange}
-          className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+          className="mt-1 block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md shadow-sm text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
         />
       </div>
       
       <div>
-        <label htmlFor="message" className="block text-sm font-medium text-gray-300">Message *</label>
+        <label htmlFor="message" className="block text-sm font-medium text-gray-300">
+          Message <span className="text-red-500">*</span>
+        </label>
         <textarea
           id="message"
           name="message"
@@ -114,7 +119,7 @@ const ContactForm: React.FC = () => {
           value={formData.message}
           onChange={handleChange}
           required
-          className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-white focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+          className="mt-1 block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md shadow-sm text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
         />
       </div>
       
@@ -122,9 +127,15 @@ const ContactForm: React.FC = () => {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-primary hover:bg-brand-primary-darker focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary disabled:opacity-50"
+          className="w-full flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
         >
-          {isSubmitting ? 'Sending...' : 'Send Message'}
+          {isSubmitting ? (
+            'Sending...'
+          ) : (
+            <>
+              Send Message <Send className="ml-2 h-4 w-4" />
+            </>
+          )}
         </button>
       </div>
     </form>

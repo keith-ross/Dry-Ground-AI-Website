@@ -1,7 +1,8 @@
+
 import express from 'express';
 import cors from 'cors';
-import { initDb, saveContactSubmission } from '../lib/db';
-import { sendConfirmationEmail } from '../lib/emailService';
+import { initDb, saveContactSubmission } from '../lib/db.js';
+import { sendConfirmationEmail } from '../lib/emailService.js';
 
 const app = express();
 const PORT = 3001;

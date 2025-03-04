@@ -1,8 +1,12 @@
 
-const { spawn } = require('child_process');
-const chalk = require('chalk');
-const path = require('path');
-const fs = require('fs');
+import { spawn } from 'child_process';
+import chalk from 'chalk';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Ensure data directory exists
 const dataDir = path.join(process.cwd(), 'data');
@@ -13,7 +17,7 @@ if (!fs.existsSync(dataDir)) {
 
 // Start API server
 console.log(chalk.blue('Starting API server...'));
-const apiServer = spawn('npx', ['ts-node', 'src/api/server.ts'], {
+const apiServer = spawn('node', ['--loader', 'ts-node/esm', 'src/api/server.ts'], {
   env: { ...process.env, NODE_ENV: 'development' }
 });
 
