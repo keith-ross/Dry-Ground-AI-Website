@@ -1,23 +1,19 @@
+import dotenv from 'dotenv';
+import './src/api/contactServer.js';
 
-// start-contact-api.js - Simplified script to start the contact API server
-require('dotenv').config();
+// Load environment variables
+dotenv.config();
+
+// Log environment configuration
+console.log('Environment Variables');
+console.log('==================');
+console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY ? 'Set (hidden)' : 'Not set ⚠️');
+console.log('FROM_EMAIL:', process.env.FROM_EMAIL || 'Not set ⚠️'); 
+console.log('ADMIN_EMAIL:', process.env.ADMIN_EMAIL || 'Not set ⚠️');
+
+
+// Start the server (from original code, adapted)
 const { spawn } = require('child_process');
-const path = require('path');
-
-console.log('Starting Contact API server...');
-
-// Check environment variables
-console.log('\nEnvironment variables:');
-console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY ? 'Set ✓' : 'Not set ✗');
-console.log('FROM_EMAIL:', process.env.FROM_EMAIL ? process.env.FROM_EMAIL : 'Not set ✗');
-console.log('ADMIN_EMAIL:', process.env.ADMIN_EMAIL ? process.env.ADMIN_EMAIL : 'Not set ✗');
-
-if (!process.env.SENDGRID_API_KEY) {
-  console.error('\n⚠️ WARNING: SENDGRID_API_KEY is not set. Email sending will fail.');
-  console.error('Please add your SendGrid API key to the .env file or Replit Secrets.');
-}
-
-// Start the server
 const serverProcess = spawn('node', ['src/api/contactServer.js'], {
   stdio: 'inherit',
   env: process.env
@@ -33,7 +29,7 @@ serverProcess.on('exit', (code) => {
   process.exit(code);
 });
 
-// Handle termination
+// Handle termination (from original code)
 process.on('SIGINT', () => {
   console.log('Shutting down server...');
   serverProcess.kill('SIGINT');
