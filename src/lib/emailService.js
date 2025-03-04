@@ -55,9 +55,8 @@ ${formData.company ? `<p><strong>Company:</strong> ${formData.company}</p>` : ''
 };
 
 
-
 // Email service for the contact form
-// Client-side uses import.meta.env
+// Client-side uses import.meta.env variables
 const clientApiKey = import.meta.env.VITE_SENDGRID_API_KEY;
 const clientFromEmail = import.meta.env.VITE_FROM_EMAIL || 'noreply@example.com';
 const clientAdminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com';
@@ -71,7 +70,6 @@ if (clientApiKey) {
  */
 export const sendContactEmail = async (formData) => {
   try {
-    // Send the form data to our API endpoint
     const response = await fetch('/api/contact', {
       method: 'POST',
       headers: {
