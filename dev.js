@@ -1,6 +1,6 @@
 
-const { spawn } = require('child_process');
-const path = require('path');
+import { spawn } from 'child_process';
+import path from 'path';
 
 // Start Express server
 const apiServer = spawn('node', ['--loader', 'ts-node/esm', 'server.ts'], {
