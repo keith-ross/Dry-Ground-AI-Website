@@ -7,10 +7,13 @@ import { query } from '../lib/db';
  */
 export async function submitContactForm(req: Request, res: Response) {
   try {
+    console.log('Received contact form submission:', req.body);
+    
     const { name, email, phone, message } = req.body;
     
     // Basic validation
     if (!name || !email || !message) {
+      console.log('Missing required fields:', { name, email, message });
       return res.status(400).json({
         success: false,
         error: 'Missing required fields',
@@ -28,11 +31,15 @@ export async function submitContactForm(req: Request, res: Response) {
       });
     }
     
+    console.log('Inserting contact message into database...');
+    
     // Insert the message into the database
     const result = await query(
       'INSERT INTO contact_messages (name, email, phone, message, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id',
       [name, email, phone || null, message]
     );
+    
+    console.log('Contact message saved successfully with ID:', result.rows[0].id);
     
     // Return success response
     return res.status(201).json({
@@ -48,7 +55,8 @@ export async function submitContactForm(req: Request, res: Response) {
     return res.status(500).json({
       success: false,
       error: 'Server error',
-      message: 'There was an error processing your request. Please try again later.'
+      message: 'There was an error processing your request. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 }

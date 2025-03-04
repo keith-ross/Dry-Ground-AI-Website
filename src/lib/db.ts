@@ -1,56 +1,52 @@
+
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config();
 
-// Create a connection pool to our PostgreSQL database
+// Get database connection string
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  console.error('ERROR: DATABASE_URL environment variable is not set!');
+  console.error('Please make sure your .env file is properly configured.');
+  process.exit(1); // Exit if DATABASE_URL is not set
+}
+
+console.log('Creating database connection pool...');
+
+// Create a database pool
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  max: 20, // maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // how long a client is allowed to remain idle before being closed
-  connectionTimeoutMillis: 2000, // how long to wait when connecting a new client
+  connectionString: databaseUrl,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-// Log connection events for debugging
+// Log database connection status
 pool.on('connect', () => {
-  console.log('Database connection established');
+  console.log('Connected to the database');
 });
 
 pool.on('error', (err) => {
   console.error('Unexpected database error:', err.message);
 });
 
-
 /**
- * Execute a query against the PostgreSQL database
- * @param text SQL query text
- * @param params Query parameters
- * @returns Query result
+ * Execute a query against the database
  */
 export async function query(text: string, params?: any[]) {
-  const start = Date.now();
+  console.log('Executing query:', text);
   try {
-    const result = await pool.query(text, params);
-    const duration = Date.now() - start;
-    console.log(`Executed query: ${text} (${duration}ms)`);
-    return result;
+    return await pool.query(text, params);
   } catch (error) {
     console.error('Database query error:', error);
     throw error;
   }
 }
 
-// Test the database connection on module import
+// Test database connection on module load
 pool.query('SELECT NOW()')
-  .then(() => console.log('✅ Database connected successfully'))
+  .then(() => console.log('✅ Database connection verified'))
   .catch(err => console.error('❌ Database connection failed:', err));
 
-export const db = {
-    query,
-    end: async () => {
-      await pool.end();
-      console.log('Database connection closed');
-    }
-  };
+export { pool };

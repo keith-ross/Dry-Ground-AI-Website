@@ -1,60 +1,83 @@
 
+// @ts-check
 import { spawn } from 'child_process';
 import dotenv from 'dotenv';
+import fs from 'fs';
 
 // Load environment variables
 dotenv.config();
 
-// Ensure DATABASE_URL is set
-if (!process.env.DATABASE_URL) {
-  console.error('ERROR: DATABASE_URL environment variable is missing!');
-  console.error('Please create a .env file with the required variables.');
+// Check if .env file exists, if not create a template
+if (!fs.existsSync('.env')) {
+  console.log('⚠️ .env file not found. Creating default template...');
+  fs.writeFileSync('.env', `# Database connection
+DATABASE_URL=postgres://username:password@hostname:port/database
+# Environment
+NODE_ENV=development
+# Server port
+PORT=3001
+`);
+  console.log('✅ Created .env file template. Please update with your actual values.');
   process.exit(1);
 }
 
-console.log('🚀 Development servers started');
-console.log('📱 Frontend: http://localhost:3000');
-console.log('🔌 API: http://localhost:3001');
+// Verify database connection string
+if (!process.env.DATABASE_URL) {
+  console.error('❌ ERROR: DATABASE_URL is not set in .env file');
+  console.error('Please set up your database connection string in the .env file');
+  process.exit(1);
+}
 
-// Start the frontend (Vite) dev server
-const frontendProcess = spawn('npx', ['vite'], {
-  stdio: 'inherit',
-  shell: true
-});
+console.log('🚀 Starting development servers...');
 
-// Start the backend API server
-const backendProcess = spawn('node', ['--loader', 'ts-node/esm', 'server.ts'], {
-  stdio: 'inherit',
-  shell: true,
-  env: { ...process.env }
-});
+// Run database check first
+const dbCheck = spawn('node', ['fixdb.js']);
 
-// Handle process exit
-process.on('SIGINT', () => {
-  console.log('\nShutting down development servers...');
-  frontendProcess.kill();
-  backendProcess.kill();
-  process.exit(0);
-});
+dbCheck.stdout.pipe(process.stdout);
+dbCheck.stderr.pipe(process.stderr);
 
-// Handle process errors
-frontendProcess.on('error', (error) => {
-  console.error('Frontend process error:', error);
-});
-
-backendProcess.on('error', (error) => {
-  console.error('Backend process error:', error);
-});
-
-// Handle process exit
-frontendProcess.on('exit', (code) => {
-  if (code !== 0 && code !== null) {
-    console.error(`Frontend process exited with code ${code}`);
+dbCheck.on('exit', (code) => {
+  if (code !== 0) {
+    console.error('❌ Database check failed. Please fix the issues before starting the servers.');
+    process.exit(code);
   }
-});
 
-backendProcess.on('exit', (code) => {
-  if (code !== 0 && code !== null) {
-    console.error(`Backend process exited with code ${code}`);
-  }
+  console.log('✅ Database check completed successfully. Starting servers...');
+
+  // Frontend server - Vite
+  const frontend = spawn('npx', ['vite', '--host']);
+  
+  frontend.stdout.pipe(process.stdout);
+  frontend.stderr.pipe(process.stderr);
+  
+  // Backend server - Node.js with ts-node
+  const backend = spawn('npx', ['tsx', 'server.ts']);
+  
+  backend.stdout.pipe(process.stdout);
+  backend.stderr.pipe(process.stderr);
+  
+  console.log('🚀 Development servers started');
+  console.log('📱 Frontend: http://localhost:3000');
+  console.log('🔌 API: http://localhost:3001');
+  
+  // Handle process termination
+  process.on('SIGINT', () => {
+    console.log('👋 Shutting down development servers...');
+    frontend.kill();
+    backend.kill();
+    process.exit(0);
+  });
+  
+  // Handle server process exits
+  frontend.on('exit', (code) => {
+    if (code !== 0 && code !== null) {
+      console.error(`❌ Frontend server exited with code ${code}`);
+    }
+  });
+  
+  backend.on('exit', (code) => {
+    if (code !== 0 && code !== null) {
+      console.error(`❌ API server exited with code ${code}`);
+    }
+  });
 });
