@@ -1,9 +1,10 @@
 import express from 'express';
 import cors from 'cors';
-import { submitContactForm } from './src/api/contact';
 import path from 'path';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
+import pkg from 'pg';
+const { Pool } = pkg;
 
 // Load environment variables
 dotenv.config();
@@ -12,6 +13,60 @@ dotenv.config();
 if (!process.env.DATABASE_URL) {
   console.error('ERROR: DATABASE_URL environment variable is not set!');
   console.error('Please make sure your .env file is properly configured.');
+  process.exit(1);
+}
+
+// Setup database connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+// Test database connection
+(async () => {
+  try {
+    const client = await pool.connect();
+    console.log('✅ Database connected successfully');
+    client.release();
+  } catch (err) {
+    console.error('❌ Database connection error:', err.message);
+  }
+})();
+
+// Define contact form submission handler
+async function submitContactForm(req, res) {
+  try {
+    console.log('Received contact form submission:', req.body);
+    
+    const { name, email, phone, message } = req.body;
+    
+    if (!name || !email || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields',
+        message: 'Name, email and message are required'
+      });
+    }
+    
+    const result = await pool.query(
+      'INSERT INTO contact_messages (name, email, phone, message) VALUES ($1, $2, $3, $4) RETURNING id',
+      [name, email, phone, message]
+    );
+    
+    console.log('✅ Message saved to database with ID:', result.rows[0].id);
+    
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Your message has been received. Thank you for contacting us!' 
+    });
+  } catch (err) {
+    console.error('❌ Error processing contact form:', err);
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Internal server error',
+      message: err.message
+    });
+  }
 }
 
 const app = express();
