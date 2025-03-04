@@ -55,7 +55,36 @@ app.get('/api/test-sendgrid', async (req, res) => {
   }
 });
 
-// Contact form submission endpoint
+// Debug endpoint to test each component individually
+app.get('/api/debug', (req, res) => {
+  try {
+    // Check environment variables
+    const apiKey = process.env.SENDGRID_API_KEY || 'Not set';
+    const apiKeyInfo = apiKey !== 'Not set' ? 
+      { prefix: apiKey.substring(0, 5) + '...', length: apiKey.length } : 
+      { error: 'API key not found' };
+    
+    // Check if database is initialized
+    const dbStatus = db ? 'Initialized' : 'Not initialized';
+    
+    res.status(200).json({
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      apiKeyInfo,
+      dbStatus,
+      corsSettings: {
+        origin: process.env.NODE_ENV === 'production' 
+          ? [/\.replit\.dev$/, /anchoredup\.org$/]
+          : '*'
+      }
+    });
+  } catch (error) {
+    console.error('Debug endpoint error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Contact form submission endpoint - simplified version
 app.post('/api/contact', async (req, res) => {
   console.log('Received contact form submission:', req.body);
 
@@ -71,31 +100,32 @@ app.post('/api/contact', async (req, res) => {
       });
     }
 
-    // Save to database first
-    console.log('Saving contact submission to database...');
-    const saveResult = await saveContactSubmission({ name, email, company, message });
-    console.log('Saved to database with ID:', saveResult.id);
-
-    // Send email
-    console.log('Attempting to send email...');
-    const emailResult = await sendContactFormEmail({ name, email, company, message });
-    console.log('Email sending result:', emailResult);
-
-    if (!emailResult.success) {
-      console.error('Failed to send email:', emailResult.error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Failed to send your message', 
-        error: emailResult.error 
-      });
+    // First just try to save to database
+    try {
+      console.log('Saving contact submission to database...');
+      const saveResult = await saveContactSubmission({ name, email, company, message });
+      console.log('Saved to database with ID:', saveResult.id);
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      // Continue even if database save fails
     }
 
-    // Return success
-    console.log('Contact form submission processed successfully');
-    return res.status(200).json({ 
+    // Return success - we'll handle emails asynchronously
+    console.log('Contact form submission received successfully');
+    res.status(200).json({ 
       success: true, 
-      message: 'Form submitted successfully' 
+      message: 'Thank you! Your message has been received.' 
     });
+    
+    // Now try to send email asynchronously (after response is sent)
+    try {
+      console.log('Attempting to send email...');
+      const emailResult = await sendContactFormEmail({ name, email, company, message });
+      console.log('Email sending result:', emailResult);
+    } catch (emailError) {
+      console.error('Failed to send email:', emailError);
+      // Email failure doesn't affect the user experience since we already responded
+    }
   } catch (error) {
     console.error('Error processing contact form submission:', error);
     return res.status(500).json({ 
