@@ -33,7 +33,7 @@ app.use((req, res, next) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Unhandled error:', err instanceof Error ? err.message : 'Unknown error');
   
   if (err instanceof Error) {
