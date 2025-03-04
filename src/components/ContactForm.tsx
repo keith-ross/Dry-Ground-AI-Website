@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { sendContactEmail } from '../lib/emailService';
+import { sendContactEmail } from '../lib/emailService.js';
 
 interface FormData {
   name: string;
