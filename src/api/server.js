@@ -1,170 +1,109 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { initDb, saveContactSubmission } from '../lib/db.js';
-import sgMail from '@sendgrid/mail';
+import { sendEmail } from '../lib/emailService.js';
+import { initDb, saveContactSubmission } from './database.js';
 
 // Load environment variables
 dotenv.config();
 
-// Get directory name (ESM workaround)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Set up ports
+const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Create Express app
-const app = express();
-
 // Middleware
-app.use(cors());
 app.use(express.json());
 
-// Logger middleware
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-  next();
+// Configure CORS to allow requests from any origin during development
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? [/\.replit\.dev$/, /anchoredup\.org$/] // Restrict in production
+    : '*',                                   // Allow all in development
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
+
+// Initialize database
+initDb().catch(error => {
+  console.error('Failed to initialize database:', error);
 });
-
-// Configure SendGrid
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const FROM_EMAIL = process.env.FROM_EMAIL || 'your_sender_email@example.com';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'your_recipient_email@example.com';
-
-// Initialize SendGrid if API key is available
-if (SENDGRID_API_KEY) {
-  sgMail.setApiKey(SENDGRID_API_KEY);
-  console.log('SendGrid API key configured');
-} else {
-  console.warn('SendGrid API key not configured');
-}
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    time: new Date().toISOString(),
-    sendgrid: SENDGRID_API_KEY ? 'configured' : 'not configured'
+  const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+  const FROM_EMAIL = process.env.FROM_EMAIL;
+  const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+
+  // Check email service configuration
+  const emailService = {
+    success: !!(SENDGRID_API_KEY && FROM_EMAIL && ADMIN_EMAIL),
+    apiKeyExists: !!SENDGRID_API_KEY,
+    apiKeyValid: SENDGRID_API_KEY?.startsWith('SG.') || false,
+    fromEmail: FROM_EMAIL || 'not configured',
+    adminEmail: ADMIN_EMAIL || 'not configured'
+  };
+
+  res.status(200).json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV || 'development',
+    emailService
   });
 });
 
 // Contact form submission endpoint
 app.post('/api/contact', async (req, res) => {
+  console.log('Received contact form submission:', req.body);
+
+  // Input validation
+  const { name, email, company, message } = req.body;
+
+  if (!name || !email || !message) {
+    console.log('Missing required fields:', { name: !!name, email: !!email, message: !!message });
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Missing required fields' 
+    });
+  }
+
   try {
-    console.log('Received contact form submission:', req.body);
+    // Save to database first
+    console.log('Saving contact submission to database...');
+    const dbResult = await saveContactSubmission({ name, email, company, message });
+    console.log('Saved to database with ID:', dbResult?.id || 'unknown');
 
-    const { name, email, company, message } = req.body;
+    // Send email
+    console.log('Sending email notification...');
+    const emailResult = await sendEmail({ name, email, company, message });
 
-    // Validate required fields
-    if (!name || !email || !message) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required fields',
-        details: 'Name, email, and message are required'
+    if (emailResult.success) {
+      console.log('Email sent successfully');
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Form submitted successfully' 
       });
-    }
-
-    // Try to save to database if available
-    try {
-      await saveContactSubmission({ name, email, company, message });
-      console.log('Form submission saved to database');
-    } catch (dbError) {
-      console.warn('Could not save to database:', dbError.message);
-      // Continue with email sending even if database save fails
-    }
-
-    // Check if SendGrid is configured
-    if (!SENDGRID_API_KEY) {
-      console.error('SendGrid API key not configured - cannot send email');
-      return res.status(500).json({
-        success: false,
-        error: 'Email service not configured',
-        details: 'The server is not configured to send emails'
-      });
-    }
-
-    // Prepare email to admin
-    const adminMsg = {
-      to: ADMIN_EMAIL,
-      from: FROM_EMAIL,
-      subject: `New contact form submission from ${name}`,
-      text: `
-        Name: ${name}
-        Email: ${email}
-        Company: ${company || 'Not provided'}
-
-        Message:
-        ${message}
-      `,
-      html: `
-        <h2>New Contact Form Submission</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Company:</strong> ${company || 'Not provided'}</p>
-        <h3>Message:</h3>
-        <p>${message}</p>
-      `
-    };
-
-    // Send email notification to admin
-    try {
-      console.log('Attempting to send email to admin...');
-      await sgMail.send(adminMsg);
-      console.log('Email sent to admin successfully');
-
-      // Return success response
-      return res.status(200).json({
+    } else {
+      console.error('Email sending failed:', emailResult.error);
+      // Still return success since we saved to DB
+      return res.status(200).json({ 
         success: true,
-        message: 'Contact form submission received and notification sent'
-      });
-    } catch (emailError) {
-      console.error('Error sending email:', emailError);
-
-      // Check if error has response for more details
-      if (emailError.response) {
-        console.error('SendGrid API error details:', emailError.response.body);
-      }
-
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to send email notification',
-        details: emailError.message
+        message: 'Form submitted and saved, but email notification failed' 
       });
     }
   } catch (error) {
-    console.error('Server error in contact endpoint:', error);
-    return res.status(500).json({
-      success: false,
+    console.error('Error processing form submission:', error);
+    return res.status(500).json({ 
+      success: false, 
       error: 'Server error occurred',
       details: error.message
     });
   }
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  res.status(500).json({ 
-    success: false, 
-    error: 'Internal server error',
-    details: err.message
-  });
-});
-
 // Start the server
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`API Server running on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`API Server running on 0.0.0.0:${PORT}`);
+  console.log(`Health check available at: http://localhost:${PORT}/api/health`);
+  console.log(`Contact endpoint available at: http://localhost:${PORT}/api/contact`);
 });
 
-// Handle server shutdown
-process.on('SIGINT', () => {
-  console.log('Shutting down API server...');
-  server.close();
-  process.exit(0);
-});
-
-// Export the app for testing
 export default app;

@@ -1,4 +1,4 @@
-
+// src/lib/emailService.js
 import sgMail from '@sendgrid/mail';
 import dotenv from 'dotenv';
 
@@ -7,112 +7,86 @@ dotenv.config();
 
 // Configure SendGrid
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@example.com';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
-
-// Initialize SendGrid if API key is available
 if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
-  console.log('SendGrid API key configured in emailService');
-} else {
-  console.warn('SendGrid API key not configured in emailService');
 }
 
 /**
- * Send a notification email to the admin about a new contact form submission
+ * Send an email notification for a contact form submission
+ * @param {Object} data The contact form data
+ * @returns {Promise<Object>} Result of the email sending operation
  */
-export async function sendContactNotification({ name, email, company, message }) {
+export async function sendEmail(data) {
+  const { name, email, company, message } = data;
+
+  // Check if SendGrid is configured
   if (!SENDGRID_API_KEY) {
-    throw new Error('SendGrid API key not configured');
+    console.warn('SendGrid API key not configured. Email will not be sent.');
+    return { 
+      success: false, 
+      error: 'Email service not configured' 
+    };
   }
 
-  // Prepare email to admin
+  const FROM_EMAIL = process.env.FROM_EMAIL;
+  const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+
+  if (!FROM_EMAIL || !ADMIN_EMAIL) {
+    console.warn('FROM_EMAIL or ADMIN_EMAIL not configured.');
+    return { 
+      success: false, 
+      error: 'Email configuration incomplete' 
+    };
+  }
+
+  // Prepare email content
   const emailContent = {
     to: ADMIN_EMAIL,
     from: FROM_EMAIL,
-    subject: `New contact form submission from ${name}`,
+    subject: `New Contact Form Submission from ${name}`,
     text: `
-      Name: ${name}
-      Email: ${email}
-      Company: ${company || 'Not provided'}
-      
-      Message:
-      ${message}
+Name: ${name}
+Email: ${email}
+Company: ${company || 'Not provided'}
+
+Message:
+${message}
     `,
     html: `
-      <h2>New Contact Form Submission</h2>
-      <p><strong>Name:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Company:</strong> ${company || 'Not provided'}</p>
-      <h3>Message:</h3>
-      <p>${message.replace(/\n/g, '<br>')}</p>
+<h2>New Contact Form Submission</h2>
+<p><strong>Name:</strong> ${name}</p>
+<p><strong>Email:</strong> ${email}</p>
+<p><strong>Company:</strong> ${company || 'Not provided'}</p>
+<h3>Message:</h3>
+<p>${message.replace(/\n/g, '<br>')}</p>
     `
   };
 
   try {
-    console.log('Sending notification email to admin...');
-    await sgMail.send(emailContent);
-    console.log('Email sent successfully');
-    return { success: true };
+    console.log('Sending email via SendGrid...');
+    const response = await sgMail.send(emailContent);
+    console.log('Email sent successfully!', response[0].statusCode);
+    return { 
+      success: true,
+      statusCode: response[0].statusCode 
+    };
   } catch (error) {
     console.error('Error sending email:', error);
-    
-    // Log detailed error if available
+
+    // More detailed error report
+    let errorDetails = 'Unknown error';
     if (error.response) {
-      console.error('SendGrid API error details:', error.response.body);
+      errorDetails = `${error.code || 'Error'}: ${error.message}`;
+
+      if (error.response.body && error.response.body.errors) {
+        errorDetails += ' - ' + error.response.body.errors.map(e => e.message).join(', ');
+      }
     }
-    
-    throw error;
+
+    return { 
+      success: false, 
+      error: 'Failed to send email',
+      details: errorDetails
+    };
   }
 }
-
-/**
- * Send a confirmation email to the user who submitted the contact form
- */
-export async function sendUserConfirmation({ name, email }) {
-  if (!SENDGRID_API_KEY) {
-    throw new Error('SendGrid API key not configured');
-  }
-
-  // Prepare email to user
-  const emailContent = {
-    to: email,
-    from: FROM_EMAIL,
-    subject: 'Thank you for contacting us',
-    text: `
-      Hello ${name},
-      
-      Thank you for contacting us. We have received your message and will get back to you as soon as possible.
-      
-      Best regards,
-      The Team
-    `,
-    html: `
-      <h2>Thank You for Contacting Us</h2>
-      <p>Hello ${name},</p>
-      <p>Thank you for contacting us. We have received your message and will get back to you as soon as possible.</p>
-      <p>Best regards,<br>The Team</p>
-    `
-  };
-
-  try {
-    console.log('Sending confirmation email to user...');
-    await sgMail.send(emailContent);
-    console.log('Confirmation email sent successfully');
-    return { success: true };
-  } catch (error) {
-    console.error('Error sending confirmation email:', error);
-    
-    // Log detailed error if available
-    if (error.response) {
-      console.error('SendGrid API error details:', error.response.body);
-    }
-    
-    throw error;
-  }
-}
-
-export default {
-  sendContactNotification,
-  sendUserConfirmation
-};

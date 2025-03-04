@@ -25,6 +25,24 @@ if (!fs.existsSync(SERVER_PATH)) {
   process.exit(1);
 }
 
+// Check for port conflicts before starting
+function checkPortConflicts() {
+  return new Promise((resolve) => {
+    exec(`lsof -i:${PORT} | grep LISTEN`, (err, stdout, stderr) => {
+      if (stdout) {
+        console.warn(`⚠️ Warning: Port ${PORT} is already in use!`);
+        console.warn('This might cause the server to fail starting.');
+        console.warn('Consider killing the conflicting process before continuing.');
+        console.warn('Process using this port:');
+        console.warn(stdout);
+        resolve(true); // Port has conflict
+      } else {
+        resolve(false); // No conflict
+      }
+    });
+  });
+}
+
 // Check if environment variables are set
 console.log('\nEnvironment variables:');
 console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY ? 'Set (length: ' + process.env.SENDGRID_API_KEY.length + ')' : 'Not set');
@@ -32,8 +50,15 @@ console.log('FROM_EMAIL:', process.env.FROM_EMAIL || 'Not set');
 console.log('ADMIN_EMAIL:', process.env.ADMIN_EMAIL || 'Not set');
 
 // Start the server
-function startServer() {
+async function startServer() {
   try {
+    const hasConflict = await checkPortConflicts();
+    if (hasConflict) {
+      console.log('\nAttempting to start server anyway...');
+    } else {
+      console.log(`\nPort ${PORT} is available. Proceeding...`);
+    }
+    
     console.log('\nStarting the API server...');
     
     // Check for missing environment variables
