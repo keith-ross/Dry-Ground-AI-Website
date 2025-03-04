@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
 
@@ -27,7 +26,7 @@ const ContactForm: React.FC<{ className?: string }> = ({ className = '' }) => {
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error when user types
     if (errors[name as keyof FormData]) {
       setErrors(prev => ({
@@ -39,58 +38,57 @@ const ContactForm: React.FC<{ className?: string }> = ({ className = '' }) => {
 
   const validateForm = (): boolean => {
     const newErrors: Partial<FormData> = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
     }
-    
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
     }
-    
+
     if (!formData.message.trim()) {
       newErrors.message = 'Message is required';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
     setIsSubmitting(true);
-    
+    setErrors({}); // Clear errors on submit
+
     try {
-      const response = await fetch('/api/contact', {
+      // Use the full URL with port to ensure it connects to the API server
+      const response = await fetch('http://localhost:3001/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
       });
-      
+
       if (!response.ok) {
-        throw new Error(`Server returned ${response.status}`);
+        const errorText = await response.text();
+        console.error('Server error response:', errorText);
+        throw new Error(`Server returned ${response.status}: ${errorText}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
-        toast.success('Message sent successfully!');
         setFormData(initialFormData);
+        toast.success('Thank you! Your message has been sent.');
       } else {
-        toast.error(data.message || 'Failed to send message');
+        setErrors({ message: data.message || 'Failed to submit form. Please try again.' });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting form:', error);
-      toast.error('Failed to send message. Please try again later.');
+      setErrors({ message: 'An error occurred. Please try again later.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -116,7 +114,7 @@ const ContactForm: React.FC<{ className?: string }> = ({ className = '' }) => {
           />
           {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
         </div>
-        
+
         <div className="mb-4">
           <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
             Email <span className="text-red-500">*</span>
@@ -133,7 +131,7 @@ const ContactForm: React.FC<{ className?: string }> = ({ className = '' }) => {
           />
           {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
         </div>
-        
+
         <div className="mb-4">
           <label htmlFor="company" className="block text-gray-700 font-medium mb-2">
             Company
@@ -147,7 +145,7 @@ const ContactForm: React.FC<{ className?: string }> = ({ className = '' }) => {
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        
+
         <div className="mb-4">
           <label htmlFor="message" className="block text-gray-700 font-medium mb-2">
             Message <span className="text-red-500">*</span>
@@ -164,7 +162,7 @@ const ContactForm: React.FC<{ className?: string }> = ({ className = '' }) => {
           />
           {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
         </div>
-        
+
         <button
           type="submit"
           disabled={isSubmitting}
