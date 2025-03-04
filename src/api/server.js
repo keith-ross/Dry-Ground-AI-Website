@@ -13,25 +13,20 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
 
-// Handle OPTIONS requests for CORS preflight
-app.options('*', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
-  res.sendStatus(204);
-});
-
-// Configure CORS to allow requests from any origin during development
+// Configure CORS to allow requests from any origin
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? [/\.replit\.dev$/, /anchoredup\.org$/] // Restrict in production
-    : '*',                                   // Allow all in development
-  methods: ['GET', 'POST'],
-  credentials: true
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Log all incoming requests for debugging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
 
 
 // Initialize database
@@ -41,25 +36,19 @@ initDb().catch(error => {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-  const FROM_EMAIL = process.env.FROM_EMAIL;
-  const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-
-  // Check email service configuration
-  const emailService = {
-    success: !!(SENDGRID_API_KEY && FROM_EMAIL && ADMIN_EMAIL),
-    apiKeyExists: !!SENDGRID_API_KEY,
-    apiKeyValid: SENDGRID_API_KEY?.startsWith('SG.') || false,
-    fromEmail: FROM_EMAIL || 'not configured',
-    adminEmail: ADMIN_EMAIL || 'not configured'
+  const healthData = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    emailService: {
+      apiKeyExists: !!process.env.SENDGRID_API_KEY,
+      fromEmail: process.env.FROM_EMAIL || 'not configured',
+      adminEmail: process.env.ADMIN_EMAIL || 'not configured',
+      success: !!(process.env.SENDGRID_API_KEY && process.env.FROM_EMAIL && process.env.ADMIN_EMAIL)
+    }
   };
 
-  res.status(200).json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV || 'development',
-    emailService
-  });
+  res.json(healthData);
 });
 
 // Contact form submission endpoint
@@ -111,11 +100,11 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
-// Start the server
+// Start the server - binding to 0.0.0.0 makes it accessible from outside
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`API Server running on 0.0.0.0:${PORT}`);
-  console.log(`Health check available at: http://localhost:${PORT}/api/health`);
-  console.log(`Contact endpoint available at: http://localhost:${PORT}/api/contact`);
+  console.log(`API server running on port ${PORT} and listening on all interfaces`);
+  console.log(`Health endpoint: http://localhost:${PORT}/api/health`);
+  console.log(`Contact endpoint: http://localhost:${PORT}/api/contact`);
 });
 
 export default app;

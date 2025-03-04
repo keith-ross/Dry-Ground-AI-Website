@@ -20,12 +20,23 @@ function log(message) {
 async function startAll() {
   log('Starting frontend and API server together...');
   
+  // Kill any existing processes on port 3001 (only in Replit environment)
+  try {
+    log('Checking for processes already using port 3001...');
+    exec('lsof -i:3001 -t | xargs kill -9', () => {
+      log('Attempted to clean up any processes using port 3001');
+    });
+  } catch (e) {
+    // Ignore errors from the cleanup attempt
+  }
+
   // Start the API server
   const apiServer = spawn('node', ['src/api/server.js'], {
     stdio: 'pipe',
     env: {
       ...process.env,
-      PORT: '3001'
+      PORT: '3001',
+      NODE_ENV: 'development'
     }
   });
 

@@ -6,10 +6,21 @@ export const sendContactEmail = async (data) => {
   try {
     console.log('Submitting form data:', data);
     
-    // Use absolute URL but handle Replit deployment case differently
-    const apiUrl = window.location.hostname === 'localhost' 
-      ? 'http://localhost:3001/api/contact'
-      : `${window.location.protocol}//${window.location.hostname}/api/contact`;
+    // Determine the correct API URL based on the environment
+    let apiUrl;
+    
+    if (window.location.hostname === 'localhost') {
+      // Local development
+      apiUrl = 'http://localhost:3001/api/contact';
+    } else if (window.location.hostname.includes('replit.dev')) {
+      // Replit development environment
+      // Use the same hostname but different port for API requests
+      const baseUrl = window.location.hostname.replace('-00-', '-01-');
+      apiUrl = `${window.location.protocol}//${baseUrl}/api/contact`;
+    } else {
+      // Production environment - use relative URL
+      apiUrl = '/api/contact';
+    }
     
     console.log('Using API URL:', apiUrl);
     
