@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { sendContactEmail } from '../lib/emailService';
 
 interface FormData {
   name: string;
@@ -9,15 +10,7 @@ interface FormData {
   message: string;
 }
 
-interface FormStatus {
-  submitting: boolean;
-  submitted: boolean;
-  success: boolean;
-  error: string;
-}
-
 const ContactForm: React.FC = () => {
-  // Form state
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
@@ -25,192 +18,233 @@ const ContactForm: React.FC = () => {
     message: ''
   });
   
-  // Form status
-  const [status, setStatus] = useState<FormStatus>({
-    submitting: false,
-    submitted: false,
-    success: false,
-    error: ''
+  const [formStatus, setFormStatus] = useState<{
+    isSubmitting: boolean;
+    isSuccess: boolean | null;
+    message: string;
+  }>({
+    isSubmitting: false,
+    isSuccess: null,
+    message: ''
   });
-  
-  // Handle input changes
+
+  const [validationErrors, setValidationErrors] = useState<{
+    [key: string]: string;
+  }>({});
+
+  const validateForm = (): boolean => {
+    const errors: { [key: string]: string } = {};
+    
+    if (!formData.name.trim()) {
+      errors.name = 'Name is required';
+    }
+    
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'Email address is invalid';
+    }
+    
+    if (!formData.message.trim()) {
+      errors.message = 'Message is required';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-  };
-  
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
     
-    // Set submitting state
-    setStatus({
-      submitting: true,
-      submitted: false,
-      success: false,
-      error: ''
-    });
-    
-    try {
-      // Basic client-side validation
-      if (!formData.name || !formData.email || !formData.message) {
-        throw new Error('Please fill in all required fields');
-      }
-      
-      // Email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        throw new Error('Please enter a valid email address');
-      }
-      
-      // Send the form data to the API
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-      
-      // Parse the response
-      const data = await response.json();
-      
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to submit the form');
-      }
-      
-      // Success!
-      setStatus({
-        submitting: false,
-        submitted: true,
-        success: true,
-        error: ''
-      });
-      
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        company: '',
-        message: ''
-      });
-      
-    } catch (error) {
-      // Error handling
-      setStatus({
-        submitting: false,
-        submitted: true,
-        success: false,
-        error: error instanceof Error ? error.message : 'An unknown error occurred'
+    // Clear validation error for this field when user starts typing
+    if (validationErrors[name]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
       });
     }
   };
-  
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      setFormStatus({
+        isSubmitting: false,
+        isSuccess: false,
+        message: 'Please fill out all required fields correctly.'
+      });
+      return;
+    }
+    
+    setFormStatus({
+      isSubmitting: true,
+      isSuccess: null,
+      message: 'Sending your message...'
+    });
+    
+    try {
+      const result = await sendContactEmail(formData);
+      
+      if (result.success) {
+        setFormStatus({
+          isSubmitting: false,
+          isSuccess: true,
+          message: 'Your message has been sent successfully!'
+        });
+        
+        // Reset form data on success
+        setFormData({
+          name: '',
+          email: '',
+          company: '',
+          message: ''
+        });
+      } else {
+        console.error('Form submission error:', result.error);
+        setFormStatus({
+          isSubmitting: false,
+          isSuccess: false,
+          message: result.error || 'Failed to send your message. Please try again later.'
+        });
+      }
+    } catch (error) {
+      console.error('Form submission exception:', error);
+      setFormStatus({
+        isSubmitting: false,
+        isSuccess: false,
+        message: 'An unexpected error occurred. Please try again later.'
+      });
+    }
+  };
+
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-semibold mb-6 text-center">Get in Touch</h2>
-      
-      {/* Success message */}
-      {status.submitted && status.success && (
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4"
-        >
-          <p>Thank you for your message! We'll get back to you soon.</p>
-        </motion.div>
-      )}
-      
-      {/* Error message */}
-      {status.submitted && !status.success && (
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
-        >
-          <p>Sorry, there was a problem: {status.error}</p>
-        </motion.div>
-      )}
-      
-      {/* Contact form */}
-      <form onSubmit={handleSubmit}>
-        {/* Name field */}
-        <div className="mb-4">
-          <label htmlFor="name" className="block text-gray-700 mb-2">
-            Name *
+    <div className="w-full max-w-lg mx-auto">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Form status message */}
+        {formStatus.message && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`p-4 rounded-md ${
+              formStatus.isSuccess === true
+                ? 'bg-green-100 text-green-800'
+                : formStatus.isSuccess === false
+                ? 'bg-red-100 text-red-800'
+                : 'bg-blue-100 text-blue-800'
+            }`}
+          >
+            {formStatus.message}
+          </motion.div>
+        )}
+
+        {/* Name input */}
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-100">
+            Name <span className="text-red-500">*</span>
           </label>
           <input
-            type="text"
             id="name"
             name="name"
+            type="text"
+            required
             value={formData.name}
             onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+            className={`mt-1 block w-full px-3 py-2 bg-gray-750 border ${
+              validationErrors.name ? 'border-red-500' : 'border-gray-600'
+            } rounded-md shadow-sm text-gray-100 focus:outline-none focus:ring-brand-primary focus:border-brand-primary`}
           />
+          {validationErrors.name && (
+            <p className="mt-1 text-sm text-red-500">{validationErrors.name}</p>
+          )}
         </div>
-        
-        {/* Email field */}
-        <div className="mb-4">
-          <label htmlFor="email" className="block text-gray-700 mb-2">
-            Email *
+
+        {/* Email input */}
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-100">
+            Email <span className="text-red-500">*</span>
           </label>
           <input
-            type="email"
             id="email"
             name="email"
+            type="email"
+            required
             value={formData.email}
             onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+            className={`mt-1 block w-full px-3 py-2 bg-gray-750 border ${
+              validationErrors.email ? 'border-red-500' : 'border-gray-600'
+            } rounded-md shadow-sm text-gray-100 focus:outline-none focus:ring-brand-primary focus:border-brand-primary`}
           />
+          {validationErrors.email && (
+            <p className="mt-1 text-sm text-red-500">{validationErrors.email}</p>
+          )}
         </div>
-        
-        {/* Company field (optional) */}
-        <div className="mb-4">
-          <label htmlFor="company" className="block text-gray-700 mb-2">
+
+        {/* Company input */}
+        <div>
+          <label htmlFor="company" className="block text-sm font-medium text-gray-100">
             Company
           </label>
           <input
-            type="text"
             id="company"
             name="company"
+            type="text"
             value={formData.company}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+            className="mt-1 block w-full px-3 py-2 bg-gray-750 border border-gray-600 rounded-md shadow-sm text-gray-100 focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
           />
         </div>
-        
-        {/* Message field */}
-        <div className="mb-6">
-          <label htmlFor="message" className="block text-gray-700 mb-2">
-            Message *
+
+        {/* Message textarea */}
+        <div>
+          <label htmlFor="message" className="block text-sm font-medium text-gray-100">
+            Message <span className="text-red-500">*</span>
           </label>
           <textarea
             id="message"
             name="message"
+            rows={4}
+            required
             value={formData.message}
             onChange={handleChange}
-            required
-            rows={5}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+            className={`mt-1 block w-full px-3 py-2 bg-gray-750 border ${
+              validationErrors.message ? 'border-red-500' : 'border-gray-600'
+            } rounded-md shadow-sm text-gray-100 focus:outline-none focus:ring-brand-primary focus:border-brand-primary`}
           />
+          {validationErrors.message && (
+            <p className="mt-1 text-sm text-red-500">{validationErrors.message}</p>
+          )}
         </div>
-        
+
         {/* Submit button */}
-        <div className="text-center">
-          <button
+        <div>
+          <motion.button
             type="submit"
-            disabled={status.submitting}
-            className={`px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors ${
-              status.submitting ? 'opacity-70 cursor-not-allowed' : ''
+            disabled={formStatus.isSubmitting}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary transition duration-150 ${
+              formStatus.isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
             }`}
           >
-            {status.submitting ? 'Submitting...' : 'Send Message'}
-          </button>
+            {formStatus.isSubmitting ? (
+              <span className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Sending...
+              </span>
+            ) : (
+              'Send Message'
+            )}
+          </motion.button>
         </div>
       </form>
     </div>
