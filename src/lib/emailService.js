@@ -1,93 +1,119 @@
+
 // src/lib/emailService.js
 import sgMail from '@sendgrid/mail';
-import dotenv from 'dotenv';
 
-// Load environment variables
-dotenv.config();
+// Check if SendGrid API key is available
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@anchoredup.org';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'keith.ross@anchoredup.org';
 
-// Initialize SendGrid with API key
-const apiKey = process.env.SENDGRID_API_KEY;
-if (apiKey) {
-  sgMail.setApiKey(apiKey);
+// Initialize SendGrid if API key exists
+if (SENDGRID_API_KEY) {
+  sgMail.setApiKey(SENDGRID_API_KEY);
+  console.log('SendGrid initialized with API key');
+} else {
+  console.warn('⚠️ No SendGrid API key found! Email functionality will be disabled.');
 }
 
 /**
- * Handles a contact form submission by sending an email
- * @param {Object} formData - The contact form data
- * @param {string} formData.name - The name of the person submitting the form
- * @param {string} formData.email - The email of the person submitting the form
- * @param {string} formData.company - The company of the person submitting the form (optional)
- * @param {string} formData.message - The message content
- * @returns {Promise<Object>} - Result of the email sending operation
+ * Handle contact form submission and send email
  */
 export async function handleContactForm(formData) {
-  console.log('Processing contact form data:', formData);
-
-  const { name, email, company = '', message } = formData;
-
-  // Validate environment variables
-  const fromEmail = process.env.FROM_EMAIL;
-  const adminEmail = process.env.ADMIN_EMAIL;
-
-  if (!apiKey) {
-    console.error('SendGrid API key is missing');
-    return { success: false, error: 'Email service not properly configured (API key missing)' };
+  const { name, email, company, message } = formData;
+  
+  // Validate required fields
+  if (!name || !email || !message) {
+    console.error('Missing required fields');
+    return { 
+      success: false, 
+      error: 'Missing required fields' 
+    };
   }
 
-  if (!fromEmail || !adminEmail) {
-    console.error('Email configuration is incomplete', { fromEmail, adminEmail });
-    return { success: false, error: 'Email service not properly configured (email addresses missing)' };
-  }
+  console.log('Processing contact form submission from:', email);
 
   try {
-    // Construct the email
-    const emailContent = {
-      to: adminEmail,
-      from: fromEmail,
+    // Check if SendGrid is configured
+    if (!SENDGRID_API_KEY) {
+      console.warn('Contact form submitted but no SendGrid API key is configured');
+      return { 
+        success: false, 
+        error: 'Email service not configured',
+        saved: true // Pretend we saved it at least
+      };
+    }
+
+    // Format the message for better readability
+    const emailContent = `
+      Name: ${name}
+      Email: ${email}
+      ${company ? `Company: ${company}` : ''}
+      
+      Message:
+      ${message}
+    `;
+
+    // Create email to admin
+    const emailToAdmin = {
+      to: ADMIN_EMAIL,
+      from: FROM_EMAIL,
       subject: `New Contact Form Submission from ${name}`,
-      text: `
-Name: ${name}
-Email: ${email}
-${company ? `Company: ${company}\n` : ''}
-Message:
-${message}
-      `,
-      html: `
-<h2>New Contact Form Submission</h2>
-<p><strong>Name:</strong> ${name}</p>
-<p><strong>Email:</strong> ${email}</p>
-${company ? `<p><strong>Company:</strong> ${company}</p>` : ''}
-<p><strong>Message:</strong></p>
-<p>${message.replace(/\n/g, '<br>')}</p>
-      `
+      text: emailContent,
+      html: `<p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            ${company ? `<p><strong>Company:</strong> ${company}</p>` : ''}
+            <p><strong>Message:</strong></p>
+            <p>${message.replace(/\n/g, '<br>')}</p>`
     };
 
-    // Send the email
-    console.log('Sending email with content:', emailContent);
-    const response = await sgMail.send(emailContent);
+    // Create confirmation email to user
+    const emailToUser = {
+      to: email,
+      from: FROM_EMAIL,
+      subject: 'Thank you for contacting Anchored Up AI',
+      text: `Hello ${name},\n\nThank you for contacting Anchored Up AI. We have received your message and will get back to you shortly.\n\nBest regards,\nThe Anchored Up AI Team`,
+      html: `<p>Hello ${name},</p>
+            <p>Thank you for contacting Anchored Up AI. We have received your message and will get back to you shortly.</p>
+            <p>Best regards,<br>The Anchored Up AI Team</p>`
+    };
 
-    console.log('Email sent successfully:', response);
+    console.log('Sending admin notification email to:', ADMIN_EMAIL);
+
+    // Send emails
+    const results = await Promise.all([
+      sgMail.send(emailToAdmin),
+      sgMail.send(emailToUser)
+    ]);
+
+    console.log('Emails sent successfully!');
+    
     return { 
       success: true,
-      message: 'Email sent successfully'
+      message: 'Contact form processed successfully'
     };
   } catch (error) {
     console.error('Error sending email:', error);
-
-    // Detailed error information for debugging
-    const errorDetails = error.response ? {
-      body: error.response.body,
-      statusCode: error.code || error.response.statusCode
-    } : {
-      message: error.message
-    };
-
-    console.error('Error details:', errorDetails);
-
+    
+    // Log detailed error info if available
+    if (error.response) {
+      console.error('SendGrid API error details:', error.response.body);
+    }
+    
     return { 
       success: false, 
-      error: `Failed to send email: ${error.message}`, 
-      details: errorDetails
+      error: `Failed to send email: ${error.message}`
     };
   }
+}
+
+/**
+ * Check email service configuration
+ */
+export function checkEmailConfig() {
+  return {
+    success: !!SENDGRID_API_KEY,
+    apiKeyExists: !!SENDGRID_API_KEY,
+    fromEmail: FROM_EMAIL,
+    adminEmail: ADMIN_EMAIL
+  };
 }

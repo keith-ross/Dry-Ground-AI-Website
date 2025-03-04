@@ -2,7 +2,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { handleContactForm } from '../lib/emailService.js';
+import { handleContactForm, checkEmailConfig } from '../lib/emailService.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -21,99 +21,79 @@ if (fs.existsSync(envPath)) {
   dotenv.config();
 }
 
-// Log environment configuration
-console.log('API Server Environment:');
-console.log('- NODE_ENV:', process.env.NODE_ENV);
-console.log('- PORT:', process.env.PORT || 3001);
-console.log('- SENDGRID_API_KEY exists:', !!process.env.SENDGRID_API_KEY);
-
-
+// Create the Express app
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Simple logging middleware
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-  next();
-});
+// Configure CORS to allow requests from any origin
+app.use(cors({
+  origin: '*',  // Allow all origins for testing
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
+
+// Log important environment values
+console.log('API Server Configuration:');
+console.log('- PORT:', PORT);
+console.log('- SENDGRID_API_KEY exists:', !!process.env.SENDGRID_API_KEY);
+console.log('- FROM_EMAIL:', process.env.FROM_EMAIL || 'not set (using default)');
+console.log('- ADMIN_EMAIL:', process.env.ADMIN_EMAIL || 'not set (using default)');
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  const apiKey = process.env.SENDGRID_API_KEY;
-  const fromEmail = process.env.FROM_EMAIL;
-  const adminEmail = process.env.ADMIN_EMAIL;
-
+  const emailStatus = checkEmailConfig();
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    emailService: {
-      success: !!apiKey && !!fromEmail && !!adminEmail,
-      apiKeyExists: !!apiKey,
-      fromEmail: fromEmail || 'not set',
-      adminEmail: adminEmail || 'not set'
-    }
+    environment: process.env.NODE_ENV || 'development',
+    emailService: emailStatus
   });
 });
 
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
+  console.log('Received contact form submission:', req.body);
+
   try {
-    console.log('Received contact form submission:', req.body);
-
-    const { name, email, company, message } = req.body;
-
-    if (!name || !email || !message) {
-      console.log('Missing required fields');
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Missing required fields' 
-      });
-    }
-
-    const result = await handleContactForm({ name, email, company, message });
-
-    console.log('Email sending result:', result);
+    // Handle the contact form submission
+    const result = await handleContactForm(req.body);
 
     if (result.success) {
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Contact form submitted successfully' 
+      return res.status(200).json({
+        success: true,
+        message: 'Contact form submitted successfully'
       });
     } else {
-      return res.status(500).json({ 
-        success: false, 
-        error: result.error || 'Failed to send email' 
+      return res.status(400).json({
+        success: false,
+        message: result.error || 'Failed to process contact form'
       });
     }
   } catch (error) {
     console.error('Error processing contact form:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message || 'Internal server error'
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
     });
   }
 });
 
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`API server running on port ${PORT}`);
+  console.log(`✅ API server running at http://0.0.0.0:${PORT}`);
+  console.log(`Health check available at http://0.0.0.0:${PORT}/api/health`);
 });
 
-// Handle graceful shutdown
+// Handle process termination gracefully
 process.on('SIGINT', () => {
-  console.log('API server shutting down');
+  console.log('API server shutting down...');
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  console.log('API server shutting down');
+  console.log('API server shutting down...');
   process.exit(0);
 });
-
-// Export the app for testing
-export default app;
