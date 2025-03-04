@@ -44,6 +44,15 @@ app.post('/api/contact', async (req, res) => {
       });
     }
     
+    // Check if SendGrid API key is configured
+    if (!process.env.SENDGRID_API_KEY) {
+      console.error('SendGrid API key is not configured. Please add it to Replit Secrets.');
+      return res.status(500).json({
+        success: false,
+        message: 'Email service is not properly configured. Please contact the administrator.'
+      });
+    }
+    
     // Save to database
     try {
       await saveContactSubmission({ name, email, company, message });
@@ -56,12 +65,12 @@ app.post('/api/contact', async (req, res) => {
     // Send confirmation email to user
     console.log('Attempting to send confirmation email to user...');
     const userEmailResult = await sendContactConfirmationEmail({ name, email });
-    console.log('User email result:', userEmailResult);
+    console.log('User email result:', JSON.stringify(userEmailResult, null, 2));
     
     // Send notification email to admin
     console.log('Attempting to send notification email to admin...');
     const adminEmailResult = await sendAdminNotificationEmail({ name, email, company, message });
-    console.log('Admin email result:', adminEmailResult);
+    console.log('Admin email result:', JSON.stringify(adminEmailResult, null, 2));
     
     // Check email results
     if (userEmailResult.success || adminEmailResult.success) {
@@ -70,18 +79,27 @@ app.post('/api/contact', async (req, res) => {
         message: 'Contact form submitted successfully' 
       });
     } else {
-      const errorDetails = userEmailResult.error || adminEmailResult.error;
+      let errorMessage = 'Failed to send confirmation emails';
+      let errorDetails = null;
+      
+      if (userEmailResult.error) {
+        errorDetails = userEmailResult.error;
+        errorMessage = userEmailResult.message || errorMessage;
+      } else if (adminEmailResult.error) {
+        errorDetails = adminEmailResult.error;
+        errorMessage = adminEmailResult.message || errorMessage;
+      }
       
       console.error('Failed to send emails:', { 
         userEmailResult, 
         adminEmailResult,
-        errorDetails: JSON.stringify(errorDetails, null, 2)
+        errorDetails: errorDetails ? JSON.stringify(errorDetails, null, 2) : 'Unknown error'
       });
       
       return res.status(500).json({ 
         success: false, 
-        message: 'Failed to send confirmation emails',
-        error: errorDetails ? JSON.stringify(errorDetails) : 'Unknown error'
+        message: errorMessage,
+        error: errorDetails ? errorDetails.message || JSON.stringify(errorDetails) : 'Unknown error'
       });
     }
   } catch (error) {

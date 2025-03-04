@@ -105,13 +105,14 @@ const ContactForm = () => {
       
       {submitResult.success === true && (
         <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
-          {submitResult.message}
+          {submitResult.message || "Thank you for your message! We'll get back to you soon."}
         </div>
       )}
       
       {submitResult.success === false && (
         <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-          {submitResult.message}
+          <p><strong>Error:</strong> {submitResult.message || "An error occurred. Please try again later."}</p>
+          {submitResult.error && <p className="text-sm mt-1">Details: {typeof submitResult.error === 'string' ? submitResult.error : JSON.stringify(submitResult.error)}</p>}
         </div>
       )}
       
