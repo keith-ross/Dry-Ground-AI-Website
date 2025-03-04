@@ -47,10 +47,12 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
     }
 
     setIsSubmitting(true);
-    const toastId = toast.loading('Sending your message...');
+    const toastId = toast.loading('Sending message...');
 
     try {
-      // Send the form data to our API endpoint
+      // Log what we're sending for debugging
+      console.log('Sending form data:', formData);
+
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
@@ -59,13 +61,28 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // Log response status
+      console.log('Response status:', response.status);
+
+      // Get the response text first
+      const text = await response.text();
+      console.log('Response text:', text);
+
+      // Only try to parse if there's content
+      let result = {};
+      if (text && text.trim() !== '') {
+        try {
+          result = JSON.parse(text);
+          console.log('Parsed result:', result);
+        } catch (parseError) {
+          console.error('Failed to parse response as JSON:', parseError);
+          throw new Error('Failed to parse server response');
+        }
       }
 
-      // Check if response is empty before parsing JSON
-      const text = await response.text();
-      const result = text.length ? JSON.parse(text) : {};
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status} - ${result.error || 'Unknown error'}`);
+      }
 
       if (result.success) {
         toast.success('Message sent successfully! Your details have been saved.', {
@@ -85,7 +102,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
       }
     } catch (error) {
       console.error('Error submitting form:', error);
-      toast.error('There was a problem saving your information. Please try again later.', {
+      toast.error(`There was a problem: ${error.message || 'Could not connect to server'}`, {
         id: toastId
       });
     } finally {
