@@ -10,7 +10,7 @@ import fs from 'fs';
 dotenv.config();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const API_PORT = process.env.API_PORT || 3001;
+const API_PORT = process.env.PORT || 3001;
 
 // Log function with timestamp
 function log(message) {
@@ -23,11 +23,10 @@ async function cleanupPort(port) {
   return new Promise((resolve) => {
     log(`Checking for processes using port ${port}...`);
     
-    // First try to kill using lsof (Linux/Mac)
+    // For Linux/Mac - find and kill processes on the port
     exec(`lsof -i:${port} -t`, (error, stdout) => {
-      if (error) {
-        // No processes found or lsof not available
-        log(`No processes found using port ${port} with lsof`);
+      if (!stdout || stdout.trim() === '') {
+        log(`No processes found using port ${port}`);
         resolve(false);
         return;
       }
@@ -55,50 +54,69 @@ async function cleanupPort(port) {
   });
 }
 
+// Find and kill all node processes running our server files
+async function killAllServerProcesses() {
+  return new Promise((resolve) => {
+    log('Looking for stray server processes...');
+    
+    // Find processes running server files
+    exec('ps aux | grep "node.*server.js" | grep -v grep', (error, stdout) => {
+      if (!stdout || stdout.trim() === '') {
+        log('No stray server processes found');
+        resolve();
+        return;
+      }
+      
+      const lines = stdout.trim().split('\n');
+      log(`Found ${lines.length} server processes`);
+      
+      lines.forEach(line => {
+        try {
+          const parts = line.trim().split(/\s+/);
+          if (parts.length > 1) {
+            const pid = parseInt(parts[1], 10);
+            log(`Killing server process ${pid}`);
+            process.kill(pid, 'SIGTERM');
+          }
+        } catch (e) {
+          log(`Error killing process: ${e.message}`);
+        }
+      });
+      
+      // Give processes time to shut down
+      setTimeout(resolve, 1000);
+    });
+  });
+}
+
 // Start both servers
 async function startAll() {
   log('Starting servers...');
   
   try {
-    // Clean up any existing processes on API_PORT
+    // Thoroughly clean up any existing processes
     await cleanupPort(API_PORT);
+    await killAllServerProcesses();
     
-    // Additional cleanup: check for stray Node.js processes running the API server
-    exec('ps aux | grep "node src/api/server.js" | grep -v grep', (error, stdout) => {
-      if (!error && stdout) {
-        const lines = stdout.trim().split('\n');
-        lines.forEach(line => {
-          const parts = line.trim().split(/\s+/);
-          if (parts.length > 1) {
-            const pid = parts[1];
-            try {
-              process.kill(parseInt(pid, 10), 'SIGTERM');
-              log(`Terminated stray API server process ${pid}`);
-            } catch (e) {
-              log(`Failed to terminate stray process ${pid}: ${e.message}`);
-            }
-          }
-        });
-      }
-    });
-
+    // Wait a moment to ensure ports are released
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
     log('Starting API server...');
     // Start the API server
     const apiServer = spawn('node', ['src/api/server.js'], {
       stdio: 'pipe',
       env: {
         ...process.env,
-        PORT: API_PORT.toString(),
-        NODE_ENV: 'development'
+        PORT: API_PORT.toString()
       }
     });
 
-    // Wait a moment for the API server to start
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Wait for API server to start
+    await new Promise(resolve => setTimeout(resolve, 3000));
     
     log('Starting frontend server...');
     // Start the frontend (Vite) server
-    const frontendServer = spawn('npm', ['run', 'dev', '--', '--host', '0.0.0.0'], {
+    const frontendServer = spawn('npx', ['vite', '--host', '0.0.0.0'], {
       stdio: 'pipe'
     });
 
@@ -123,15 +141,16 @@ async function startAll() {
     // Handle process exit
     apiServer.on('exit', (code) => {
       log(`API server exited with code ${code}`);
-      if (code !== 0) {
-        log('Attempting to restart API server...');
-        startAll().catch(console.error);
+      if (code !== 0 && code !== null) {
+        log('API server exited unexpectedly');
       }
     });
 
     frontendServer.on('exit', (code) => {
       log(`Frontend server exited with code ${code}`);
-      process.exit(code);
+      if (code !== 0 && code !== null) {
+        log('Frontend server exited unexpectedly');
+      }
     });
 
     // Handle process termination
@@ -139,14 +158,14 @@ async function startAll() {
       log('Shutting down all servers...');
       apiServer.kill('SIGINT');
       frontendServer.kill('SIGINT');
-      process.exit(0);
+      setTimeout(() => process.exit(0), 1000);
     });
 
     process.on('SIGTERM', () => {
       log('Shutting down all servers...');
       apiServer.kill('SIGTERM');
       frontendServer.kill('SIGTERM');
-      process.exit(0);
+      setTimeout(() => process.exit(0), 1000);
     });
     
     log('All servers started successfully!');

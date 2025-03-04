@@ -1,37 +1,32 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import emailService from '../lib/emailService.js';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { sendEmail } from '../lib/emailService.js';
 
 const app = express();
-const port = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3001;
 
-// Enable CORS for all routes (can be configured more specifically for production)
+// Middleware
 app.use(cors());
-
-// Parse JSON request bodies
 app.use(bodyParser.json());
+
+// Log all requests
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.status(200).json({ status: 'ok', message: 'API server is running' });
 });
 
-// Contact form submission endpoint
+// Contact form endpoint
 app.post('/api/contact', async (req, res) => {
   try {
-    console.log('Contact form submission received:', req.body);
+    console.log('Received contact form submission:', req.body);
 
-    const { name, email, company, message } = req.body;
+    const { name, email, message } = req.body;
 
     if (!name || !email || !message) {
       console.log('Missing required fields');
@@ -41,53 +36,39 @@ app.post('/api/contact', async (req, res) => {
       });
     }
 
-    // Send email using the email service
-    const result = await emailService.sendContactEmail({
-      name,
-      email,
-      company,
-      message
-    });
+    // Send email
+    const emailResult = await sendEmail({ name, email, message });
+    console.log('Email send result:', emailResult);
 
-    if (result.success) {
-      console.log('Email sent successfully');
-      return res.json({ success: true });
-    } else {
-      console.error('Email sending failed:', result.error);
-      return res.status(500).json({ 
-        success: false, 
-        error: 'Failed to send email',
-        details: result.error
-      });
-    }
+    res.status(200).json({ success: true });
   } catch (error) {
-    console.error('Contact endpoint error:', error);
+    console.error('Error processing contact form submission:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Server error processing your request',
-      details: error.message
+      error: error.message || 'Failed to process form submission',
+      details: error.toString()
     });
   }
 });
 
 // Start the server
-const server = app.listen(port, '0.0.0.0', () => {
-  console.log(`API Server running on http://0.0.0.0:${port}`);
-})
-.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`Port ${port} is already in use. The API server cannot start.`);
-    // Allow the process to exit naturally
-  } else {
-    console.error('Server error:', err);
-  }
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`API server running on http://0.0.0.0:${PORT}`);
 });
 
-// Handle shutdown gracefully
+// Handle graceful shutdown
 process.on('SIGINT', () => {
-  console.log('API Server shutting down...');
+  console.log('SIGINT received. Shutting down API server gracefully...');
   server.close(() => {
-    console.log('API Server closed');
+    console.log('API server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down API server gracefully...');
+  server.close(() => {
+    console.log('API server closed');
     process.exit(0);
   });
 });
