@@ -1,51 +1,44 @@
+
 import { Request, Response } from 'express';
 import { pool } from '../lib/db';
-import type { ContactFormData } from './types';
 
-/**
- * Handle contact form submission
- */
 export async function submitContactForm(req: Request, res: Response) {
+  console.log('Contact form submission received:', req.body);
+  
   try {
-    console.log('Received contact form submission:', req.body);
-
-    // Basic validation
-    const { name, email, message, phone } = req.body as ContactFormData;
-
+    // Validate request body
+    const { name, email, phone, message } = req.body;
+    
     if (!name || !email || !message) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide name, email, and message'
+      console.error('Missing required fields in contact form submission');
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Name, email, and message are required' 
       });
     }
-
+    
     // Insert into database
     const result = await pool.query(
-      `INSERT INTO contact_submissions (name, email, phone, message) 
+      `INSERT INTO contact_messages (name, email, phone, message) 
        VALUES ($1, $2, $3, $4) 
-       RETURNING id, created_at`,
+       RETURNING id`,
       [name, email, phone || null, message]
     );
-
-    console.log('Saved contact submission to database:', result.rows[0]);
-
-    // Respond to client
-    return res.status(200).json({
-      success: true,
-      message: 'Thank you! Your message has been received.',
-      data: {
-        id: result.rows[0].id,
-        timestamp: result.rows[0].created_at
-      }
+    
+    console.log('Contact form submission saved with ID:', result.rows[0].id);
+    
+    // Return success response
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Your message has been submitted successfully',
+      id: result.rows[0].id
     });
-
+    
   } catch (error) {
-    console.error('Error processing contact form submission:', error);
-
-    return res.status(500).json({
-      success: false,
-      message: 'There was a problem processing your request. Please try again later.',
-      error: error instanceof Error ? error.message : 'Unknown error'
+    console.error('Error saving contact form submission:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Failed to save your message'
     });
   }
 }

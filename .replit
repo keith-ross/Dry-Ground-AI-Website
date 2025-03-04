@@ -8,7 +8,7 @@ channel = "stable-24_05"
 run = ["sh", "-c", "npm run dev"]
 
 [workflows]
-runButton = "Dev"
+runButton = "Start dev servers"
 
 [[workflows.workflow]]
 name = "Start App"
@@ -36,6 +36,14 @@ args = "node dev.js"
 
 [[workflows.workflow]]
 name = "Dev"
+author = 37597866
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node dev.js"
+
+[[workflows.workflow]]
+name = "Start dev servers"
 author = 37597866
 
 [[workflows.workflow.tasks]]

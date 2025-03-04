@@ -1,3 +1,4 @@
+
 /**
  * Development server script
  * Runs both the API server and the frontend dev server
@@ -38,13 +39,13 @@ function startProcess(command, args, name) {
   return proc;
 }
 
-// Start backend API server directly with node
+// Start backend API server
 console.log('Starting API server on port 3001...');
-const apiServer = startProcess('node', ['--loader=ts-node/esm', 'server.ts'], 'API Server');
+const apiServer = startProcess('npx', ['ts-node', '--esm', 'server.ts'], 'API Server');
 
 // Start frontend dev server
 console.log('Starting frontend dev server...');
-const frontendServer = startProcess('npm', ['run', 'dev'], 'Frontend');
+const frontendServer = startProcess('npx', ['vite', '--host', '0.0.0.0'], 'Frontend');
 
 // Cleanup on exit
 process.on('SIGINT', () => {

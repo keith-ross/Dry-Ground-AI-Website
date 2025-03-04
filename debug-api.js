@@ -1,7 +1,9 @@
 
 // Debug script to test the API endpoint directly
-require('dotenv').config();
-const axios = require('axios');
+import dotenv from 'dotenv';
+import fetch from 'node-fetch';
+
+dotenv.config();
 
 async function testContactApi() {
   console.log('=== Testing Contact API ===');
@@ -16,28 +18,27 @@ async function testContactApi() {
   
   try {
     console.log('Sending test request to API...');
-    const response = await axios.post('http://localhost:3001/api/contact', testData, {
+    const response = await fetch('http://0.0.0.0:3001/api/contact', {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify(testData)
     });
     
+    const responseData = await response.json().catch(() => ({}));
+    
     console.log('API Response status:', response.status);
-    console.log('API Response data:', response.data);
-    console.log('✅ Test completed successfully!');
-  } catch (error) {
-    console.error('❌ API test failed:');
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', error.response.data);
-    } else if (error.request) {
-      // The request was made but no response was received
-      console.error('No response received from server');
+    console.log('API Response data:', responseData);
+    
+    if (response.ok) {
+      console.log('✅ Test completed successfully!');
     } else {
-      // Something happened in setting up the request
-      console.error('Error message:', error.message);
+      console.log('❌ Test failed with status code:', response.status);
     }
+  } catch (error) {
+    console.error('❌ API test failed:', error.message);
+    console.error('Make sure the API server is running on port 3001');
   }
 }
 
