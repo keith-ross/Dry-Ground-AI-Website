@@ -1,4 +1,3 @@
-
 /**
  * Development server script
  * Runs both the API server and the frontend dev server
@@ -7,77 +6,50 @@ import dotenv from 'dotenv';
 import { spawn } from 'child_process';
 import fs from 'fs';
 
+// Load environment variables
 dotenv.config();
 
 // Verify environment variables
 if (!process.env.DATABASE_URL) {
   console.error('ERROR: DATABASE_URL environment variable is not set!');
   console.error('Please make sure your .env file is properly configured.');
-  console.error('Creating a default .env file if it doesn\'t exist...');
-  
-  // Check if .env exists, if not create it with defaults
-  if (!fs.existsSync('.env')) {
-    fs.writeFileSync('.env', 
-      '# Database connection\n' +
-      'DATABASE_URL=postgres://username:password@hostname:port/database\n' +
-      '# Environment\n' +
-      'NODE_ENV=development\n' +
-      '# Server port\n' +
-      'PORT=3001\n'
-    );
-    console.error('Created default .env file. Please update it with your actual database credentials.');
-  }
+  process.exit(1);
 }
 
-// Function to start a process with proper logging and error handling
+// Function to start a process
 function startProcess(command, args, name) {
   console.log(`Starting ${name}...`);
-  
-  const process = spawn(command, args, { 
-    stdio: 'pipe',
+
+  const proc = spawn(command, args, {
+    stdio: 'inherit',
     shell: true
   });
-  
-  process.stdout.on('data', (data) => {
-    console.log(`[${name}] ${data.toString().trim()}`);
+
+  proc.on('error', (error) => {
+    console.error(`${name} failed to start:`, error);
   });
-  
-  process.stderr.on('data', (data) => {
-    console.error(`[${name}] ${data.toString().trim()}`);
-  });
-  
-  process.on('error', (error) => {
-    console.error(`[${name}] Failed to start: ${error.message}`);
-  });
-  
-  process.on('close', (code) => {
+
+  proc.on('exit', (code, signal) => {
     if (code !== 0) {
-      console.error(`[${name}] exited with code ${code}`);
-    } else {
-      console.log(`[${name}] closed`);
+      console.error(`${name} exited with code ${code} and signal ${signal}`);
     }
   });
-  
-  return process;
+
+  return proc;
 }
 
-// Start backend API server
-const apiServer = startProcess('npx', ['ts-node', '--esm', 'server.ts'], 'API server');
+// Start backend API server directly with node
+console.log('Starting API server on port 3001...');
+const apiServer = startProcess('node', ['--loader=ts-node/esm', 'server.ts'], 'API Server');
 
 // Start frontend dev server
+console.log('Starting frontend dev server...');
 const frontendServer = startProcess('npm', ['run', 'dev'], 'Frontend');
 
-// Handle process termination
-function cleanup() {
-  console.log('Shutting down all processes...');
-  if (apiServer) apiServer.kill();
-  if (frontendServer) frontendServer.kill();
+// Cleanup on exit
+process.on('SIGINT', () => {
+  console.log('Shutting down dev environment...');
+  apiServer.kill();
+  frontendServer.kill();
   process.exit(0);
-}
-
-// Listen for termination signals
-process.on('SIGINT', cleanup);
-process.on('SIGTERM', cleanup);
-process.on('exit', cleanup);
-
-console.log('Dev environment started! Press Ctrl+C to stop all processes.');
+});
