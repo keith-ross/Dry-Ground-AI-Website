@@ -1,25 +1,44 @@
+
 import { Request, Response } from 'express';
-import pool from '../lib/db';
+import { query, default as pool } from '../lib/db';
 import { ContactFormData } from './types';
 
 export const submitContactForm = async (req: Request, res: Response) => {
+  // Log the start of this request processing
+  console.log('====== CONTACT FORM SUBMISSION ======');
+  console.log('Received contact form submission request');
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('Body:', JSON.stringify(req.body, null, 2));
+  
   try {
-    // Log incoming request for debugging
-    console.log('Received contact form submission:', req.body);
+    // Validate request body exists
+    if (!req.body) {
+      console.error('Missing request body');
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing request body' 
+      });
+    }
 
     const { name, email, phone, message } = req.body as ContactFormData;
 
-    // Validate input
+    // Validate required fields
     if (!name || !email || !message) {
-      console.log('Validation failed: Missing required fields');
-      return res.status(400).json({ success: false, error: 'Name, email and message are required' });
+      console.error('Validation failed: Missing required fields');
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Name, email and message are required' 
+      });
     }
 
     // Simple email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      console.log('Validation failed: Invalid email format');
-      return res.status(400).json({ success: false, error: 'Invalid email format' });
+      console.error('Validation failed: Invalid email format');
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid email format' 
+      });
     }
 
     // Insert data into the database
@@ -31,12 +50,12 @@ export const submitContactForm = async (req: Request, res: Response) => {
       `;
       const values = [name, email, phone || '', message];
 
-      console.log('Executing SQL query:', queryText);
-      console.log('With values:', values);
-
-      const result = await pool.query(queryText, values);
-
-      console.log('Database insertion successful:', result.rows[0]);
+      console.log('Executing database query with values:', values);
+      
+      // Use our improved query function
+      const result = await query(queryText, values);
+      
+      console.log('Database insertion successful, record ID:', result.rows[0]?.id);
 
       // Return success response
       return res.status(200).json({
@@ -57,7 +76,7 @@ export const submitContactForm = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       error: 'Server error',
-      details: error.message
+      details: error.message || 'Unknown error'
     });
   }
 };

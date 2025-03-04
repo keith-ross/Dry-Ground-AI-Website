@@ -35,10 +35,11 @@ app.use((req, res, next) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
+  console.error(err.stack);
   res.status(500).json({ 
     success: false, 
     error: 'Internal server error', 
-    message: err.message 
+    message: err.message || 'Unknown error'
   });
 });
 
