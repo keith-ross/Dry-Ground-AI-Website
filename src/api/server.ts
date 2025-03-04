@@ -9,22 +9,24 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
+console.log('Server environment variables:');
+console.log('- SENDGRID_API_KEY exists:', !!process.env.SENDGRID_API_KEY);
+console.log('- ADMIN_EMAIL:', process.env.ADMIN_EMAIL || 'Not set, using default');
+
+// Initialize database
+initDb().catch(error => {
+  console.error('Failed to initialize database:', error);
+});
+
 const app = express();
 
-// Middleware
+// Configure middleware
 app.use(cors());
 app.use(bodyParser.json());
 
-// Initialize database
-initDb().catch(err => {
-  console.error('Failed to initialize database:', err);
-  process.exit(1);
-});
-
-// Debug environment variables
-console.log('Environment variables loaded:', {
-  hasSendGridKey: !!process.env.SENDGRID_API_KEY,
-  adminEmail: process.env.ADMIN_EMAIL || 'Not set'
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
 });
 
 // Contact form endpoint
@@ -69,16 +71,17 @@ app.post('/api/contact', async (req, res) => {
       });
     } else {
       const errorDetails = userEmailResult.error || adminEmailResult.error;
+      
       console.error('Failed to send emails:', { 
         userEmailResult, 
         adminEmailResult,
-        errorDetails: JSON.stringify(errorDetails)
+        errorDetails: JSON.stringify(errorDetails, null, 2)
       });
       
       return res.status(500).json({ 
         success: false, 
         message: 'Failed to send confirmation emails',
-        errorDetails: errorDetails ? errorDetails.toString() : 'Unknown error'
+        error: errorDetails ? JSON.stringify(errorDetails) : 'Unknown error'
       });
     }
   } catch (error) {
@@ -91,19 +94,10 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
-// For health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
-// For debugging
-app.get('/api/env', (req, res) => {
-  res.json({ 
-    hasSendGridKey: !!process.env.SENDGRID_API_KEY,
-    adminEmail: process.env.ADMIN_EMAIL || 'Not set',
-    nodeEnv: process.env.NODE_ENV
-  });
-});
-
+// Start the API server
 const PORT = process.env.PORT || 3001;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`API server running on port ${PORT}`);
+});
+
 export default app;

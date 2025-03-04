@@ -1,126 +1,120 @@
+
 import React, { useState } from 'react';
-import { toast } from 'react-hot-toast';
 
-interface FormData {
-  name: string;
-  email: string;
-  company: string;
-  message: string;
-}
-
-const initialFormData: FormData = {
+const initialFormData = {
   name: '',
   email: '',
   company: '',
   message: ''
 };
 
-const ContactForm: React.FC<{ className?: string }> = ({ className = '' }) => {
-  const [formData, setFormData] = useState<FormData>(initialFormData);
+const ContactForm = () => {
+  const [formData, setFormData] = useState(initialFormData);
+  const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [submitResult, setSubmitResult] = useState({ success: null, message: '' });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-
-    // Clear error when user types
-    if (errors[name as keyof FormData]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: Partial<FormData> = {};
-
+  const validate = () => {
+    const newErrors = {};
+    
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
     }
-
+    
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
     }
-
+    
     if (!formData.message.trim()) {
       newErrors.message = 'Message is required';
     }
-
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Prevent multiple submissions
-    if (isSubmitting) {
-      console.log('Form submission already in progress, ignoring duplicate submission');
-      return;
-    }
+    // Prevent double submission
+    if (isSubmitting) return;
     
-    setIsSubmitting(true);
-    setErrors({}); // Clear errors on submit
-
+    if (!validate()) return;
+    
     try {
+      setIsSubmitting(true);
+      setSubmitResult({ success: null, message: '' });
+      
       console.log('Submitting form data:', formData);
-
-      console.log('Submitting form data:', formData);
+      
       const response = await fetch('/api/contact', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
       });
-
+      
       console.log('Response status:', response.status);
-
-      let data;
+      
+      let data = {};
       try {
-        const responseText = await response.text();
-        console.log('Raw response:', responseText);
-        data = responseText ? JSON.parse(responseText) : {};
+        const text = await response.text();
+        console.log('Raw response:', text);
+        data = text ? JSON.parse(text) : {};
       } catch (parseError) {
         console.error('Error parsing response:', parseError);
-        throw new Error('Unable to parse server response');
+        throw new Error('Invalid server response');
       }
-
+      
       console.log('Response data:', data);
-
-      if (!response.ok) {
-        throw new Error(data.message || `Server returned ${response.status}`);
-      }
-
-      if (data.success) {
-        toast.success('Message sent successfully!');
-        setFormData({
-          name: '',
-          email: '',
-          company: '',
-          message: ''
+      
+      if (response.ok) {
+        setFormData(initialFormData);
+        setSubmitResult({ 
+          success: true, 
+          message: data.message || 'Your message has been sent successfully!' 
         });
       } else {
-        toast.error(data.message || 'Failed to send message');
+        throw new Error(data.message || 'Failed to submit the form');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
-      toast.error(`Error submitting form: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setSubmitResult({ 
+        success: false, 
+        message: error.message || 'Something went wrong. Please try again.' 
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className={`bg-white p-6 rounded-lg shadow-md ${className}`}>
-      <h3 className="text-2xl font-bold mb-4">Contact Us</h3>
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <h2 className="text-2xl font-semibold mb-6">Contact Us</h2>
+      
+      {submitResult.success === true && (
+        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
+          {submitResult.message}
+        </div>
+      )}
+      
+      {submitResult.success === false && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+          {submitResult.message}
+        </div>
+      )}
+      
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label htmlFor="name" className="block text-gray-700 font-medium mb-2">
