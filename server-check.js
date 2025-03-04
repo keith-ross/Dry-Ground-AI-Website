@@ -60,14 +60,13 @@ async function checkServer() {
 
     // Find all node processes to help debug
     try {
-      console.log('Looking for running Node.js processes...');
+      console.log('Found these server processes:');
       exec('ps aux | grep node', (err, stdout) => {
         if (err) {
           console.error('Error listing processes:', err);
           return;
         }
 
-        console.log('Found these server processes:');
         stdout.split('\n')
           .filter(line => line.includes('node') && !line.includes('grep'))
           .forEach(line => {

@@ -1,10 +1,8 @@
-
 // src/api/server.js
 import express from 'express';
 import cors from 'cors';
-import bodyParser from 'body-parser';
-import { sendContactEmail, testEmailService } from '../lib/emailService.js';
 import dotenv from 'dotenv';
+import { handleContactForm } from '../lib/emailService.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -29,14 +27,14 @@ console.log('- NODE_ENV:', process.env.NODE_ENV);
 console.log('- PORT:', process.env.PORT || 3001);
 console.log('- SENDGRID_API_KEY exists:', !!process.env.SENDGRID_API_KEY);
 
-// Create Express app
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Configure middlewares
+// Middleware
 app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Simple logging middleware
 app.use((req, res, next) => {
@@ -46,12 +44,19 @@ app.use((req, res, next) => {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  const emailServiceStatus = testEmailService();
+  const apiKey = process.env.SENDGRID_API_KEY;
+  const fromEmail = process.env.FROM_EMAIL;
+  const adminEmail = process.env.ADMIN_EMAIL;
+
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-    emailService: emailServiceStatus
+    emailService: {
+      success: !!apiKey && !!fromEmail && !!adminEmail,
+      apiKeyExists: !!apiKey,
+      fromEmail: fromEmail || 'not set',
+      adminEmail: adminEmail || 'not set'
+    }
   });
 });
 
@@ -59,42 +64,44 @@ app.get('/api/health', (req, res) => {
 app.post('/api/contact', async (req, res) => {
   try {
     console.log('Received contact form submission:', req.body);
-    
-    // Validate request body
-    const { name, email, message } = req.body;
+
+    const { name, email, company, message } = req.body;
+
     if (!name || !email || !message) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required fields'
+      console.log('Missing required fields');
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields' 
       });
     }
-    
-    // Process the contact form submission
-    const result = await sendContactEmail(req.body);
-    
+
+    const result = await handleContactForm({ name, email, company, message });
+
+    console.log('Email sending result:', result);
+
     if (result.success) {
-      return res.json({
-        success: true,
-        message: result.message || 'Message sent successfully'
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Contact form submitted successfully' 
       });
     } else {
-      return res.status(500).json({
-        success: false,
-        error: result.error || 'Failed to send message'
+      return res.status(500).json({ 
+        success: false, 
+        error: result.error || 'Failed to send email' 
       });
     }
   } catch (error) {
     console.error('Error processing contact form:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error processing your request'
+    res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Internal server error'
     });
   }
 });
 
-// Start server
+// Start the server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`API server running on http://0.0.0.0:${PORT}`);
+  console.log(`API server running on port ${PORT}`);
 });
 
 // Handle graceful shutdown
@@ -107,3 +114,6 @@ process.on('SIGTERM', () => {
   console.log('API server shutting down');
   process.exit(0);
 });
+
+// Export the app for testing
+export default app;

@@ -6,111 +6,88 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Initialize SendGrid with API key
-const initSendGrid = () => {
-  const apiKey = process.env.SENDGRID_API_KEY;
-  if (!apiKey) {
-    console.warn('SENDGRID_API_KEY is not set in environment variables');
-    return false;
-  }
-
-  try {
-    sgMail.setApiKey(apiKey);
-    return true;
-  } catch (error) {
-    console.error('Failed to initialize SendGrid:', error);
-    return false;
-  }
-};
+const apiKey = process.env.SENDGRID_API_KEY;
+if (apiKey) {
+  sgMail.setApiKey(apiKey);
+}
 
 /**
- * Send contact form email
- * @param {Object} data - Contact form data
- * @returns {Promise<Object>} - Result object
+ * Handles a contact form submission by sending an email
+ * @param {Object} formData - The contact form data
+ * @param {string} formData.name - The name of the person submitting the form
+ * @param {string} formData.email - The email of the person submitting the form
+ * @param {string} formData.company - The company of the person submitting the form (optional)
+ * @param {string} formData.message - The message content
+ * @returns {Promise<Object>} - Result of the email sending operation
  */
-export const sendContactEmail = async (data) => {
+export async function handleContactForm(formData) {
+  console.log('Processing contact form data:', formData);
+
+  const { name, email, company = '', message } = formData;
+
+  // Validate environment variables
+  const fromEmail = process.env.FROM_EMAIL;
+  const adminEmail = process.env.ADMIN_EMAIL;
+
+  if (!apiKey) {
+    console.error('SendGrid API key is missing');
+    return { success: false, error: 'Email service not properly configured (API key missing)' };
+  }
+
+  if (!fromEmail || !adminEmail) {
+    console.error('Email configuration is incomplete', { fromEmail, adminEmail });
+    return { success: false, error: 'Email service not properly configured (email addresses missing)' };
+  }
+
   try {
-    // Validate SendGrid is initialized
-    const isInitialized = initSendGrid();
-    if (!isInitialized) {
-      return { 
-        success: false, 
-        error: 'Email service not properly configured' 
-      };
-    }
-
-    // Validate required data
-    if (!data.name || !data.email || !data.message) {
-      return { 
-        success: false, 
-        error: 'Missing required fields' 
-      };
-    }
-
-    // Get email settings from environment variables
-    const fromEmail = process.env.FROM_EMAIL || 'noreply@example.com';
-    const toEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
-
-    // Create email content
+    // Construct the email
     const emailContent = {
-      to: toEmail,
+      to: adminEmail,
       from: fromEmail,
-      subject: `New Contact Form Submission from ${data.name}`,
+      subject: `New Contact Form Submission from ${name}`,
       text: `
-Name: ${data.name}
-Email: ${data.email}
-Company: ${data.company || 'Not provided'}
-
+Name: ${name}
+Email: ${email}
+${company ? `Company: ${company}\n` : ''}
 Message:
-${data.message}
+${message}
       `,
       html: `
 <h2>New Contact Form Submission</h2>
-<p><strong>Name:</strong> ${data.name}</p>
-<p><strong>Email:</strong> ${data.email}</p>
-<p><strong>Company:</strong> ${data.company || 'Not provided'}</p>
-<h3>Message:</h3>
-<p>${data.message.replace(/\n/g, '<br>')}</p>
+<p><strong>Name:</strong> ${name}</p>
+<p><strong>Email:</strong> ${email}</p>
+${company ? `<p><strong>Company:</strong> ${company}</p>` : ''}
+<p><strong>Message:</strong></p>
+<p>${message.replace(/\n/g, '<br>')}</p>
       `
     };
 
-    console.log('Attempting to send email with data:', {
-      to: emailContent.to,
-      from: emailContent.from,
-      subject: emailContent.subject
-    });
+    // Send the email
+    console.log('Sending email with content:', emailContent);
+    const response = await sgMail.send(emailContent);
 
-    // Send email
-    const result = await sgMail.send(emailContent);
-
-    console.log('Email sent successfully:', result);
+    console.log('Email sent successfully:', response);
     return { 
       success: true,
-      message: 'Your message has been sent successfully' 
+      message: 'Email sent successfully'
     };
   } catch (error) {
     console.error('Error sending email:', error);
 
-    // Extract meaningful error message
-    let errorMessage = 'Failed to send email';
-    if (error.response) {
-      console.error(error.response.body);
-      errorMessage = error.response.body.errors?.[0]?.message || errorMessage;
-    }
+    // Detailed error information for debugging
+    const errorDetails = error.response ? {
+      body: error.response.body,
+      statusCode: error.code || error.response.statusCode
+    } : {
+      message: error.message
+    };
+
+    console.error('Error details:', errorDetails);
 
     return { 
       success: false, 
-      error: errorMessage 
+      error: `Failed to send email: ${error.message}`, 
+      details: errorDetails
     };
   }
-};
-
-// For testing purposes
-export const testEmailService = () => {
-  const isInitialized = initSendGrid();
-  return {
-    success: isInitialized,
-    apiKeyExists: !!process.env.SENDGRID_API_KEY,
-    fromEmail: process.env.FROM_EMAIL || 'not set',
-    adminEmail: process.env.ADMIN_EMAIL || 'not set'
-  };
-};
+}
