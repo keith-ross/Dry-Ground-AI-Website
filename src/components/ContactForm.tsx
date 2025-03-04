@@ -50,8 +50,27 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
       try {
         responseData = responseText ? JSON.parse(responseText) : {};
         console.log('Response data:', responseData);
+        
+        // Handle successful response
+        if (response.ok) {
+          toast.success(responseData.message || 'Message sent successfully!');
+          // Reset form after successful submission
+          setFormData({
+            name: '',
+            email: '',
+            phone: '',
+            message: ''
+          });
+        } else {
+          // Handle error response
+          const errorMessage = responseData.message || 'Failed to send message. Please try again.';
+          toast.error(errorMessage);
+          throw new Error(`Server error: ${response.status} - ${errorMessage}`);
+        }
       } catch (parseError) {
         console.error('Failed to parse response as JSON:', parseError);
+        toast.error('Something went wrong. Please try again later.');
+        throw new Error(`Server error: ${response.status} - Internal Server Error`);
       }
 
       if (!response.ok) {

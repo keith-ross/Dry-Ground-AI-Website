@@ -48,6 +48,11 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     console.error(err.stack);
   }
   
+  // Log request details that caused the error
+  console.error(`Error occurred during ${req.method} request to ${req.url}`);
+  console.error('Request body:', req.body);
+  console.error('Request headers:', req.headers);
+  
   // Make sure we don't send headers if they're already sent
   if (res.headersSent) {
     return next(err);
@@ -57,7 +62,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   const errorResponse = {
     success: false,
     error: 'Internal server error',
-    details: process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : (err instanceof Error ? err.message : 'Unknown error')
+    message: 'An unexpected error occurred',
+    details: process.env.NODE_ENV === 'production' ? undefined : (err instanceof Error ? err.message : 'Unknown error')
   };
   
   // Add stack trace in development

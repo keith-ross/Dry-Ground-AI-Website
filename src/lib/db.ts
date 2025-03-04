@@ -5,48 +5,53 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
-// Get database connection string
-const databaseUrl = process.env.DATABASE_URL;
-
-if (!databaseUrl) {
+// Validate database URL
+if (!process.env.DATABASE_URL) {
   console.error('ERROR: DATABASE_URL environment variable is not set!');
-  console.error('Please make sure your .env file is properly configured.');
-  process.exit(1); // Exit if DATABASE_URL is not set
+  throw new Error('DATABASE_URL environment variable is required');
 }
 
-console.log('Creating database connection pool...');
-
-// Create a database pool
-const pool = new Pool({
-  connectionString: databaseUrl,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+// Create a new pool using the connection string
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
-// Log database connection status
-pool.on('connect', () => {
-  console.log('Connected to the database');
-});
+// Test the connection on startup
+pool.connect()
+  .then(client => {
+    console.log('✅ Database connected successfully');
+    client.release();
+  })
+  .catch(err => {
+    console.error('❌ Database connection error:', err.message);
+  });
 
-pool.on('error', (err) => {
-  console.error('Unexpected database error:', err.message);
-});
-
-/**
- * Execute a query against the database
- */
+// Helper function for running queries
 export async function query(text: string, params?: any[]) {
-  console.log('Executing query:', text);
+  const start = Date.now();
   try {
-    return await pool.query(text, params);
-  } catch (error) {
-    console.error('Database query error:', error);
-    throw error;
+    const res = await pool.query(text, params);
+    const duration = Date.now() - start;
+    
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Executed query', { text, duration, rows: res.rowCount });
+    }
+    
+    return res;
+  } catch (err) {
+    console.error('Query error:', err.message);
+    console.error('Query:', text);
+    console.error('Params:', params);
+    throw err;
   }
 }
 
-// Test database connection on module load
-pool.query('SELECT NOW()')
-  .then(() => console.log('✅ Database connection verified'))
-  .catch(err => console.error('❌ Database connection failed:', err));
-
-export { pool };
+// Graceful shutdown
+process.on('SIGINT', () => {
+  console.log('Closing database pool...');
+  pool.end();
+  process.exit(0);
+});
