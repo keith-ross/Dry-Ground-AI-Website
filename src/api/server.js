@@ -1,15 +1,22 @@
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const dotenv = require('dotenv');
 const emailService = require('../lib/emailService');
 
-// Configure environment variables
-if (fs.existsSync(path.join(__dirname, '../../.env'))) {
-  require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+// Load environment variables
+const envPath = path.join(__dirname, '../../.env');
+if (fs.existsSync(envPath)) {
+  console.log(`Loading environment variables from ${envPath}`);
+  dotenv.config({ path: envPath });
+} else {
+  console.log('No .env file found, using environment variables directly');
+  dotenv.config();
 }
 
-// Initialize Express
+// Create Express app
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -17,7 +24,13 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Test endpoint
+// Log all requests for debugging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
+
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok',
@@ -50,15 +63,15 @@ app.get('/api/test-sendgrid', (req, res) => {
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
   try {
+    console.log('Contact form submission received:', req.body);
+    
     const { name, email, company, message } = req.body;
 
-    console.log('Contact form submission received:', { name, email, company: company || '(not provided)' });
-
     if (!name || !email || !message) {
-      console.log('Missing required fields in submission');
+      console.log('Missing required fields:', { name: !!name, email: !!email, message: !!message });
       return res.status(400).json({ 
         success: false, 
-        error: 'Missing required fields' 
+        message: 'Missing required fields' 
       });
     }
 
@@ -75,7 +88,8 @@ app.post('/api/contact', async (req, res) => {
       console.error('Failed to send admin notification:', adminEmailResult.error);
       return res.status(500).json({ 
         success: false, 
-        error: adminEmailResult.error || 'Failed to send admin notification' 
+        message: 'Failed to send admin notification', 
+        error: adminEmailResult.error || 'Unknown error' 
       });
     }
 
@@ -102,8 +116,8 @@ app.post('/api/contact', async (req, res) => {
     console.error('Error processing contact form:', error);
     return res.status(500).json({ 
       success: false,
-      error: 'Server error processing your request. Please try again later.',
-      message: error.message || 'Unknown error'
+      message: 'Server error processing your request',
+      error: error.message || 'Unknown error'
     });
   }
 });
