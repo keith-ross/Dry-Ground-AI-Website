@@ -24,7 +24,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Basic validation
     if (!formData.name || !formData.email || !formData.message) {
       toast.error('Please fill in all fields');
@@ -50,48 +50,24 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
         },
         body: JSON.stringify(formData),
       });
-      
-      const data = await response.json();
-      
+
       if (!response.ok) {
+        const data = await response.json();
         throw new Error(data.error || 'Failed to submit the form');
       }
-      
+
       // Success! Clear the form
       setFormData({
         name: '',
         email: '',
         message: ''
       });
-      
+
       // Show success toast
       toast.success('Message sent successfully!', { id: toastId });
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error(error.message || 'Failed to send message. Please try again.', { id: toastId });
-    } finally {
-      setIsSubmitting(false);
-    }
-
-      // Show success message
-      toast.success('Message sent successfully!', {
-        id: toastId,
-        duration: 5000
-      });
-      
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        message: ''
-      });
-      
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error('Failed to send message. Please try again later.', {
-        id: toastId,
-        duration: 5000
-      });
     } finally {
       setIsSubmitting(false);
     }
