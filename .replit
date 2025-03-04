@@ -91,6 +91,14 @@ author = 37597866
 task = "shell.exec"
 args = "npm install && concurrently \"vite\" \"node start-server.js\""
 
+[[workflows.workflow]]
+name = "Debug API"
+author = 37597866
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node debug-api.js"
+
 [[ports]]
 localPort = 3000
 externalPort = 80
