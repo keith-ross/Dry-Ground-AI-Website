@@ -1,67 +1,55 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
-const { sendContactEmail } = require('../lib/emailService.js');
+const { sendContactEmail } = require('../lib/emailService');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
 
-// Debugging middleware
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
-  next();
-});
-
-// Routes
+// Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'API server is running' });
+  res.json({ status: 'ok', message: 'API is running' });
 });
 
+// Contact form submission endpoint
 app.post('/api/contact', async (req, res) => {
-  console.log('Received contact form submission:', req.body);
-
-  const { name, email, message } = req.body;
-
-  // Validate inputs
-  if (!name || !email || !message) {
-    console.log('Missing required fields');
-    return res.status(400).json({ 
-      success: false, 
-      error: 'Please fill in all required fields' 
-    });
-  }
-
   try {
-    const result = await sendContactEmail({
-      name,
-      email,
-      message
-    });
+    const { name, email, message, company } = req.body;
 
-    console.log('Email sending result:', result);
+    // Validate required fields
+    if (!name || !email || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields' 
+      });
+    }
+
+    console.log('Received contact form submission:', { name, email, company });
+
+    // Send emails
+    const result = await sendContactEmail({ name, email, message, company });
 
     if (result.success) {
-      return res.status(200).json({
-        success: true,
-        message: 'Contact message sent successfully'
+      return res.json({ 
+        success: true, 
+        message: 'Contact form submitted successfully' 
       });
     } else {
-      return res.status(500).json({
-        success: false,
-        error: result.error || 'Failed to send email',
-        details: result.details || {}
+      console.error('Email sending failed:', result.error);
+      return res.status(500).json({ 
+        success: false, 
+        error: result.error,
+        details: result.details
       });
     }
   } catch (error) {
-    console.error('Error in /api/contact endpoint:', error);
-    return res.status(500).json({
-      success: false,
-      error: error.message || 'Server error',
+    console.error('Error processing contact form:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message || 'An unexpected error occurred' 
     });
   }
 });
@@ -80,6 +68,5 @@ app.use((err, req, res, next) => {
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`API server running on port ${PORT}`);
+  console.log(`Health check available at: http://0.0.0.0:${PORT}/api/health`);
 });
-
-module.exports = app;

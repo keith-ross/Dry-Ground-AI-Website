@@ -1,51 +1,55 @@
-import React, { useState } from 'react';
-import toast from 'react-hot-toast';
 
-interface ContactFormProps {
-  className?: string;
-}
+import { useState, FormEvent } from 'react';
 
 interface FormData {
   name: string;
   email: string;
+  company: string;
   message: string;
 }
 
-interface SubmitResult {
-  success: boolean | null;
-  message: string;
-  error?: any;
-}
-
-const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
+export default function ContactForm() {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
-    message: ''
+    company: '',
+    message: '',
   });
-
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [result, setResult] = useState<SubmitResult>({
-    success: null,
-    message: ''
-  });
+  const [submitStatus, setSubmitStatus] = useState<{
+    success?: boolean;
+    message?: string;
+    error?: string;
+  }>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    
+    // Client-side validation
+    if (!formData.name || !formData.email || !formData.message) {
+      setSubmitStatus({
+        success: false,
+        error: 'Please fill out all required fields',
+      });
+      return;
+    }
+    
+    // Reset status and set loading
+    setSubmitStatus({});
     setIsSubmitting(true);
-    setResult({ success: null, message: '' });
-
+    
     try {
       console.log('Submitting form data:', formData);
-
+      
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
@@ -53,32 +57,37 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
         },
         body: JSON.stringify(formData),
       });
-
-      const data = await response.json();
-      console.log('Response:', data);
-
-      if (response.ok) {
-        toast.success('Message sent successfully!');
-        setFormData({ name: '', email: '', message: '' });
-        setResult({
+      
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        // Success
+        setSubmitStatus({
           success: true,
-          message: 'Your message has been sent successfully. We will get back to you soon!'
+          message: 'Thank you! Your message has been sent.',
+        });
+        
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          company: '',
+          message: '',
         });
       } else {
-        toast.error('Failed to send message: ' + (data.error || 'Unknown error'));
-        setResult({
+        // API returned an error
+        console.error('Form submission error:', result);
+        setSubmitStatus({
           success: false,
-          message: data.error || 'Something went wrong. Please try again later.',
-          error: data
+          error: result.error || 'Something went wrong. Please try again later.',
         });
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error('Error submitting form');
-      setResult({
+      // Network or other error
+      console.error('Form submission exception:', error);
+      setSubmitStatus({
         success: false,
-        message: 'Failed to connect to the server. Please try again later.',
-        error
+        error: 'Network error. Please try again later.',
       });
     } finally {
       setIsSubmitting(false);
@@ -86,84 +95,91 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
   };
 
   return (
-    <div className={`bg-gray-900 rounded-lg p-6 shadow-lg ${className}`}>
-      <h2 className="text-2xl font-bold text-white mb-4">Contact Us</h2>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
-            Name
+    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">Contact Us</h2>
+      
+      {submitStatus.success && (
+        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
+          {submitStatus.message}
+        </div>
+      )}
+      
+      {submitStatus.error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+          {submitStatus.error}
+        </div>
+      )}
+      
+      <form onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label htmlFor="name" className="block text-gray-700 mb-2">
+            Name <span className="text-red-500">*</span>
           </label>
           <input
+            type="text"
             id="name"
             name="name"
-            type="text"
-            required
             value={formData.name}
             onChange={handleChange}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
-            placeholder="Your name"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
           />
         </div>
-
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
-            Email
+        
+        <div className="mb-4">
+          <label htmlFor="email" className="block text-gray-700 mb-2">
+            Email <span className="text-red-500">*</span>
           </label>
           <input
+            type="email"
             id="email"
             name="email"
-            type="email"
-            required
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
-            placeholder="your.email@example.com"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
           />
         </div>
-
-        <div>
-          <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-1">
-            Message
+        
+        <div className="mb-4">
+          <label htmlFor="company" className="block text-gray-700 mb-2">
+            Company
+          </label>
+          <input
+            type="text"
+            id="company"
+            name="company"
+            value={formData.company}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        
+        <div className="mb-4">
+          <label htmlFor="message" className="block text-gray-700 mb-2">
+            Message <span className="text-red-500">*</span>
           </label>
           <textarea
             id="message"
             name="message"
-            rows={4}
-            required
             value={formData.message}
             onChange={handleChange}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
-            placeholder="Your message here..."
-          />
+            rows={5}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          ></textarea>
         </div>
-
-        <div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-              isSubmitting ? 'bg-indigo-700' : 'bg-indigo-600 hover:bg-indigo-700'
-            } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
-          >
-            {isSubmitting ? 'Sending...' : 'Send Message'}
-          </button>
-        </div>
+        
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className={`w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+        >
+          {isSubmitting ? 'Sending...' : 'Send Message'}
+        </button>
       </form>
-
-      {result.success === true && (
-        <div className="mt-4 p-3 bg-green-800 rounded text-white">
-          {result.message}
-        </div>
-      )}
-
-      {result.success === false && (
-        <div className="mt-4 p-3 bg-red-800 rounded text-white">
-          {result.message}
-        </div>
-      )}
     </div>
   );
-};
-
-export default ContactForm;
+}

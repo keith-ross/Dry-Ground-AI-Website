@@ -1,97 +1,118 @@
 
 const sgMail = require('@sendgrid/mail');
 
-// Initialize SendGrid with API key
+// Set SendGrid API key
 if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-  console.log('SendGrid API key configured');
+  console.log('SendGrid API key found with length:', process.env.SENDGRID_API_KEY.length);
 } else {
-  console.warn('SENDGRID_API_KEY is not set! Email functionality will not work.');
+  console.error('SENDGRID_API_KEY not found in environment variables');
 }
 
 /**
- * Send contact form email to site admin and confirmation to user
- * @param {Object} contactData 
- * @param {string} contactData.name - Name of the person submitting form
- * @param {string} contactData.email - Email of the person submitting form
- * @param {string} contactData.message - Message content
- * @returns {Promise<{success: boolean, error?: string, details?: any}>}
+ * Send contact form emails (to both admin and user)
  */
-async function sendContactEmail(contactData) {
-  const { name, email, message } = contactData;
-  
+async function sendContactEmail({ name, email, message, company = '' }) {
   if (!process.env.SENDGRID_API_KEY) {
-    console.error('Cannot send email: SENDGRID_API_KEY is not configured');
     return { 
       success: false, 
-      error: 'Email service is not configured. Please contact the administrator.' 
+      error: 'SendGrid API key not configured' 
     };
   }
-
+  
   try {
-    console.log('Preparing to send emails for contact submission from:', email);
+    console.log('Preparing to send emails for contact form submission');
     
-    // Email to admin
+    // Admin notification email
     const adminMsg = {
-      to: 'info@dryground.ai', // Replace with your actual admin email
-      from: 'noreply@dryground.ai', // Must be verified sender in SendGrid
+      to: 'info@dryground.ai',
+      from: {
+        email: 'info@dryground.ai',
+        name: 'Dry Ground AI Website'
+      },
       subject: `New Contact Form Submission from ${name}`,
       text: `
         Name: ${name}
         Email: ${email}
+        Company: ${company || 'Not specified'}
         
         Message:
         ${message}
       `,
       html: `
-        <h2>New Contact Form Submission</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <h3>Message:</h3>
-        <p>${message.replace(/\n/g, '<br>')}</p>
-      `,
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">New Contact Form Submission</h2>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Company:</strong> ${company || 'Not specified'}</p>
+          <p><strong>Message:</strong></p>
+          <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px;">
+            ${message.replace(/\n/g, '<br>')}
+          </div>
+        </div>
+      `
     };
     
     // Confirmation email to user
     const userMsg = {
       to: email,
-      from: 'noreply@dryground.ai', // Must be verified sender in SendGrid
+      from: {
+        email: 'info@dryground.ai',
+        name: 'Dry Ground AI'
+      },
       subject: 'Thank you for contacting Dry Ground AI',
       text: `
         Dear ${name},
         
         Thank you for contacting Dry Ground AI. We have received your message and will get back to you as soon as possible.
         
-        For your reference, here is a copy of your message:
-        
-        ${message}
-        
         Best regards,
         The Dry Ground AI Team
       `,
       html: `
-        <h2>Thank you for contacting Dry Ground AI</h2>
-        <p>Dear ${name},</p>
-        <p>Thank you for contacting Dry Ground AI. We have received your message and will get back to you as soon as possible.</p>
-        <p>For your reference, here is a copy of your message:</p>
-        <blockquote>${message.replace(/\n/g, '<br>')}</blockquote>
-        <p>Best regards,<br>The Dry Ground AI Team</p>
-      `,
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Thank you for contacting us!</h2>
+          <p>Dear ${name},</p>
+          <p>Thank you for reaching out to Dry Ground AI. We have received your message and will get back to you as soon as possible.</p>
+          <p>Best regards,<br>The Dry Ground AI Team</p>
+        </div>
+      `
     };
-
-    console.log('Sending admin email to:', adminMsg.to);
-    await sgMail.send(adminMsg);
     
-    console.log('Sending confirmation email to:', userMsg.to);
-    await sgMail.send(userMsg);
+    // Send emails one at a time to isolate any issues
+    try {
+      console.log('Sending admin notification email');
+      await sgMail.send(adminMsg);
+      console.log('Admin notification email sent successfully');
+    } catch (adminError) {
+      console.error('Error sending admin notification email:', adminError);
+      if (adminError.response) {
+        console.error('SendGrid API error (admin):', adminError.response.body);
+      }
+      // Continue to try sending user email even if admin email fails
+    }
     
-    console.log('Both emails sent successfully');
+    try {
+      console.log('Sending user confirmation email');
+      await sgMail.send(userMsg);
+      console.log('User confirmation email sent successfully');
+    } catch (userError) {
+      console.error('Error sending user confirmation email:', userError);
+      if (userError.response) {
+        console.error('SendGrid API error (user):', userError.response.body);
+      }
+      return { 
+        success: false, 
+        error: 'Failed to send confirmation email',
+        details: userError.message
+      };
+    }
+    
     return { success: true };
     
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Error in sendContactEmail function:', error);
     
-    // Better error handling
     if (error.response && error.response.body) {
       console.error('SendGrid API error response:', error.response.body);
       return { 
