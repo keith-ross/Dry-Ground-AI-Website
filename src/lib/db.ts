@@ -10,15 +10,41 @@ if (!process.env.DATABASE_URL) {
   process.exit(1); // Exit if DATABASE_URL is not set
 }
 
-// Create a singleton pool instance for database connections
-export const pool = new Pool({
+// Initialize the pool with error handling
+const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  // Add connection pool settings
-  max: 20, // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection can't be established
+  // Additional pool configuration if needed
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
 });
+
+// Add event listeners for connection issues
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+});
+
+// Simple function to test database connection
+export async function testDatabaseConnection() {
+  const client = await pool.connect();
+  try {
+    const result = await client.query('SELECT NOW() as now');
+    return { 
+      connected: true, 
+      time: result.rows[0].now,
+      message: 'Successfully connected to database'
+    };
+  } catch (error) {
+    console.error('Database connection test failed:', error);
+    return { 
+      connected: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to connect to database'
+    };
+  } finally {
+    client.release();
+  }
+}
 
 // Test the database connection on startup
 pool.query('SELECT NOW()', (err, res) => {
@@ -51,4 +77,4 @@ export async function query(text: string, params: any[] = []) {
   }
 }
 
-export default { pool };
+export { pool, testDatabaseConnection };

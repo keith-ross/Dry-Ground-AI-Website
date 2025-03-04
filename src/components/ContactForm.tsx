@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { toast, Toaster } from 'react-hot-toast';
 import type { ContactFormData } from '../api/types';
@@ -15,6 +14,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formStatus, setFormStatus] = useState(null); // Added state for form status
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -24,67 +24,70 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setFormStatus(null);
 
     try {
       console.log('Sending form data: ', formData);
-      
-      // Get the base URL from the current window location
-      const baseUrl = window.location.origin;
-      const apiUrl = `${baseUrl}/api/contact`;
-      
+
+      // Build the correct API URL based on current location
+      const apiUrl = `${window.location.origin}/api/contact`;
       console.log('Submitting to:', apiUrl);
-      
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
+        // Add credentials for CORS if needed
+        credentials: 'include'
       });
 
       console.log('Response status:', response.status);
-      
-      let responseText = '';
+
+      // Try to parse the response as JSON first
+      let responseData;
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+
       try {
-        responseText = await response.text();
-        console.log('Response text:', responseText);
-      } catch (e) {
-        console.error('Error reading response text:', e);
-      }
-      
-      // Try to parse JSON response if available
-      let responseData = {};
-      if (responseText) {
-        try {
+        if (responseText) {
           responseData = JSON.parse(responseText);
           console.log('Response data:', responseData);
-        } catch (e) {
-          console.error('Error parsing JSON:', e);
         }
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError);
       }
-      
+
       if (response.ok) {
-        // Success handling
-        toast.success(responseData?.message || 'Message sent successfully!');
-        
-        // Reset form
+        setFormStatus({
+          type: 'success',
+          message: responseData?.message || 'Thank you! Your message has been sent.',
+        });
+        // Reset form after successful submission
         setFormData({
           name: '',
           email: '',
           phone: '',
-          message: ''
+          message: '',
         });
       } else {
-        // Error handling
-        const errorMsg = responseData?.message || 'Failed to send message. Please try again.';
-        toast.error(errorMsg);
+        // Use the error message from the server if available
+        const errorMessage = responseData?.message || 'Error sending message. Please try again later.';
+        setFormStatus({
+          type: 'error',
+          message: errorMessage,
+        });
       }
     } catch (error) {
       console.error('Error submitting form: ', error);
-      toast.error('Network error. Please check your connection and try again.');
+      setFormStatus({
+        type: 'error',
+        message: 'Network error. Please check your connection and try again.',
+      });
     } finally {
       setIsSubmitting(false);
     }
