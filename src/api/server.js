@@ -1,84 +1,62 @@
 const express = require('express');
 const cors = require('cors');
-const { initDb, saveContactSubmission } = require('../lib/db');
 const { sendContactFormEmail } = require('../lib/emailService');
 
 // Create Express app
 const app = express();
-const PORT = process.env.PORT || 3001;
 
-// Initialize database
-initDb().catch(err => {
-  console.error('Failed to initialize database:', err);
-});
-
-// Middleware
+// Configure middleware
 app.use(cors());
 app.use(express.json());
 
-// Debug middleware to log all requests
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  next();
-});
+// Set port
+const PORT = process.env.PORT || 3001;
 
-// API health check endpoint
+// Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'API server is running' });
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Contact form submission endpoint
+// Contact form endpoint
 app.post('/api/contact', async (req, res) => {
   console.log('Received contact form submission:', req.body);
 
   const { name, email, company, message } = req.body;
 
-  // Validate required fields
+  // Basic validation
   if (!name || !email || !message) {
-    console.log('Missing required fields in submission');
+    console.log('Validation failed:', { name, email, message });
     return res.status(400).json({ 
       success: false, 
-      message: 'Name, email, and message are required fields' 
+      message: 'Please provide name, email, and message'
     });
   }
 
   try {
-    // First save to database
-    console.log('Saving contact submission to database...');
-    try {
-      const saveResult = await saveContactSubmission({ name, email, company, message });
-      console.log('Saved to database with ID:', saveResult.id);
-    } catch (dbError) {
-      console.error('Database error:', dbError);
-      // Log but continue - we want to try sending the email even if DB fails
-    }
+    console.log('Attempting to send email...');
+    const result = await sendContactFormEmail({ name, email, company, message });
 
-    // Return success immediately - we'll handle email sending asynchronously
-    res.status(200).json({ 
-      success: true, 
-      message: 'Thank you! Your message has been received.' 
-    });
-
-    // Now attempt to send email (after we've already responded to the client)
-    try {
-      console.log('Attempting to send notification email...');
-      const emailResult = await sendContactFormEmail({ name, email, company, message });
-      console.log('Email sending result:', emailResult);
-    } catch (emailError) {
-      console.error('Failed to send email:', emailError);
-      // This doesn't affect the client since we already sent the response
-    }
-
-  } catch (error) {
-    console.error('Error processing contact form submission:', error);
-    // Make sure we're not trying to send headers if they've already been sent
-    if (!res.headersSent) {
+    if (result.success) {
+      console.log('Email sent successfully');
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Thank you! Your message has been received.'
+      });
+    } else {
+      console.error('Email sending failed:', result.error);
       return res.status(500).json({ 
         success: false, 
-        message: 'Server error processing your request',
-        error: error.message || 'Unknown server error'
+        message: 'Failed to send email',
+        error: result.error
       });
     }
+  } catch (error) {
+    console.error('Server error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Server error processing your request',
+      error: error.message || 'Unknown error'
+    });
   }
 });
 

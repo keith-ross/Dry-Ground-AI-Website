@@ -1,202 +1,192 @@
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    company: '',
-    message: ''
+    name: "",
+    email: "",
+    company: "",
+    message: ""
   });
-
-  const [formStatus, setFormStatus] = useState<{
-    status: 'idle' | 'submitting' | 'success' | 'error';
-    message: string;
-  }>({
-    status: 'idle',
-    message: ''
+  
+  const [status, setStatus] = useState({
+    submitting: false,
+    submitted: false,
+    success: false,
+    error: "" 
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prevData => ({
-      ...prevData,
-      [name]: value
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!formData.name || !formData.email || !formData.message) {
-      setFormStatus({
-        status: 'error',
-        message: 'Please fill in all required fields.'
-      });
-      return;
-    }
-    
-    setFormStatus({
-      status: 'submitting',
-      message: 'Submitting your message...'
+    // Reset status
+    setStatus({
+      submitting: true,
+      submitted: false,
+      success: false,
+      error: ""
     });
     
-    console.log('Submitting form:', formData);
-    
     try {
-      // Use fetch with improved error handling
-      const response = await fetch('/api/contact', {
-        method: 'POST',
+      console.log("Submitting form: ", formData);
+      
+      // Submit to API
+      const response = await fetch("/api/contact", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json"
         },
         body: JSON.stringify(formData)
       });
       
-      console.log('Response status:', response.status);
+      console.log("Response status:", response.status);
       
-      // First try to get the raw response text for debugging
-      let responseText;
+      // Get response data (carefully handling json parsing)
+      let data;
+      const responseText = await response.text();
+      
       try {
-        responseText = await response.text();
-        console.log('Raw response:', responseText);
-      } catch (textError) {
-        console.error('Error getting response text:', textError);
-      }
-      
-      // Then parse the response as JSON if possible
-      let responseData;
-      if (responseText) {
-        try {
-          responseData = JSON.parse(responseText);
-        } catch (parseError) {
-          console.error('Error parsing response as JSON:', parseError);
+        if (responseText) {
+          data = JSON.parse(responseText);
         }
+      } catch (parseError) {
+        console.error("Error parsing response: ", parseError);
+        console.log("Raw response text:", responseText);
       }
-      
-      if (response.ok && responseData?.success) {
-        // Handle success
-        setFormStatus({
-          status: 'success',
-          message: responseData.message || 'Your message has been sent successfully!'
+
+      if (response.ok) {
+        setStatus({
+          submitting: false,
+          submitted: true,
+          success: true,
+          error: ""
         });
         
-        // Reset form data
+        // Reset form on success
         setFormData({
-          name: '',
-          email: '',
-          company: '',
-          message: ''
+          name: "",
+          email: "",
+          company: "",
+          message: ""
         });
       } else {
-        // Handle error with detailed message
-        const errorMessage = responseData?.message || 
-                            'Something went wrong. Please try again later.';
-        
-        setFormStatus({
-          status: 'error',
-          message: errorMessage
-        });
+        const errorMessage = data?.message || 'Server returned error';
+        throw new Error(errorMessage);
       }
-    } catch (error) {
-      console.error('Network error submitting form:', error);
+    } catch (error: any) {
+      console.error("Error submitting form: ", error);
       
-      setFormStatus({
-        status: 'error',
-        message: 'Network error. Please check your connection and try again.'
+      setStatus({
+        submitting: false,
+        submitted: true,
+        success: false,
+        error: error.message || "Something went wrong. Please try again."
       });
     }
   };
 
   return (
-    <div className="max-w-md mx-auto my-8 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">Contact Us</h2>
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
+      <h2 className="text-2xl font-semibold mb-6 text-center">Get in Touch</h2>
       
-      {formStatus.status === 'success' ? (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-          <p>{formStatus.message}</p>
+      {status.submitted && status.success ? (
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4"
+        >
+          <p>Thank you for your message! We'll get back to you soon.</p>
+        </motion.div>
+      ) : null}
+      
+      {status.submitted && !status.success ? (
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
+        >
+          <p>Sorry, there was a problem: {status.error}</p>
+        </motion.div>
+      ) : null}
+      
+      <form onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label htmlFor="name" className="block text-gray-700 mb-2">
+            Name *
+          </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+          />
         </div>
-      ) : (
-        <form onSubmit={handleSubmit}>
-          {formStatus.status === 'error' && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-              <p>{formStatus.message}</p>
-            </div>
-          )}
-          
-          <div className="mb-4">
-            <label htmlFor="name" className="block text-gray-700 font-medium mb-1">
-              Name *
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-gray-700 font-medium mb-1">
-              Email *
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label htmlFor="company" className="block text-gray-700 font-medium mb-1">
-              Company
-            </label>
-            <input
-              type="text"
-              id="company"
-              name="company"
-              value={formData.company}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label htmlFor="message" className="block text-gray-700 font-medium mb-1">
-              Message *
-            </label>
-            <textarea
-              id="message"
-              name="message"
-              value={formData.message}
-              onChange={handleChange}
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            ></textarea>
-          </div>
-          
+        
+        <div className="mb-4">
+          <label htmlFor="email" className="block text-gray-700 mb-2">
+            Email *
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+          />
+        </div>
+        
+        <div className="mb-4">
+          <label htmlFor="company" className="block text-gray-700 mb-2">
+            Company
+          </label>
+          <input
+            type="text"
+            id="company"
+            name="company"
+            value={formData.company}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+          />
+        </div>
+        
+        <div className="mb-4">
+          <label htmlFor="message" className="block text-gray-700 mb-2">
+            Message *
+          </label>
+          <textarea
+            id="message"
+            name="message"
+            value={formData.message}
+            onChange={handleChange}
+            required
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+          />
+        </div>
+        
+        <div className="text-center">
           <button
             type="submit"
-            disabled={formStatus.status === 'submitting'}
-            className={`w-full py-2 px-4 ${
-              formStatus.status === 'submitting'
-                ? 'bg-gray-400'
-                : 'bg-blue-600 hover:bg-blue-700'
-            } text-white font-medium rounded-md transition duration-200`}
+            disabled={status.submitting}
+            className={`px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              status.submitting ? "opacity-70 cursor-not-allowed" : ""
+            }`}
           >
-            {formStatus.status === 'submitting' ? 'Sending...' : 'Send Message'}
+            {status.submitting ? "Sending..." : "Send Message"}
           </button>
-        </form>
-      )}
+        </div>
+      </form>
     </div>
   );
 };

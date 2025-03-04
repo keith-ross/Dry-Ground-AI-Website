@@ -1,53 +1,50 @@
 
+// Initialize SendGrid
 const sgMail = require('@sendgrid/mail');
 
-// Initialize SendGrid if API key is available
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-  console.log('SendGrid API key configured');
+// Get the SendGrid API key from environment variables
+const apiKey = process.env.SENDGRID_API_KEY;
+
+// Configure SendGrid if API key is available
+if (apiKey) {
+  sgMail.setApiKey(apiKey);
+  console.log('SendGrid API key: Present and length:', apiKey.length);
+  console.log('Key prefix:', apiKey.substring(0, 5) + '....');
 } else {
-  console.warn('SendGrid API key not found in environment variables');
+  console.error('SENDGRID_API_KEY is not set in environment variables');
 }
 
 /**
- * Test the SendGrid API key
+ * Test if the SendGrid API key is configured and valid
  */
 async function testSendGridApiKey() {
-  if (!process.env.SENDGRID_API_KEY) {
+  if (!apiKey) {
     return { 
-      success: false,
-      error: 'SendGrid API key not configured'
+      success: false, 
+      error: 'SendGrid API key is not configured' 
     };
   }
-
-  try {
-    // Just log the key info without showing the actual key
-    const keyPrefix = process.env.SENDGRID_API_KEY.substring(0, 5);
-    console.log(`SendGrid API key: Present and length: ${process.env.SENDGRID_API_KEY.length}`);
-    console.log(`Key prefix: ${keyPrefix}....`);
-    
+  
+  // A valid SendGrid API key starts with "SG." and is typically 69 characters long
+  if (!apiKey.startsWith('SG.') || apiKey.length < 50) {
     return { 
-      success: true,
-      message: 'SendGrid API key is present' 
-    };
-  } catch (error) {
-    console.error('Error testing SendGrid API key:', error);
-    return { 
-      success: false,
-      error: error.message || 'Unknown error testing SendGrid API key'
+      success: false, 
+      error: 'SendGrid API key format appears to be invalid' 
     };
   }
+  
+  return { success: true };
 }
 
 /**
- * Send email notification for contact form submissions
+ * Send an email notification for contact form submissions
  */
 async function sendContactFormEmail({ name, email, company, message }) {
-  if (!process.env.SENDGRID_API_KEY) {
-    console.warn('SendGrid API key not configured, cannot send email');
+  // Check if SendGrid is configured
+  if (!apiKey) {
     return { 
       success: false, 
-      error: 'Email service not configured'
+      error: 'Email service is not configured' 
     };
   }
 
@@ -71,11 +68,11 @@ ${company ? `<p><strong>Company:</strong> ${company}</p>` : ''}
       `
     };
 
-    console.log('Sending email via SendGrid:', JSON.stringify(emailContent, null, 2));
+    console.log('Sending email via SendGrid...');
     
     // Send email
-    await sgMail.send(emailContent);
-    console.log('Email sent successfully');
+    const response = await sgMail.send(emailContent);
+    console.log('SendGrid API response:', response[0].statusCode);
 
     return { 
       success: true 

@@ -1,9 +1,131 @@
-// Server diagnostics script
+#!/usr/bin/env node
+
 const fetch = require('node-fetch');
+
+/**
+ * Test if the SendGrid API key is configured correctly
+ */
+async function testSendGridApiKey() {
+  try {
+    const apiKey = process.env.SENDGRID_API_KEY;
+
+    if (!apiKey) {
+      return { 
+        success: false, 
+        error: 'SendGrid API key is not configured' 
+      };
+    }
+
+    console.log(`SendGrid API key found: ${apiKey.substring(0, 5)}...`);
+    console.log(`API key length: ${apiKey.length}`);
+
+    // A valid SendGrid API key starts with "SG." and is typically 69 characters long
+    if (!apiKey.startsWith('SG.') || apiKey.length < 50) {
+      return { 
+        success: false, 
+        error: 'SendGrid API key format appears to be invalid' 
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error.message || 'Unknown error testing SendGrid API key'
+    };
+  }
+}
+
+/**
+ * Run all tests
+ */
+async function runTests() {
+  console.log('-------------------------------------');
+  console.log('CONTACT FORM API DEBUG TOOL');
+  console.log('-------------------------------------\n');
+
+  // Test SendGrid configuration
+  console.log('Testing SendGrid API key...');
+  const sendgridResult = await testSendGridApiKey();
+  if (sendgridResult.success) {
+    console.log('✅ SendGrid API key is configured correctly\n');
+  } else {
+    console.log(`❌ SendGrid API key issue: ${sendgridResult.error}`);
+    console.log('   Please check your SENDGRID_API_KEY environment variable\n');
+  }
+
+  // Test API server connection
+  console.log('Testing server connection...');
+  try {
+    const healthResponse = await fetch('http://localhost:3001/api/health');
+
+    if (healthResponse.ok) {
+      const healthData = await healthResponse.json();
+      console.log('✅ API server is running');
+      console.log('   Response:', healthData);
+    } else {
+      console.log('❌ API server returned status:', healthResponse.status);
+      try {
+        const errorText = await healthResponse.text();
+        console.log('   Response:', errorText || '(empty)');
+      } catch (e) {
+        console.log('   Could not read response');
+      }
+    }
+  } catch (error) {
+    console.log('❌ Could not connect to API server:', error.message);
+    console.log('   Make sure the server is running on port 3001');
+  }
+
+  console.log('\n-------------------------------------');
+
+  // Test contact form submission
+  console.log('Testing contact form submission...');
+
+  const testData = {
+    name: 'Test User',
+    email: 'test@example.com',
+    company: 'Test Company',
+    message: 'This is a test message from the debug script.'
+  };
+
+  try {
+    const submitResponse = await fetch('http://localhost:3001/api/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(testData)
+    });
+
+    console.log('Response status:', submitResponse.status);
+
+    // Get raw response text first
+    const rawText = await submitResponse.text();
+    console.log('Raw response:', rawText);
+
+    // Try to parse JSON if possible
+    try {
+      if (rawText) {
+        const data = JSON.parse(rawText);
+        console.log('Parsed response:', data);
+      }
+    } catch (parseError) {
+      console.log('Error parsing response as JSON:', parseError.message);
+    }
+
+  } catch (error) {
+    console.error('❌ Error testing contact endpoint:', error.message);
+  }
+
+  console.log('\n-------------------------------------');
+  console.log('🏁 Diagnostics complete');
+}
+
 const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
-const { testSendGridApiKey } = require('./src/lib/emailService');
+//const { testSendGridApiKey } = require('./src/lib/emailService'); //Removed as it's redefined
 
 // Load environment variables
 dotenv.config();
@@ -121,100 +243,6 @@ async function runDiagnostics() {
   console.log('🏁 Diagnostics complete');
 }
 
-
-/**
- * Debug script to test contact form API
- */
-
-async function runTests() {
-  console.log('-------------------------------------');
-  console.log('CONTACT FORM API DEBUG TOOL');
-  console.log('-------------------------------------\n');
-
-  // Test SendGrid configuration
-  console.log('Testing SendGrid API key...');
-  const sendgridResult = await testSendGridApiKey();
-  if (sendgridResult.success) {
-    console.log('✅ SendGrid API key is configured correctly\n');
-  } else {
-    console.log('❌ SendGrid API key issue:', sendgridResult.error);
-    console.log('   Please check your SENDGRID_API_KEY environment variable\n');
-  }
-
-  // Test API server connection
-  console.log('Testing server connection...');
-  try {
-    const healthResponse = await fetch('http://localhost:3001/api/health');
-
-    if (healthResponse.ok) {
-      const healthData = await healthResponse.json();
-      console.log('✅ API server is running');
-      console.log('   Response:', healthData);
-    } else {
-      console.log('❌ API server returned status:', healthResponse.status);
-      try {
-        const errorText = await healthResponse.text();
-        console.log('   Response:', errorText || '(empty)');
-      } catch (e) {
-        console.log('   Could not read response');
-      }
-    }
-  } catch (error) {
-    console.log('❌ Could not connect to API server:', error.message);
-    console.log('   Make sure the server is running on port 3001');
-  }
-
-  console.log('\n-------------------------------------');
-
-  // Test contact form submission
-  console.log('Testing contact form submission...');
-
-  const testData = {
-    name: 'Test User',
-    email: 'test@example.com',
-    company: 'Test Company',
-    message: 'This is a test message from the debug script.'
-  };
-
-  try {
-    const submitResponse = await fetch('http://localhost:3001/api/contact', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(testData)
-    });
-
-    console.log('Response status:', submitResponse.status);
-
-    // Get raw response text first
-    const rawText = await submitResponse.text();
-    console.log('Raw response:', rawText || '(empty)');
-
-    // Try to parse JSON if possible
-    let responseData;
-    try {
-      if (rawText) {
-        responseData = JSON.parse(rawText);
-        console.log('Parsed response:', responseData);
-      }
-    } catch (parseError) {
-      console.log('Could not parse response as JSON:', parseError.message);
-    }
-
-    if (submitResponse.ok) {
-      console.log('✅ Contact form submission successful');
-    } else {
-      console.log('❌ Contact form submission failed');
-    }
-  } catch (error) {
-    console.error('❌ Error testing server:', error);
-  }
-
-  console.log('\n-------------------------------------');
-  console.log('DEBUG COMPLETE');
-  console.log('-------------------------------------');
-}
 
 // Run all tests
 runDiagnostics();
