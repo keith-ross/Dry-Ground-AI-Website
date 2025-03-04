@@ -59,6 +59,49 @@ const ContactForm = () => {
     setErrors({});
     
     console.log('Submitting form data: ', formData);
+    
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setSubmitResult({ 
+          success: true, 
+          message: data.message || 'Thank you for your message! We will get back to you soon.'
+        });
+        // Reset form on success
+        setFormData({ name: '', email: '', company: '', message: '' });
+      } else {
+        throw new Error(
+          data.message || data.error || 
+          `Server error (${response.status}): Please check console logs for details`
+        );
+      }
+    } catch (error) {
+      console.error('Error submitting form: ', error);
+      
+      let errorMessage = 'Failed to submit the form';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.response && error.response.data && error.response.data.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      setSubmitResult({ 
+        success: false, 
+        message: errorMessage
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
 
     // Validate form
     const newErrors = {};
@@ -232,6 +275,16 @@ const ContactForm = () => {
         >
           {isSubmitting ? 'Sending...' : 'Send Message'}
         </button>
+        
+        {submitResult.success !== null && (
+          <div className={`mt-4 p-3 rounded-md ${
+            submitResult.success 
+              ? 'bg-green-100 border border-green-400 text-green-700' 
+              : 'bg-red-100 border border-red-400 text-red-700'
+          }`}>
+            <p>{submitResult.message}</p>
+          </div>
+        )}
       </form>
     </div>
   );

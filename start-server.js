@@ -21,6 +21,10 @@ if (!process.env.SENDGRID_API_KEY) {
   console.log('\x1b[33m%s\x1b[0m', '   Please ensure it is set in the Replit Secrets tool.\n');
   console.log('\x1b[36m%s\x1b[0m', '   You can add it by going to:');
   console.log('\x1b[36m%s\x1b[0m', '   Tools > Secrets > Add a new secret with key "SENDGRID_API_KEY"\n');
+  
+  // Create helper command for setting it up
+  console.log('\x1b[36m%s\x1b[0m', '   After getting your SendGrid API key, run this command in the Shell:');
+  console.log('\x1b[36m%s\x1b[0m', '   echo "SENDGRID_API_KEY=SG.your_api_key_here" > .env\n');
 } else {
   console.log('\x1b[32m%s\x1b[0m', '✅ SENDGRID_API_KEY found in environment variables.');
   console.log('\x1b[32m%s\x1b[0m', `   Key length: ${process.env.SENDGRID_API_KEY.length} characters`);
