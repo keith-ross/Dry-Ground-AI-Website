@@ -17,7 +17,7 @@ export const submitContactForm = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: 'Invalid email format' });
     }
     
-    // Insert data into the database
+    // Insert data into the database only (email functionality disabled)
     const query = `
       INSERT INTO contact_messages (name, email, phone, message)
       VALUES ($1, $2, $3, $4)
@@ -26,17 +26,20 @@ export const submitContactForm = async (req: Request, res: Response) => {
     
     const result = await pool.query(query, [name, email, phone, message]);
     
+    // Log successful database insertion
+    console.log('Contact message saved to database:', result.rows[0]);
+    
     return res.status(200).json({
       success: true,
-      message: 'Message sent successfully',
+      message: 'Contact information saved successfully',
       data: result.rows[0]
     });
     
   } catch (error) {
-    console.error('Error submitting contact form:', error);
+    console.error('Error saving contact information:', error);
     return res.status(500).json({
       success: false,
-      error: 'Failed to submit contact form'
+      error: 'Failed to save contact information'
     });
   }
 };

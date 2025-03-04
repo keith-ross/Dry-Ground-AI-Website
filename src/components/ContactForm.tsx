@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { ContactFormData } from '../api/types';
@@ -60,34 +59,34 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
         body: JSON.stringify(formData),
       });
 
-      // Parse response text only if content exists
-      let data;
-      const responseText = await response.text();
-      
-      if (responseText) {
-        data = JSON.parse(responseText);
-      }
-
       if (!response.ok) {
-        throw new Error(data?.error || 'Failed to submit the form');
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Success! Clear the form
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        message: ''
-      });
+      // Check if response is empty before parsing JSON
+      const text = await response.text();
+      const result = text.length ? JSON.parse(text) : {};
 
-      toast.success('Message sent successfully!', {
-        id: toastId,
-      });
-
+      if (result.success) {
+        toast.success('Message sent successfully! Your details have been saved.', {
+          id: toastId,
+        });
+        // Reset form data
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          message: ''
+        });
+      } else {
+        toast.error(result.error || 'Failed to save your contact information', {
+          id: toastId,
+        });
+      }
     } catch (error) {
       console.error('Error submitting form:', error);
-      toast.error('Failed to send message. Please try again later.', {
-        id: toastId,
+      toast.error('There was a problem saving your information. Please try again later.', {
+        id: toastId
       });
     } finally {
       setIsSubmitting(false);
