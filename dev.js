@@ -40,6 +40,4 @@ devServer.on('close', code => {
     apiServer.kill();
     process.exit(code);
   }
-});;
-  }
 });
