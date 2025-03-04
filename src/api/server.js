@@ -1,22 +1,13 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import path from 'path';
-import fs from 'fs';
-import { initDb, saveContactSubmission } from '../lib/db';
-import { sendContactConfirmationEmail, sendAdminNotificationEmail, testSendGridApiKey } from '../lib/emailService';
+const express = require('express');
+const cors = require('cors');
+const { initDb, saveContactSubmission } = require('../lib/db');
+const { 
+  sendContactFormEmail, 
+  testSendGridApiKey, 
+  sendAdminNotificationEmail,
+  sendContactConfirmationEmail 
+} = require('../lib/emailService');
 
-// Load environment variables from .env file
-const envPath = path.join(__dirname, '../../.env');
-if (fs.existsSync(envPath)) {
-  console.log(`Loading environment variables from ${envPath}`);
-  dotenv.config({ path: envPath });
-} else {
-  console.log('No .env file found, using environment variables directly');
-  dotenv.config();
-}
-
-// Create Express app
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -71,74 +62,32 @@ app.post('/api/contact', async (req, res) => {
   try {
     // Input validation
     const { name, email, company, message } = req.body;
-    
+
     if (!name || !email || !message) {
+      console.log('Missing required fields:', { name: !!name, email: !!email, message: !!message });
       return res.status(400).json({ 
         success: false, 
         message: 'Required fields missing. Please provide name, email, and message.' 
       });
     }
-    
+
+    // Save to database first
+    console.log('Saving contact submission to database...');
+    const saveResult = await saveContactSubmission({ name, email, company, message });
+    console.log('Saved to database with ID:', saveResult.id);
+
     // Send email
+    console.log('Attempting to send email...');
     const emailResult = await sendContactFormEmail({ name, email, company, message });
     console.log('Email sending result:', emailResult);
-    
-    if (emailResult.success) {
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Your message has been sent successfully!' 
-      });
-    } else {
+
+    if (!emailResult.success) {
       console.error('Failed to send email:', emailResult.error);
       return res.status(500).json({ 
         success: false, 
         message: 'Failed to send your message', 
         error: emailResult.error 
       });
-    }
-  } catch (error) {
-    console.error('Error processing contact form submission:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'An error occurred while processing your request',
-      error: error.message
-    });
-  }
-
-  if (!name || !email || !message) {
-    console.log('Missing required fields:', { name: !!name, email: !!email, message: !!message });
-    return res.status(400).json({ 
-      success: false, 
-      message: 'Missing required fields' 
-    });
-  }
-
-  try {
-    // Save to database first
-    console.log('Saving contact submission to database...');
-    const saveResult = await saveContactSubmission({ name, email, company, message });
-    console.log('Saved to database with ID:', saveResult.id);
-
-    // Send notification email to admin
-    console.log('Attempting to send admin notification email...');
-    const adminEmailResult = await sendAdminNotificationEmail({ name, email, company, message });
-
-    if (!adminEmailResult.success) {
-      console.error('Failed to send admin notification:', adminEmailResult.error);
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to process your request due to email service issues',
-        error: adminEmailResult.error
-      });
-    }
-
-    // Send confirmation email to the user
-    console.log('Attempting to send user confirmation email...');
-    const userEmailResult = await sendContactConfirmationEmail({ name, email });
-
-    if (!userEmailResult.success) {
-      console.error('Failed to send user confirmation:', userEmailResult.error);
-      // Continue since the admin notification was sent successfully
     }
 
     // Return success
@@ -158,9 +107,6 @@ app.post('/api/contact', async (req, res) => {
 });
 
 // Start the API server
-const server = app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`API server running on http://0.0.0.0:${PORT}`);
 });
-
-// Export for testing
-export { app, server };
