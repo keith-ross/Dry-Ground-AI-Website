@@ -50,13 +50,15 @@ export async function submitContactForm(req: Request, res: Response) {
         timestamp: new Date().toISOString()
       }
     });
+    
   } catch (error) {
     console.error('Error submitting contact form:', error);
+    
+    // Return error response
     return res.status(500).json({
       success: false,
       error: 'Server error',
-      message: 'There was an error processing your request. Please try again later.',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: 'There was an error processing your request. Please try again later.'
     });
   }
 }

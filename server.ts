@@ -40,6 +40,26 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Database health check
+app.get('/api/db-health', async (req, res) => {
+  try {
+    const { pool } = await import('./src/lib/db');
+    const result = await pool.query('SELECT NOW()');
+    res.json({ 
+      status: 'ok', 
+      db_connected: true,
+      server_time: result.rows[0].now
+    });
+  } catch (err) {
+    console.error('Database health check failed:', err);
+    res.status(500).json({ 
+      status: 'error', 
+      db_connected: false,
+      message: err instanceof Error ? err.message : 'Unknown database error'
+    });
+  }
+});
+
 // Error handling middleware - should be registered AFTER routes
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Unhandled error:', err instanceof Error ? err.message : 'Unknown error');

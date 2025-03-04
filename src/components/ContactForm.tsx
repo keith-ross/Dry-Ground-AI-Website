@@ -25,8 +25,8 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     setIsSubmitting(true);
-    // setError(null); // This line is missing in the original code and the changes, assuming it's not needed.
 
     try {
       console.log('Sending form data: ', formData);
@@ -37,62 +37,47 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-        credentials: 'include',
       });
 
-      // Get response as text first to log it
-      const responseText = await response.text();
       console.log('Response status:', response.status);
+
+      // Get response as text first
+      const responseText = await response.text();
       console.log('Response text:', responseText);
 
-      // Try to parse as JSON if possible
-      let responseData;
-      try {
-        responseData = responseText ? JSON.parse(responseText) : {};
-        console.log('Response data:', responseData);
-        
-        // Handle successful response
-        if (response.ok) {
-          toast.success(responseData.message || 'Message sent successfully!');
-          // Reset form after successful submission
-          setFormData({
-            name: '',
-            email: '',
-            phone: '',
-            message: ''
-          });
-        } else {
-          // Handle error response
-          const errorMessage = responseData.message || 'Failed to send message. Please try again.';
-          toast.error(errorMessage);
-          throw new Error(`Server error: ${response.status} - ${errorMessage}`);
+      // Try to parse as JSON if there's content
+      let responseData = {};
+
+      if (responseText) {
+        try {
+          responseData = JSON.parse(responseText);
+          console.log('Response data:', responseData);
+        } catch (parseError) {
+          console.error('Failed to parse response as JSON:', parseError);
         }
-      } catch (parseError) {
-        console.error('Failed to parse response as JSON:', parseError);
-        toast.error('Something went wrong. Please try again later.');
-        throw new Error(`Server error: ${response.status} - Internal Server Error`);
       }
 
-      if (!response.ok) {
-        const errorMessage = responseData?.error || 
-                            responseData?.details || 
-                            `Server error: ${response.status} - ${response.statusText || 'Unknown error'}`;
+      if (response.ok) {
+        // Show success message
+        toast.success(responseData.message || 'Message sent successfully!');
+
+        // Reset form after successful submission
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          message: ''
+        });
+      } else {
+        // Handle error response
+        const errorMessage = responseData.message || `Server error: ${response.status} - ${response.statusText}`;
+        toast.error(errorMessage);
         throw new Error(errorMessage);
       }
 
-      // Reset form on success
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        message: '',
-      });
-      // setIsSubmitSuccess(true); // This line is missing in the original code and the changes, assuming it's not needed.
-
-    } catch (err) {
-      console.error('Error submitting form: ', err);
-      // setError(err.message || 'Failed to submit form. Please try again.'); // This line is missing in the original code and the changes, assuming it's not needed.
-      toast.error(err.message || 'Failed to submit form. Please try again.');
+    } catch (error) {
+      console.error('Error submitting form: ', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to send message. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
