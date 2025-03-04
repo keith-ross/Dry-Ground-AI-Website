@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Send, Loader2 } from 'lucide-react';
 
@@ -26,58 +25,77 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
     company: '',
     message: ''
   });
-  
+
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
-  
+
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
     }
-    
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email';
     }
-    
+
     if (!formData.message.trim()) {
       newErrors.message = 'Message is required';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     // Clear error for this field if it exists
     if (errors[name as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
     }
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Reset states
-    setErrorMessage('');
-    
+
     // Validate form
-    if (!validateForm()) {
+    const validationErrors: FormErrors = {};
+
+    if (!formData.name.trim()) {
+      validationErrors.name = 'Name is required';
+    }
+
+    if (!formData.email.trim()) {
+      validationErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      validationErrors.email = 'Email is invalid';
+    }
+
+    if (!formData.message.trim()) {
+      validationErrors.message = 'Message is required';
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
-    
+
+    // Clear any previous errors
+    setErrors({});
+
     // Set submitting state
     setStatus('submitting');
-    
+
     try {
-      // Make API request
+      console.log('Submitting form:', formData);
+
+      // Make API request with error handling
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
@@ -85,17 +103,23 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
         },
         body: JSON.stringify(formData)
       });
-      
+
+      console.log('Form submission response status:', response.status);
+
       // Parse response
       const result = await response.json();
-      
+      console.log('Form submission response:', result);
+
       if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Failed to submit the form');
+        const errorMsg = result.message || result.error || 'Failed to submit the form';
+        console.error('Form submission error:', errorMsg);
+        throw new Error(errorMsg);
       }
-      
+
       // Success!
+      console.log('Form submitted successfully');
       setStatus('success');
-      
+
       // Reset form after successful submission
       setFormData({
         name: '',
@@ -103,7 +127,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
         company: '',
         message: ''
       });
-      
+
       // Reset form back to idle after 5 seconds
       setTimeout(() => {
         setStatus('idle');
@@ -112,18 +136,19 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
       console.error('Error submitting form:', error);
       setStatus('error');
       setErrorMessage(error instanceof Error ? error.message : 'An unexpected error occurred');
-      
+
       // Reset error status after 5 seconds
       setTimeout(() => {
         setStatus('idle');
+        setErrorMessage('');
       }, 5000);
     }
   };
-  
+
   return (
     <div className={className}>
       <h3 className="text-xl font-semibold text-white mb-4">Get in Touch</h3>
-      
+
       {status === 'success' ? (
         <div className="bg-green-500/20 border border-green-500 rounded-lg p-4 text-green-200">
           <p className="font-medium">Thank you for your message!</p>
@@ -137,7 +162,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
               <p className="text-sm mt-1">{errorMessage || 'Please try again or contact us directly.'}</p>
             </div>
           )}
-          
+
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
               Your Name*
@@ -155,7 +180,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
             />
             {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
           </div>
-          
+
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
               Email Address*
@@ -173,7 +198,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
             />
             {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
           </div>
-          
+
           <div>
             <label htmlFor="company" className="block text-sm font-medium text-gray-300 mb-1">
               Company (Optional)
@@ -188,7 +213,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
               disabled={status === 'submitting'}
             />
           </div>
-          
+
           <div>
             <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-1">
               Message*
@@ -206,7 +231,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
             />
             {errors.message && <p className="text-red-400 text-xs mt-1">{errors.message}</p>}
           </div>
-          
+
           <button
             type="submit"
             disabled={status === 'submitting'}
@@ -224,7 +249,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
               </>
             )}
           </button>
-          
+
           <p className="text-gray-400 text-xs">* Required fields</p>
         </form>
       )}

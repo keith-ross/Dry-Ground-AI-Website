@@ -14,6 +14,7 @@ if (process.env.SENDGRID_API_KEY) {
  */
 async function sendContactConfirmationEmail({ name, email }) {
   if (!process.env.SENDGRID_API_KEY) {
+    console.warn('SendContactConfirmationEmail: No SENDGRID_API_KEY found');
     return { 
       success: false, 
       error: 'SendGrid API key not configured' 
@@ -39,19 +40,29 @@ async function sendContactConfirmationEmail({ name, email }) {
       `
     };
     
-    console.log('Sending confirmation email to:', email);
-    await sgMail.send(msg);
-    console.log('Confirmation email sent successfully');
+    console.log('Attempting to send confirmation email to:', email);
+    const [response] = await sgMail.send(msg);
     
-    return { success: true };
+    if (response && response.statusCode && response.statusCode >= 200 && response.statusCode < 300) {
+      console.log('Confirmation email sent successfully, status code:', response.statusCode);
+      return { success: true };
+    } else {
+      console.error('Unexpected response from SendGrid:', response);
+      return {
+        success: false,
+        error: `Unexpected response: ${JSON.stringify(response)}`
+      };
+    }
   } catch (error) {
     console.error('Error sending confirmation email:', error);
-    if (error.response) {
-      console.error(error.response.body);
-    }
+    // Extract the detailed SendGrid error if available
+    const sgError = error.response && error.response.body ? 
+      JSON.stringify(error.response.body) : 
+      error.message || 'Unknown error';
+    
     return { 
       success: false, 
-      error: error.message || 'Failed to send confirmation email' 
+      error: `Failed to send confirmation email: ${sgError}`
     };
   }
 }
@@ -61,6 +72,7 @@ async function sendContactConfirmationEmail({ name, email }) {
  */
 async function sendAdminNotificationEmail({ name, email, company, message }) {
   if (!process.env.SENDGRID_API_KEY) {
+    console.warn('SendAdminNotificationEmail: No SENDGRID_API_KEY found');
     return { 
       success: false, 
       error: 'SendGrid API key not configured' 
@@ -99,19 +111,29 @@ async function sendAdminNotificationEmail({ name, email, company, message }) {
       `
     };
     
-    console.log('Sending admin notification email to: info@dryground.ai');
-    await sgMail.send(msg);
-    console.log('Admin notification email sent successfully');
+    console.log('Attempting to send admin notification email to: info@dryground.ai');
+    const [response] = await sgMail.send(msg);
     
-    return { success: true };
+    if (response && response.statusCode && response.statusCode >= 200 && response.statusCode < 300) {
+      console.log('Admin notification email sent successfully, status code:', response.statusCode);
+      return { success: true };
+    } else {
+      console.error('Unexpected response from SendGrid:', response);
+      return {
+        success: false,
+        error: `Unexpected response: ${JSON.stringify(response)}`
+      };
+    }
   } catch (error) {
     console.error('Error sending admin notification email:', error);
-    if (error.response) {
-      console.error(error.response.body);
-    }
+    // Extract the detailed SendGrid error if available
+    const sgError = error.response && error.response.body ? 
+      JSON.stringify(error.response.body) : 
+      error.message || 'Unknown error';
+    
     return { 
       success: false, 
-      error: error.message || 'Failed to send admin notification email' 
+      error: `Failed to send admin notification email: ${sgError}`
     };
   }
 }
