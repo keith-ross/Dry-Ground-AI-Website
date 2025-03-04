@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
 
 interface FormData {
@@ -16,7 +16,7 @@ const initialFormData: FormData = {
   message: ''
 };
 
-const ContactForm: React.FC = () => {
+const ContactForm: React.FC<{ className?: string }> = ({ className = '' }) => {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
@@ -58,7 +58,7 @@ const ContactForm: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -68,29 +68,26 @@ const ContactForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('http://localhost:3001/api/contact', {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
       
       if (!response.ok) {
-        throw new Error(`Server responded with status: ${response.status}`);
+        throw new Error(`Server returned ${response.status}`);
       }
       
-      let data;
-      try {
-        const text = await response.text();
-        data = text ? JSON.parse(text) : {};
-      } catch (jsonError) {
-        console.error('Error parsing JSON response:', jsonError);
-        throw new Error('Invalid response from server');
-      }
+      const data = await response.json();
       
-      toast.success('Message sent successfully!');
-      setFormData(initialFormData);
+      if (data.success) {
+        toast.success('Message sent successfully!');
+        setFormData(initialFormData);
+      } else {
+        toast.error(data.message || 'Failed to send message');
+      }
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error('Failed to send message. Please try again later.');
@@ -100,7 +97,7 @@ const ContactForm: React.FC = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className={`bg-white p-6 rounded-lg shadow-md ${className}`}>
       <h3 className="text-2xl font-bold mb-4">Contact Us</h3>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">

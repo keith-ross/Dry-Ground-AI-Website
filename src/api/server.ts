@@ -1,59 +1,48 @@
-
 import express from 'express';
 import cors from 'cors';
-import { initDb, saveContactSubmission } from '../lib/db.js';
-import { sendConfirmationEmail } from '../lib/emailService.js';
+import bodyParser from 'body-parser';
+import { saveContactSubmission } from '../lib/db.js';
+import { sendContactConfirmationEmail } from '../lib/emailService.js';
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
-// Initialize the database
-initDb().catch(err => {
-  console.error('Failed to initialize database:', err);
-  // Don't exit - allow server to start even if DB init fails initially
-  // process.exit(1);
-});
-
-// Middleware
+// Middlewares
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Contact form endpoint
+// Contact form submission endpoint
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, company, message } = req.body;
-    
+
     console.log('Received contact form submission:', { name, email, company, message });
 
-    // Basic validation
     if (!name || !email || !message) {
-      return res.status(400).json({ success: false, message: 'Name, email, and message are required' });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Name, email, and message are required' 
+      });
     }
 
     // Save to database
-    try {
-      await saveContactSubmission({ name, email, company, message });
-      console.log('Saved submission to database');
-    } catch (dbError) {
-      console.error('Failed to save to database:', dbError);
-      // Continue even if database save fails
-    }
+    const result = await saveContactSubmission({ name, email, company, message });
+    console.log('Saved to database:', result);
 
     // Send confirmation email
     try {
-      await sendConfirmationEmail(email, name);
-      console.log('Sent confirmation email');
+      await sendContactConfirmationEmail({ name, email, message });
+      console.log('Confirmation email sent');
     } catch (emailError) {
-      console.error('Failed to send confirmation email:', emailError);
-      // Continue even if email fails
+      console.error('Error sending confirmation email:', emailError);
+      // We'll continue even if email fails
     }
 
-    // Always return a valid JSON response
     return res.status(200).json({ 
       success: true, 
       message: 'Contact form submission successful' 

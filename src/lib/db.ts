@@ -1,15 +1,17 @@
 
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
-import { join } from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import path from 'path';
+import fs from 'fs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Ensure data directory exists
+const dataDir = path.join(process.cwd(), 'data');
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
 
-// Define the database path - go up to project root then to data directory
-const dbPath = join(dirname(dirname(__dirname)), 'data', 'contact_submissions.db');
+// Define the database path
+const dbPath = path.join(dataDir, 'contact_submissions.db');
 
 // Database connection
 let db = null;
@@ -35,23 +37,35 @@ export async function initDb() {
     )
   `);
   
-  console.log('Database initialized successfully');
+  console.log('Database initialized successfully at', dbPath);
   return db;
 }
 
 // Save a contact form submission
 export async function saveContactSubmission({ name, email, company, message }) {
-  if (!db) await initDb();
-  
-  return await db.run(
-    'INSERT INTO contact_submissions (name, email, company, message) VALUES (?, ?, ?, ?)',
-    [name, email, company || '', message]
-  );
+  try {
+    if (!db) await initDb();
+    
+    const result = await db.run(
+      'INSERT INTO contact_submissions (name, email, company, message) VALUES (?, ?, ?, ?)',
+      [name, email, company || '', message]
+    );
+    
+    return { id: result.lastID };
+  } catch (error) {
+    console.error('Error saving contact submission:', error);
+    throw error;
+  }
 }
 
 // Get all contact submissions
 export async function getAllContactSubmissions() {
-  if (!db) await initDb();
-  
-  return await db.all('SELECT * FROM contact_submissions ORDER BY created_at DESC');
+  try {
+    if (!db) await initDb();
+    
+    return await db.all('SELECT * FROM contact_submissions ORDER BY created_at DESC');
+  } catch (error) {
+    console.error('Error getting contact submissions:', error);
+    throw error;
+  }
 }

@@ -1,9 +1,8 @@
-
-import { spawn } from 'child_process';
 import { createServer } from 'http';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import './src/api/server.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -14,16 +13,7 @@ if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-// Start API server process
-console.log('Starting API server...');
-const apiServer = spawn('node', ['--experimental-specifier-resolution=node', './src/api/server.js'], {
-  stdio: 'inherit',
-  env: { ...process.env }
-});
-
-apiServer.on('error', (err) => {
-  console.error('Failed to start API server:', err);
-});
+console.log('Server started via start-server.js');
 
 // Create a simple health check server
 const healthServer = createServer((req, res) => {
@@ -38,14 +28,12 @@ healthServer.listen(3002, '0.0.0.0', () => {
 // Handle process termination
 process.on('SIGINT', () => {
   console.log('Shutting down servers...');
-  apiServer.kill();
   healthServer.close();
   process.exit();
 });
 
 process.on('SIGTERM', () => {
   console.log('Shutting down servers...');
-  apiServer.kill();
   healthServer.close();
   process.exit();
 });
