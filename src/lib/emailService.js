@@ -2,10 +2,10 @@
 // Email service using SendGrid
 import sgMail from '@sendgrid/mail';
 
-// Configure SendGrid if API key is available
-const apiKey = import.meta.env.VITE_SENDGRID_API_KEY || process.env.SENDGRID_API_KEY;
-const fromEmail = import.meta.env.VITE_FROM_EMAIL || process.env.FROM_EMAIL || 'noreply@example.com';
-const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'admin@example.com';
+// Configure SendGrid if API key is available - client side only uses import.meta.env
+const apiKey = import.meta.env.VITE_SENDGRID_API_KEY;
+const fromEmail = import.meta.env.VITE_FROM_EMAIL || 'noreply@example.com';
+const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com';
 
 if (apiKey) {
   sgMail.setApiKey(apiKey);
