@@ -8,50 +8,114 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
-// Check if SendGrid API key exists and log appropriately
-const sendgridApiKey = process.env.SENDGRID_API_KEY;
-console.log('Email Service Configuration:');
-console.log('- SENDGRID_API_KEY exists:', !!sendgridApiKey);
-console.log('- SENDGRID_API_KEY length:', sendgridApiKey ? sendgridApiKey.length : 0);
+// Initialize SendGrid with API key
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log('SendGrid API key set successfully');
+} else {
+  console.error('SENDGRID_API_KEY is not defined in environment variables');
+}
 
 /**
- * Sends contact form emails - both confirmation and admin notification
+ * Send contact form submission email
+ * @param {Object} formData - Contact form data
+ * @returns {Promise<Object>} - SendGrid response
  */
-export async function sendContactEmail({ name, email, company, message }) {
-  console.log('Sending contact email for:', { name, email });
-
-  // Validate inputs
-  if (!name || !email || !message) {
-    return { 
-      success: false, 
-      error: 'Missing required fields' 
-    };
-  }
-
-  // Check if we have SendGrid configured
-  if (!sendgridApiKey) {
-    console.warn('Missing SendGrid API key - email service disabled');
-    return { 
-      success: false, 
-      error: 'Email service not configured' 
-    };
-  }
-
+export async function sendContactEmail(formData) {
   try {
-    // In a real implementation, we would use SendGrid here
-    console.log('Would send email with SendGrid for:', { name, email, company });
+    const { name, email, company, message } = formData;
 
-    // For now, simulate a successful email send
-    // This is a placeholder for the actual SendGrid implementation
-    return {
-      success: true,
-      message: 'Contact form submission received'
+    console.log('Preparing to send email with data:', { 
+      name, 
+      email, 
+      company: company || 'Not provided',
+      messageLength: message ? message.length : 0
+    });
+
+    // Email to the site admin
+    const adminMsg = {
+      to: process.env.ADMIN_EMAIL || 'admin@example.com',
+      from: process.env.FROM_EMAIL || 'noreply@example.com',
+      subject: `New Contact Form Submission from ${name}`,
+      text: `
+Name: ${name}
+Email: ${email}
+${company ? `Company: ${company}` : ''}
+
+Message:
+${message}
+      `,
+      html: `
+<h2>New Contact Form Submission</h2>
+<p><strong>Name:</strong> ${name}</p>
+<p><strong>Email:</strong> ${email}</p>
+${company ? `<p><strong>Company:</strong> ${company}</p>` : ''}
+<p><strong>Message:</strong></p>
+<p>${message}</p>
+      `
+    };
+
+    // Auto-reply to the user
+    const userMsg = {
+      to: email,
+      from: process.env.FROM_EMAIL || 'noreply@example.com',
+      subject: 'Thank you for your message',
+      text: `
+Dear ${name},
+
+Thank you for contacting us. We have received your message and will get back to you as soon as possible.
+
+Best regards,
+The Team
+      `,
+      html: `
+<h2>Thank you for your message</h2>
+<p>Dear ${name},</p>
+<p>Thank you for contacting us. We have received your message and will get back to you as soon as possible.</p>
+<p>Best regards,<br>The Team</p>
+      `
+    };
+
+    console.log('Sending admin notification email to:', adminMsg.to);
+
+    // For development/testing without SendGrid API key
+    if (!process.env.SENDGRID_API_KEY) {
+      console.log('SENDGRID_API_KEY not found, returning mock success response');
+      console.log('Would have sent these emails:');
+      console.log('Admin email:', adminMsg);
+      console.log('User auto-reply:', userMsg);
+      return { success: true, message: 'Emails logged (SENDGRID_API_KEY not configured)' };
+    }
+
+    // Send both emails
+    const [adminResponse] = await sgMail.send(adminMsg);
+    console.log('Admin email sent with status code:', adminResponse.statusCode);
+
+    const [userResponse] = await sgMail.send(userMsg);
+    console.log('User auto-reply sent with status code:', userResponse.statusCode);
+
+    return { 
+      success: true, 
+      message: 'Emails sent successfully',
+      adminStatus: adminResponse.statusCode,
+      userStatus: userResponse.statusCode
     };
   } catch (error) {
-    console.error('Failed to send contact email:', error);
-    return {
-      success: false,
-      error: 'Failed to send email'
+    console.error('Error sending email:', error);
+
+    // Handle different types of errors
+    if (error.response) {
+      console.error('SendGrid API error:', error.response.body);
+      return { 
+        success: false, 
+        error: `SendGrid API error: ${error.code || error.message}`,
+        details: error.response.body
+      };
+    }
+
+    return { 
+      success: false, 
+      error: error.message || 'Unknown error sending email'
     };
   }
 }

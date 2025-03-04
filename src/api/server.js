@@ -2,6 +2,7 @@
 // src/api/server.js
 import express from 'express';
 import cors from 'cors';
+import bodyParser from 'body-parser';
 import { sendContactEmail } from '../lib/emailService.js';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -29,83 +30,82 @@ console.log('- PORT:', process.env.PORT || 3001);
 console.log('- SENDGRID_API_KEY exists:', !!process.env.SENDGRID_API_KEY);
 
 const app = express();
-const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(express.json());
-
-// Configure CORS
+// Enable CORS for all routes
 app.use(cors({
-  origin: '*', // Allow all origins for testing
-  methods: ['GET', 'POST'],
-  credentials: true
+  origin: '*', // Allow all origins in development
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Health check endpoint
+// Parse JSON and URL-encoded bodies
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Simple health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-    emailServiceConfigured: !!process.env.SENDGRID_API_KEY
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// Contact form endpoint
+// Contact form submission endpoint
 app.post('/api/contact', async (req, res) => {
-  console.log('Received contact form submission:', req.body);
-  
   try {
-    const { name, email, company, message } = req.body;
-
+    console.log('Received contact form submission:', req.body);
+    
+    const { name, email, message } = req.body;
+    
     // Validate required fields
     if (!name || !email || !message) {
-      console.log('Missing required fields:', { name: !!name, email: !!email, message: !!message });
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Missing required fields' 
+      console.log('Missing required fields in form submission');
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields. Please provide name, email, and message.'
       });
     }
-
-    // Send email
-    const result = await sendContactEmail({ name, email, company, message });
+    
+    // Send email using service
+    const result = await sendContactEmail(req.body);
     
     if (result.success) {
-      console.log('Contact email sent successfully');
-      return res.status(200).json({
+      console.log('Email sent successfully');
+      return res.json({
         success: true,
-        message: result.message || 'Message sent successfully'
+        message: 'Your message has been sent successfully!'
       });
     } else {
-      console.log('Failed to send contact email:', result.error);
+      console.error('Email sending failed:', result.error);
       return res.status(500).json({
         success: false,
-        error: result.error || 'Failed to send message'
+        error: 'Failed to send email. Please try again later.'
       });
     }
   } catch (error) {
     console.error('Error processing contact form submission:', error);
     res.status(500).json({
       success: false,
-      error: 'Server error processing contact form'
+      error: 'An unexpected error occurred. Please try again later.'
     });
   }
 });
 
 // Start the server
-if (process.env.NODE_ENV !== 'test') {
-  const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`API server running on http://0.0.0.0:${PORT}`);
-  });
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`API server is running on port ${PORT}`);
+  console.log(`Health check available at http://localhost:${PORT}/api/health`);
+});
 
-  // Handle server errors
-  server.on('error', (error) => {
-    console.error('Server error:', error);
-    if (error.code === 'EADDRINUSE') {
-      console.error(`Port ${PORT} is already in use. Please use a different port.`);
-    }
-  });
-}
+// Handle graceful shutdown
+process.on('SIGINT', () => {
+  console.log('Shutting down API server...');
+  process.exit(0);
+});
 
-// Export the app for testing
-export default app;
+process.on('SIGTERM', () => {
+  console.log('Shutting down API server...');
+  process.exit(0);
+});

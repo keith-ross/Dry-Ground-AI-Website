@@ -1,3 +1,4 @@
+
 // server-check.js
 import fetch from 'node-fetch';
 import { exec } from 'child_process';
@@ -10,7 +11,17 @@ console.log('Checking API server status...');
 // Try to fetch the API health endpoint
 async function checkServer() {
   try {
-    const response = await fetch(API_URL, { timeout: 5000 });
+    const response = await fetch(API_URL, { 
+      timeout: 5000,
+      headers: { 'Accept': 'application/json' }
+    });
+    
+    console.log('Response status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`Server responded with status: ${response.status}`);
+    }
+    
     const data = await response.json();
 
     console.log('✅ API server is running!');
@@ -18,7 +29,8 @@ async function checkServer() {
 
     return true;
   } catch (error) {
-    console.log(`❌ No server detected on port ${PORT}`);
+    console.log(`❌ Server check failed: ${error.message}`);
+    console.log(`❌ No functioning server detected on port ${PORT}`);
 
     // Find all node processes to help debug
     exec('ps aux | grep node', (err, stdout) => {
