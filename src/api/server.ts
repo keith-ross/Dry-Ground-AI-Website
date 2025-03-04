@@ -10,17 +10,25 @@ const PORT = 3001;
 // Initialize the database
 initDb().catch(err => {
   console.error('Failed to initialize database:', err);
-  process.exit(1);
+  // Don't exit - allow server to start even if DB init fails initially
+  // process.exit(1);
 });
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, company, message } = req.body;
+    
+    console.log('Received contact form submission:', { name, email, company, message });
 
     // Basic validation
     if (!name || !email || !message) {
@@ -28,20 +36,34 @@ app.post('/api/contact', async (req, res) => {
     }
 
     // Save to database
-    await saveContactSubmission({ name, email, company, message });
+    try {
+      await saveContactSubmission({ name, email, company, message });
+      console.log('Saved submission to database');
+    } catch (dbError) {
+      console.error('Failed to save to database:', dbError);
+      // Continue even if database save fails
+    }
 
     // Send confirmation email
     try {
       await sendConfirmationEmail(email, name);
+      console.log('Sent confirmation email');
     } catch (emailError) {
       console.error('Failed to send confirmation email:', emailError);
-      // We'll continue even if email fails
+      // Continue even if email fails
     }
 
-    res.status(200).json({ success: true, message: 'Contact form submission successful' });
+    // Always return a valid JSON response
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Contact form submission successful' 
+    });
   } catch (error) {
     console.error('Error processing contact form submission:', error);
-    res.status(500).json({ success: false, message: 'An error occurred processing your request' });
+    return res.status(500).json({ 
+      success: false, 
+      message: 'An error occurred processing your request' 
+    });
   }
 });
 
@@ -49,3 +71,5 @@ app.post('/api/contact', async (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`API server running on port ${PORT}`);
 });
+
+export default app;

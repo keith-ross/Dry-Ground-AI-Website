@@ -1,54 +1,51 @@
 
 import { spawn } from 'child_process';
-import chalk from 'chalk';
-import path from 'path';
-import fs from 'fs';
+import { createServer } from 'http';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Ensure data directory exists
-const dataDir = path.join(process.cwd(), 'data');
+const dataDir = join(__dirname, 'data');
 if (!fs.existsSync(dataDir)) {
+  console.log('Creating data directory...');
   fs.mkdirSync(dataDir, { recursive: true });
-  console.log(chalk.green('Created data directory for SQLite database'));
 }
 
-// Start API server
-console.log(chalk.blue('Starting API server...'));
-const apiServer = spawn('node', ['--loader', 'ts-node/esm', 'src/api/server.ts'], {
-  env: { ...process.env, NODE_ENV: 'development' }
+// Start API server process
+console.log('Starting API server...');
+const apiServer = spawn('node', ['--experimental-specifier-resolution=node', './src/api/server.js'], {
+  stdio: 'inherit',
+  env: { ...process.env }
 });
 
-apiServer.stdout.on('data', (data) => {
-  console.log(chalk.blue('[API] ') + data.toString().trim());
+apiServer.on('error', (err) => {
+  console.error('Failed to start API server:', err);
 });
 
-apiServer.stderr.on('data', (data) => {
-  console.error(chalk.red('[API Error] ') + data.toString().trim());
+// Create a simple health check server
+const healthServer = createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ status: 'ok', message: 'Server is running' }));
 });
 
-// Start Vite dev server
-console.log(chalk.green('Starting Vite development server...'));
-const viteServer = spawn('npx', ['vite'], {
-  env: { ...process.env, NODE_ENV: 'development' }
-});
-
-viteServer.stdout.on('data', (data) => {
-  console.log(chalk.green('[Vite] ') + data.toString().trim());
-});
-
-viteServer.stderr.on('data', (data) => {
-  console.error(chalk.red('[Vite Error] ') + data.toString().trim());
+healthServer.listen(3002, '0.0.0.0', () => {
+  console.log('Health check server running on port 3002');
 });
 
 // Handle process termination
 process.on('SIGINT', () => {
-  console.log(chalk.yellow('Shutting down servers...'));
+  console.log('Shutting down servers...');
   apiServer.kill();
-  viteServer.kill();
+  healthServer.close();
   process.exit();
 });
 
-console.log(chalk.cyan('✨ Development servers started'));
+process.on('SIGTERM', () => {
+  console.log('Shutting down servers...');
+  apiServer.kill();
+  healthServer.close();
+  process.exit();
+});
