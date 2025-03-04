@@ -89,7 +89,7 @@ author = 37597866
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "kill $(lsof -t -i:3001) 2>/dev/null || true; node start-all.js"
+args = "node start-all.js"
 
 [[workflows.workflow]]
 name = "Debug API"
