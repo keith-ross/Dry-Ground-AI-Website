@@ -1,12 +1,13 @@
 
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
-const dotenv = require('dotenv');
-const emailService = require('../lib/emailService');
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+import { initDb, saveContactSubmission } from '../lib/db';
+import { sendContactConfirmationEmail, sendAdminNotificationEmail, testSendGridApiKey } from '../lib/emailService';
 
-// Load environment variables
+// Load environment variables from .env file
 const envPath = path.join(__dirname, '../../.env');
 if (fs.existsSync(envPath)) {
   console.log(`Loading environment variables from ${envPath}`);
@@ -21,101 +22,101 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors());
 app.use(express.json());
 
-// Log all requests for debugging
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
-  next();
+// Configure CORS to allow requests from any origin during development
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? [/\.replit\.dev$/, /anchoredup\.org$/] // Restrict in production
+    : '*',                                   // Allow all in development
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: true
+}));
+
+// Handle preflight requests
+app.options('*', cors());
+
+// Initialize database
+initDb().catch(error => {
+  console.error('Failed to initialize database:', error);
 });
 
-// Health check endpoint
+// Define routes
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok',
-    environment: process.env.NODE_ENV || 'development',
-    sendgridConfigured: !!process.env.SENDGRID_API_KEY
+  res.status(200).json({ 
+    status: 'ok', 
+    env: process.env.NODE_ENV,
+    emailServiceConfigured: !!process.env.SENDGRID_API_KEY
   });
 });
 
-// Test SendGrid API key
-app.get('/api/test-sendgrid', (req, res) => {
-  const key = process.env.SENDGRID_API_KEY;
-  if (!key) {
-    return res.status(500).json({
-      success: false,
-      message: 'SendGrid API key not configured'
+// Test SendGrid configuration
+app.get('/api/test-sendgrid', async (req, res) => {
+  try {
+    const result = await testSendGridApiKey();
+    res.status(result.success ? 200 : 400).json(result);
+  } catch (error) {
+    console.error('Error testing SendGrid API:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Unknown error testing SendGrid API'
     });
   }
-
-  res.json({
-    success: true,
-    message: 'SendGrid API key configured',
-    keyInfo: {
-      length: key.length,
-      prefix: key.substring(0, 3) + '...',
-      isValid: key.startsWith('SG.')
-    }
-  });
 });
 
-// Contact form endpoint
+// Contact form submission endpoint
 app.post('/api/contact', async (req, res) => {
+  console.log('Received contact form submission:', req.body);
+  
+  // Input validation
+  const { name, email, company, message } = req.body;
+  
+  if (!name || !email || !message) {
+    console.log('Missing required fields:', { name: !!name, email: !!email, message: !!message });
+    return res.status(400).json({ 
+      success: false, 
+      message: 'Missing required fields' 
+    });
+  }
+  
   try {
-    console.log('Contact form submission received:', req.body);
-    
-    const { name, email, company, message } = req.body;
-
-    if (!name || !email || !message) {
-      console.log('Missing required fields:', { name: !!name, email: !!email, message: !!message });
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Missing required fields' 
-      });
-    }
+    // Save to database first
+    console.log('Saving contact submission to database...');
+    const saveResult = await saveContactSubmission({ name, email, company, message });
+    console.log('Saved to database with ID:', saveResult.id);
 
     // Send notification email to admin
     console.log('Attempting to send admin notification email...');
-    const adminEmailResult = await emailService.sendAdminNotificationEmail({ 
-      name, 
-      email, 
-      company, 
-      message 
-    });
+    const adminEmailResult = await sendAdminNotificationEmail({ name, email, company, message });
 
     if (!adminEmailResult.success) {
       console.error('Failed to send admin notification:', adminEmailResult.error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Failed to send admin notification', 
-        error: adminEmailResult.error || 'Unknown error' 
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to process your request due to email service issues',
+        error: adminEmailResult.error
       });
     }
 
     // Send confirmation email to the user
     console.log('Attempting to send user confirmation email...');
-    const userEmailResult = await emailService.sendContactConfirmationEmail({ 
-      name, 
-      email 
-    });
+    const userEmailResult = await sendContactConfirmationEmail({ name, email });
 
     if (!userEmailResult.success) {
-      console.error('Failed to send confirmation email:', userEmailResult.error);
-      // Continue anyway since we already sent the admin notification
-      console.log('Continuing despite user email failure since admin was notified');
+      console.error('Failed to send user confirmation:', userEmailResult.error);
+      // Continue since the admin notification was sent successfully
     }
 
+    // Return success
     console.log('Contact form submission processed successfully');
     return res.status(200).json({ 
       success: true, 
       message: 'Form submitted successfully' 
     });
-
   } catch (error) {
-    console.error('Error processing contact form:', error);
+    console.error('Error processing contact form submission:', error);
     return res.status(500).json({ 
-      success: false,
+      success: false, 
       message: 'Server error processing your request',
       error: error.message || 'Unknown error'
     });
@@ -123,8 +124,9 @@ app.post('/api/contact', async (req, res) => {
 });
 
 // Start the API server
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`API server running on http://0.0.0.0:${PORT}`);
 });
 
-module.exports = app;
+// Export for testing
+export { app, server };
