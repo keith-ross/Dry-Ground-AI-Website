@@ -1,17 +1,27 @@
-
 import express from 'express';
 import cors from 'cors';
-import bodyParser from 'body-parser';
+import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
 import { initDb, saveContactSubmission } from '../lib/db';
 import { sendContactConfirmationEmail, sendAdminNotificationEmail } from '../lib/emailService';
-import dotenv from 'dotenv';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from .env file
+const envPath = path.join(__dirname, '../../.env');
+if (fs.existsSync(envPath)) {
+  console.log(`Loading environment variables from ${envPath}`);
+  dotenv.config({ path: envPath });
+} else {
+  console.log('No .env file found, using environment variables directly');
+  dotenv.config();
+}
 
-console.log('Server environment variables:');
+// Verify critical environment variables
+console.log('API Server Environment:');
+console.log('- NODE_ENV:', process.env.NODE_ENV);
+console.log('- PORT:', process.env.PORT);
 console.log('- SENDGRID_API_KEY exists:', !!process.env.SENDGRID_API_KEY);
-console.log('- ADMIN_EMAIL:', process.env.ADMIN_EMAIL || 'Not set, using default');
+
 
 // Initialize database
 initDb().catch(error => {
@@ -22,7 +32,7 @@ const app = express();
 
 // Configure middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json()); // Use express.json() instead of bodyParser.json()
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -31,83 +41,65 @@ app.get('/api/health', (req, res) => {
 
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
-  console.log('Received contact form submission:', req.body);
-  
   try {
     const { name, email, company, message } = req.body;
-    
-    // Validate required fields
+
+    console.log('Received contact form submission:', { name, email, company, message });
+
     if (!name || !email || !message) {
       return res.status(400).json({ 
         success: false, 
         message: 'Name, email, and message are required' 
       });
     }
-    
-    // Check if SendGrid API key is configured
+
+    // Check if SendGrid API key is available
     if (!process.env.SENDGRID_API_KEY) {
-      console.error('SendGrid API key is not configured. Please add it to Replit Secrets.');
+      console.error('SendGrid API key is missing. Form will be processed, but emails cannot be sent.');
       return res.status(500).json({
         success: false,
-        message: 'Email service is not properly configured. Please contact the administrator.'
+        message: 'Email service not configured properly - contact form cannot be processed'
       });
     }
-    
-    // Save to database
-    try {
-      await saveContactSubmission({ name, email, company, message });
-      console.log('Saved contact submission to database');
-    } catch (dbError) {
-      console.error('Database error:', dbError);
-      // Continue even if database save fails
-    }
-    
-    // Send confirmation email to user
-    console.log('Attempting to send confirmation email to user...');
-    const userEmailResult = await sendContactConfirmationEmail({ name, email });
-    console.log('User email result:', JSON.stringify(userEmailResult, null, 2));
-    
-    // Send notification email to admin
-    console.log('Attempting to send notification email to admin...');
-    const adminEmailResult = await sendAdminNotificationEmail({ name, email, company, message });
-    console.log('Admin email result:', JSON.stringify(adminEmailResult, null, 2));
-    
-    // Check email results
-    if (userEmailResult.success || adminEmailResult.success) {
-      return res.json({ 
-        success: true, 
-        message: 'Contact form submitted successfully' 
-      });
-    } else {
-      let errorMessage = 'Failed to send confirmation emails';
-      let errorDetails = null;
-      
-      if (userEmailResult.error) {
-        errorDetails = userEmailResult.error;
-        errorMessage = userEmailResult.message || errorMessage;
-      } else if (adminEmailResult.error) {
-        errorDetails = adminEmailResult.error;
-        errorMessage = adminEmailResult.message || errorMessage;
+
+    // Send admin notification email
+    const adminEmailResult = await sendAdminNotificationEmail({ 
+      name, email, company, message 
+    });
+
+    if (!adminEmailResult.success) {
+      console.error('Failed to send admin notification:', adminEmailResult.error);
+
+      // If there's a SendGrid API error with a response, log it
+      if (adminEmailResult.error && adminEmailResult.error.response) {
+        console.error('SendGrid API response:', adminEmailResult.error.response.body);
       }
-      
-      console.error('Failed to send emails:', { 
-        userEmailResult, 
-        adminEmailResult,
-        errorDetails: errorDetails ? JSON.stringify(errorDetails, null, 2) : 'Unknown error'
-      });
-      
-      return res.status(500).json({ 
-        success: false, 
-        message: errorMessage,
-        error: errorDetails ? errorDetails.message || JSON.stringify(errorDetails) : 'Unknown error'
+
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to process your request due to email service issues'
       });
     }
+
+    // Send confirmation email to the user
+    const userEmailResult = await sendContactConfirmationEmail({ name, email });
+
+    if (!userEmailResult.success) {
+      console.error('Failed to send user confirmation:', userEmailResult.error);
+      // Continue since the admin notification was sent successfully
+    }
+
+    // Return success
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Form submitted successfully' 
+    });
   } catch (error) {
-    console.error('Error processing contact form:', error);
-    res.status(500).json({ 
+    console.error('Error processing contact form submission:', error);
+    return res.status(500).json({ 
       success: false, 
-      message: 'An error occurred while processing your request',
-      error: error.message 
+      message: 'Server error processing your request',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });

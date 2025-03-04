@@ -8,6 +8,7 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'info@drygroundai.com';
 // Debug logging for environment variables
 console.log('EmailService initialization:');
 console.log('- SENDGRID_API_KEY exists:', !!SENDGRID_API_KEY);
+console.log('- SENDGRID_API_KEY length:', SENDGRID_API_KEY ? SENDGRID_API_KEY.length : 0);
 console.log('- ADMIN_EMAIL:', ADMIN_EMAIL);
 
 if (SENDGRID_API_KEY) {
@@ -46,7 +47,7 @@ export async function sendContactConfirmationEmail({ name, email }) {
       console.log('Confirmation email sent successfully:', response[0].statusCode);
       return { success: true };
     } catch (sendError) {
-      console.error('SendGrid error:', sendError);
+      console.error('SendGrid error sending confirmation:', sendError);
       if (sendError.response) {
         console.error('SendGrid API error response:', sendError.response.body);
       }
@@ -60,23 +61,23 @@ export async function sendContactConfirmationEmail({ name, email }) {
     console.error('Error in sendContactConfirmationEmail:', error);
     return { 
       success: false, 
-      message: error.message || 'Failed to send email',
-      error 
+      message: error.message || 'Failed to send confirmation email',
+      error
     };
   }
 }
 
 /**
- * Send notification email to admin about a new contact form submission
+ * Send notification email to the admin about a new contact form submission
  */
 export async function sendAdminNotificationEmail({ name, email, company, message }) {
   try {
     if (!SENDGRID_API_KEY) {
-      console.warn('Skipping admin notification: SendGrid API key not configured');
+      console.warn('Skipping email send: SendGrid API key not configured');
       return { 
         success: false, 
         message: 'Email service not configured - missing API key',
-        error: new Error('SendGrid API key not found')  
+        error: new Error('SendGrid API key not found')
       };
     }
 

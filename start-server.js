@@ -3,16 +3,31 @@
 const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const dotenv = require('dotenv');
 
-// Ensure .env file exists with the required variables
+// Load environment variables from .env file if it exists
 const envPath = path.join(__dirname, '.env');
-const envFile = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
+if (fs.existsSync(envPath)) {
+  console.log(`Loading environment variables from ${envPath}`);
+  dotenv.config({ path: envPath });
+} else {
+  console.log('No .env file found, using environment variables from Replit Secrets');
+}
 
 // Check for required environment variables
-if (!process.env.SENDGRID_API_KEY && !envFile.includes('SENDGRID_API_KEY')) {
-  console.log('\x1b[33m%s\x1b[0m', '⚠️ WARNING: SENDGRID_API_KEY is not set in environment or .env file.');
+if (!process.env.SENDGRID_API_KEY) {
+  console.log('\x1b[33m%s\x1b[0m', '⚠️ WARNING: SENDGRID_API_KEY is not found in environment variables.');
   console.log('\x1b[33m%s\x1b[0m', '   The contact form will not be able to send emails.');
-  console.log('\x1b[33m%s\x1b[0m', '   Please add it to the Replit Secrets tool or .env file.\n');
+  console.log('\x1b[33m%s\x1b[0m', '   Please ensure it is set in the Replit Secrets tool.\n');
+} else {
+  console.log('\x1b[32m%s\x1b[0m', '✅ SENDGRID_API_KEY found in environment variables.');
+  console.log('\x1b[32m%s\x1b[0m', `   Key length: ${process.env.SENDGRID_API_KEY.length} characters\n`);
+}
+
+// Set default port if not provided
+if (!process.env.PORT) {
+  process.env.PORT = 3001;
+  console.log('\x1b[33m%s\x1b[0m', `ℹ️ No PORT specified in environment, using default: ${process.env.PORT}\n`);
 }
 
 // Start the server
