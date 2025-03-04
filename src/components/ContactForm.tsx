@@ -46,11 +46,19 @@ const ContactForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form before submission
+    if (!validate()) {
+      return;
+    }
+    
     setIsSubmitting(true);
-    setSubmitResult({ success: null, message: null });
+    setSubmitResult({ success: null, message: '' });
 
     // Reset validation errors
     setErrors({});
+    
+    console.log('Submitting form data: ', formData);
 
     // Validate form
     const newErrors = {};
@@ -109,9 +117,18 @@ const ContactForm = () => {
       }
     } catch (error) {
       console.error('Error submitting form: ', error);
+      
+      let errorMessage = 'Failed to submit the form';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.response && error.response.data && error.response.data.message) {
+        errorMessage = error.response.data.message;
+      }
+      
       setSubmitResult({ 
         success: false, 
-        message: error.message || 'Failed to submit the form',
+        message: errorMessage,
         error: error
       });
     } finally {
@@ -126,6 +143,12 @@ const ContactForm = () => {
       {submitResult.success === true && (
         <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
           {submitResult.message || "Thank you for your message! We'll get back to you soon."}
+        </div>
+      )}
+      
+      {submitResult.success === false && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+          {submitResult.message || "There was an error submitting your form. Please try again later."}
         </div>
       )}
 

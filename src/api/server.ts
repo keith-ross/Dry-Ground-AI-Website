@@ -1,3 +1,4 @@
+
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -21,54 +22,60 @@ console.log('API Server Environment:');
 console.log('- NODE_ENV:', process.env.NODE_ENV);
 console.log('- PORT:', process.env.PORT);
 console.log('- SENDGRID_API_KEY exists:', !!process.env.SENDGRID_API_KEY);
+console.log('- SENDGRID_API_KEY length:', process.env.SENDGRID_API_KEY ? process.env.SENDGRID_API_KEY.length : 0);
 
+// Create Express app
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Middleware
+app.use(express.json());
+
+// Configure CORS to allow requests from any origin during development
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? [/\.replit\.dev$/, /anchoredup\.org$/] // Restrict in production
+    : '*',                                   // Allow all in development
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
 
 // Initialize database
 initDb().catch(error => {
   console.error('Failed to initialize database:', error);
 });
 
-const app = express();
-
-// Configure middleware
-app.use(cors());
-app.use(express.json()); // Use express.json() instead of bodyParser.json()
-
-// Health check endpoint
+// Define routes
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
+  res.status(200).json({ 
+    status: 'ok', 
+    env: process.env.NODE_ENV,
+    emailServiceConfigured: !!process.env.SENDGRID_API_KEY
+  });
 });
 
-// Contact form endpoint
+// Contact form submission endpoint
 app.post('/api/contact', async (req, res) => {
   console.log('Received contact form submission:', req.body);
+  
+  // Input validation
+  const { name, email, company, message } = req.body;
+  
+  if (!name || !email || !message) {
+    console.log('Missing required fields:', { name: !!name, email: !!email, message: !!message });
+    return res.status(400).json({ 
+      success: false, 
+      message: 'Missing required fields' 
+    });
+  }
+  
   try {
-    const { name, email, company, message } = req.body;
+    // Save to database first
+    console.log('Saving contact submission to database...');
+    const saveResult = await saveContactSubmission({ name, email, company, message });
+    console.log('Saved to database with ID:', saveResult.id);
 
-    // Basic validation
-    if (!name || !email || !message) {
-      console.log('Validation failed:', { name, email, message });
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Name, email, and message are required' 
-      });
-    }
-
-    // Log current environment status
-    console.log('Processing contact form with:');
-    console.log('- SENDGRID_API_KEY exists:', !!process.env.SENDGRID_API_KEY);
-    console.log('- SENDGRID_API_KEY length:', process.env.SENDGRID_API_KEY ? process.env.SENDGRID_API_KEY.length : 0);
-
-    // Save to database
-    try {
-      const dbResult = await saveContactSubmission({ name, email, company, message });
-      console.log('Saved to database with ID:', dbResult.id);
-    } catch (dbError) {
-      console.error('Database error when saving contact:', dbError);
-      // Continue processing to still try sending emails
-    }
-
-    // Send admin notification
+    // Send notification email to admin
     console.log('Attempting to send admin notification email...');
     const adminEmailResult = await sendAdminNotificationEmail({ name, email, company, message });
 
@@ -101,16 +108,15 @@ app.post('/api/contact', async (req, res) => {
     return res.status(500).json({ 
       success: false, 
       message: 'Server error processing your request',
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      error: error.message || 'Unknown error'
     });
   }
 });
 
 // Start the API server
-const PORT = process.env.PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`API server running on port ${PORT}`);
+  console.log(`API server running on http://0.0.0.0:${PORT}`);
 });
 
+// Export the app for testing
 export default app;
