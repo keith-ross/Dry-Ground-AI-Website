@@ -1,44 +1,25 @@
-
-const sgMail = require('@sendgrid/mail');
+import sgMail from '@sendgrid/mail';
 
 /**
- * Test if the SendGrid API key is configured correctly
- * @returns {Object} Result of the test
+ * Tests if the SendGrid API key is valid
+ * @returns {Promise<boolean>} True if the API key is valid
  */
-async function testSendGridApiKey() {
+export async function testSendGridApiKey() {
   try {
-    const apiKey = process.env.SENDGRID_API_KEY;
-
-    if (!apiKey) {
-      return { 
-        success: false, 
-        error: 'SendGrid API key is not configured' 
-      };
-    }
-
-    // A valid SendGrid API key starts with "SG." and is typically 69 characters long
-    if (!apiKey.startsWith('SG.') || apiKey.length < 50) {
-      return { 
-        success: false, 
-        error: 'SendGrid API key format appears to be invalid' 
-      };
-    }
-
-    return { success: true };
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    return true;
   } catch (error) {
-    return { 
-      success: false, 
-      error: error.message || 'Unknown error testing SendGrid API key'
-    };
+    console.error('Error testing SendGrid API key:', error);
+    return false;
   }
 }
 
 /**
- * Send contact form email
- * @param {Object} formData - Form data containing name, email, and message
- * @returns {Promise<Object>} - Result of the email sending operation
+ * Sends a contact form submission via the API
+ * @param {Object} formData - The contact form data
+ * @returns {Promise<Object>} The result of the API call
  */
-async function sendContactEmail(formData) {
+export async function sendContactEmail(formData) {
   try {
     const response = await fetch('/api/contact', {
       method: 'POST',
@@ -47,7 +28,7 @@ async function sendContactEmail(formData) {
       },
       body: JSON.stringify(formData),
     });
-    
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       return {
@@ -55,7 +36,7 @@ async function sendContactEmail(formData) {
         error: errorData.error || 'Failed to send message'
       };
     }
-    
+
     const data = await response.json();
     return {
       success: true,
@@ -68,7 +49,3 @@ async function sendContactEmail(formData) {
     };
   }
 }
-
-// Using ES modules style export for compatibility with TypeScript imports
-module.exports.testSendGridApiKey = testSendGridApiKey;
-module.exports.sendContactEmail = sendContactEmail;
