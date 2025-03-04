@@ -1,10 +1,8 @@
-
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
 import { initDb, saveContactSubmission } from '../lib/db.js';
 import sgMail from '@sendgrid/mail';
 
@@ -31,15 +29,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  res.status(500).json({ 
-    success: false, 
-    error: err.message || 'Internal server error'
-  });
-});
-
 // Configure SendGrid
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'your_sender_email@example.com';
@@ -52,147 +41,130 @@ if (SENDGRID_API_KEY) {
 } else {
   console.warn('SendGrid API key not configured');
 }
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'your_recipient_email@example.com';
-
-if (SENDGRID_API_KEY) {
-  sgMail.setApiKey(SENDGRID_API_KEY);
-  console.log('SendGrid API key configured');
-} else {
-  console.warn('SendGrid API key not found. Email functionality will not work.');
-}
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  const apiKeyExists = !!SENDGRID_API_KEY;
-  const apiKeyFormatValid = SENDGRID_API_KEY?.startsWith('SG.');
-  
   res.json({
     status: 'ok',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-    emailService: {
-      success: apiKeyExists && apiKeyFormatValid && !!FROM_EMAIL && !!ADMIN_EMAIL,
-      apiKeyExists,
-      apiKeyFormatValid,
-      fromEmail: FROM_EMAIL,
-      adminEmail: ADMIN_EMAIL
-    }
+    time: new Date().toISOString(),
+    sendgrid: SENDGRID_API_KEY ? 'configured' : 'not configured'
   });
 });
 
-// Helper functions for email
-async function sendAdminNotificationEmail({ name, email, company, message }) {
-  if (!SENDGRID_API_KEY) {
-    return { success: false, error: 'SendGrid API key not configured' };
-  }
-
+// Contact form submission endpoint
+app.post('/api/contact', async (req, res) => {
   try {
-    const msg = {
+    console.log('Received contact form submission:', req.body);
+
+    const { name, email, company, message } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !message) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields',
+        details: 'Name, email, and message are required'
+      });
+    }
+
+    // Try to save to database if available
+    try {
+      await saveContactSubmission({ name, email, company, message });
+      console.log('Form submission saved to database');
+    } catch (dbError) {
+      console.warn('Could not save to database:', dbError.message);
+      // Continue with email sending even if database save fails
+    }
+
+    // Check if SendGrid is configured
+    if (!SENDGRID_API_KEY) {
+      console.error('SendGrid API key not configured - cannot send email');
+      return res.status(500).json({
+        success: false,
+        error: 'Email service not configured',
+        details: 'The server is not configured to send emails'
+      });
+    }
+
+    // Prepare email to admin
+    const adminMsg = {
       to: ADMIN_EMAIL,
       from: FROM_EMAIL,
-      subject: `New Contact Form Submission from ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\nCompany: ${company || 'N/A'}\nMessage: ${message}`,
+      subject: `New contact form submission from ${name}`,
+      text: `
+        Name: ${name}
+        Email: ${email}
+        Company: ${company || 'Not provided'}
+
+        Message:
+        ${message}
+      `,
       html: `
         <h2>New Contact Form Submission</h2>
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Company:</strong> ${company || 'N/A'}</p>
-        <p><strong>Message:</strong></p>
-        <p>${message.replace(/\n/g, '<br>')}</p>
-      `,
+        <p><strong>Company:</strong> ${company || 'Not provided'}</p>
+        <h3>Message:</h3>
+        <p>${message}</p>
+      `
     };
 
-    await sgMail.send(msg);
-    return { success: true };
-  } catch (error) {
-    console.error('Error sending admin notification email:', error);
-    return { success: false, error: error.message || 'Failed to send admin email' };
-  }
-}
+    // Send email notification to admin
+    try {
+      console.log('Attempting to send email to admin...');
+      await sgMail.send(adminMsg);
+      console.log('Email sent to admin successfully');
 
-async function sendContactConfirmationEmail({ name, email }) {
-  if (!SENDGRID_API_KEY) {
-    return { success: false, error: 'SendGrid API key not configured' };
-  }
+      // Return success response
+      return res.status(200).json({
+        success: true,
+        message: 'Contact form submission received and notification sent'
+      });
+    } catch (emailError) {
+      console.error('Error sending email:', emailError);
 
-  try {
-    const msg = {
-      to: email,
-      from: FROM_EMAIL,
-      subject: 'We received your message',
-      text: `Hi ${name},\n\nThank you for contacting us. We've received your message and will get back to you soon.\n\nBest regards,\nThe Team`,
-      html: `
-        <h2>Thank you for contacting us</h2>
-        <p>Hi ${name},</p>
-        <p>Thank you for contacting us. We've received your message and will get back to you soon.</p>
-        <p>Best regards,<br>The Team</p>
-      `,
-    };
+      // Check if error has response for more details
+      if (emailError.response) {
+        console.error('SendGrid API error details:', emailError.response.body);
+      }
 
-    await sgMail.send(msg);
-    return { success: true };
-  } catch (error) {
-    console.error('Error sending confirmation email:', error);
-    return { success: false, error: error.message || 'Failed to send confirmation email' };
-  }
-}
-
-// Contact form endpoint
-app.post('/api/contact', async (req, res) => {
-  const { name, email, company, message } = req.body;
-
-  // Validate input
-  if (!name || !email || !message) {
-    return res.status(400).json({
-      success: false,
-      message: 'Name, email, and message are required'
-    });
-  }
-
-  try {
-    // Initialize the database and save submission
-    await initDb();
-    await saveContactSubmission({ name, email, company, message });
-
-    // Send notification email to admin
-    console.log('Attempting to send admin notification email...');
-    const adminEmailResult = await sendAdminNotificationEmail({ name, email, company, message });
-
-    if (!adminEmailResult.success) {
-      console.error('Failed to send admin notification:', adminEmailResult.error);
       return res.status(500).json({
         success: false,
-        message: 'Failed to process your request due to email service issues',
-        error: adminEmailResult.error
+        error: 'Failed to send email notification',
+        details: emailError.message
       });
     }
-
-    // Send confirmation email to the user
-    console.log('Attempting to send user confirmation email...');
-    const userEmailResult = await sendContactConfirmationEmail({ name, email });
-
-    if (!userEmailResult.success) {
-      console.error('Failed to send user confirmation:', userEmailResult.error);
-      // Continue since the admin notification was sent successfully
-    }
-
-    // Return success
-    console.log('Contact form submission processed successfully');
-    return res.status(200).json({ 
-      success: true, 
-      message: 'Form submitted successfully' 
-    });
   } catch (error) {
-    console.error('Error processing contact form submission:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Server error processing your request',
-      error: error?.message || 'Unknown error'
+    console.error('Server error in contact endpoint:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Server error occurred',
+      details: error.message
     });
   }
 });
 
-// Start the API server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`API server running on http://0.0.0.0:${PORT}`);
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({ 
+    success: false, 
+    error: 'Internal server error',
+    details: err.message
+  });
 });
+
+// Start the server
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`API Server running on port ${PORT}`);
+});
+
+// Handle server shutdown
+process.on('SIGINT', () => {
+  console.log('Shutting down API server...');
+  server.close();
+  process.exit(0);
+});
+
+// Export the app for testing
+export default app;
