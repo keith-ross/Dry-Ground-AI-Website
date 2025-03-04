@@ -83,7 +83,7 @@ const ContactForm: React.FC = () => {
     setFormStatus({ loading: true, success: false, error: null });
 
     // Validate form
-    const errors = validateForm(formData);
+    const errors = validateForm();
 
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
@@ -99,6 +99,7 @@ const ContactForm: React.FC = () => {
 
       // Submit form
       const result = await sendContactEmail(formData);
+      console.log('API result:', result);
 
       if (result.success) {
         // Reset form
