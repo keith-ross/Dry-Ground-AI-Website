@@ -1,43 +1,43 @@
 
 const { spawn } = require('child_process');
+const path = require('path');
 
-// Function to spawn a process
-function spawnProcess(command, args, name) {
-  const proc = spawn(command, args, {
-    stdio: 'pipe',
-    shell: true
-  });
-  
-  console.log(`Starting ${name}...`);
-  
-  proc.stdout.on('data', (data) => {
-    console.log(`[${name}] ${data}`);
-  });
-  
-  proc.stderr.on('data', (data) => {
-    console.error(`[${name}] ${data}`);
-  });
-  
-  proc.on('close', (code) => {
-    console.log(`${name} process exited with code ${code}`);
-  });
-  
-  return proc;
-}
+// Start Express server
+const apiServer = spawn('node', ['--loader', 'ts-node/esm', 'server.ts'], {
+  stdio: 'inherit',
+  env: { ...process.env, PORT: '3001' }
+});
 
-// Start the Vite development server
-const frontendProcess = spawnProcess('npm', ['run', 'dev', '--', '--host', '0.0.0.0'], 'Frontend');
+// Start Vite dev server
+const devServer = spawn('npx', ['vite'], {
+  stdio: 'inherit'
+});
 
-// Install tsx if not already installed
-spawnProcess('npm', ['install', '-D', 'tsx', 'ts-node', '@types/express', '@types/pg'], 'Install Dependencies');
-
-// Start the Express API server with tsx
-const backendProcess = spawnProcess('npx', ['tsx', 'server.ts'], 'Backend');
-
-// Handle process termination
+// Handle cleanup on exit
 process.on('SIGINT', () => {
-  console.log('Shutting down development servers...');
-  frontendProcess.kill();
-  backendProcess.kill();
-  process.exit(0);
+  console.log('Shutting down servers...');
+  apiServer.kill();
+  devServer.kill();
+  process.exit();
+});
+
+console.log('🚀 Development servers started');
+console.log('📱 Frontend: http://localhost:3000');
+console.log('🔌 API: http://localhost:3001');
+
+// Forward exit codes
+apiServer.on('close', code => {
+  if (code !== 0 && code !== null) {
+    console.error(`API server exited with code ${code}`);
+    devServer.kill();
+    process.exit(code);
+  }
+});
+
+devServer.on('close', code => {
+  if (code !== 0 && code !== null) {
+    console.error(`Dev server exited with code ${code}`);
+    apiServer.kill();
+    process.exit(code);
+  }
 });
