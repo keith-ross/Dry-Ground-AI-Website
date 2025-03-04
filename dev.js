@@ -1,6 +1,5 @@
 
 const { spawn } = require('child_process');
-const path = require('path');
 
 // Function to spawn a process
 function spawnProcess(command, args, name) {
@@ -29,8 +28,11 @@ function spawnProcess(command, args, name) {
 // Start the Vite development server
 const frontendProcess = spawnProcess('npm', ['run', 'dev', '--', '--host', '0.0.0.0'], 'Frontend');
 
-// Start the Express API server
-const backendProcess = spawnProcess('node', ['server.ts'], 'Backend');
+// Install tsx if not already installed
+spawnProcess('npm', ['install', '-D', 'tsx', 'ts-node', '@types/express', '@types/pg'], 'Install Dependencies');
+
+// Start the Express API server with tsx
+const backendProcess = spawnProcess('npx', ['tsx', 'server.ts'], 'Backend');
 
 // Handle process termination
 process.on('SIGINT', () => {

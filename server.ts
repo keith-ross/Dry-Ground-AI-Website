@@ -4,6 +4,7 @@ import cors from 'cors';
 import { submitContactForm } from './src/api/contact';
 import path from 'path';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
 
 // Load environment variables
 dotenv.config();
@@ -20,6 +21,7 @@ app.post('/api/contact', submitContactForm);
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
   app.use(express.static(path.join(__dirname, 'dist')));
   
   app.get('*', (req, res) => {
