@@ -47,9 +47,9 @@ async function sendContactEmail(formData) {
       },
       body: JSON.stringify(formData),
     });
-
+    
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({}));
       return {
         success: false,
         error: errorData.error || 'Failed to send message'
@@ -69,8 +69,6 @@ async function sendContactEmail(formData) {
   }
 }
 
-// Export functions individually
-module.exports = {
-  testSendGridApiKey,
-  sendContactEmail
-};
+// Using ES modules style export for compatibility with TypeScript imports
+module.exports.testSendGridApiKey = testSendGridApiKey;
+module.exports.sendContactEmail = sendContactEmail;
