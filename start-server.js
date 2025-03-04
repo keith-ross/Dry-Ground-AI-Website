@@ -21,26 +21,27 @@ if (!fs.existsSync(serverPath)) {
 
 // Kill any existing process on port 3001
 try {
-  const killPortCmd = process.platform === 'win32' 
-    ? `FOR /F "tokens=5" %P IN ('netstat -ano ^| findstr :3001') DO taskkill /F /PID %P` 
-    : `lsof -ti :3001 | xargs -r kill -9`;
-    
-  const killProcess = spawn(process.platform === 'win32' ? 'cmd' : 'sh', 
-                           [process.platform === 'win32' ? '/c' : '-c', killPortCmd], 
-                           { stdio: 'ignore' });
+  console.log('Attempting to kill any existing process on port 3001...');
+  const killProcess = spawn('pkill', ['-f', 'node.*'+serverPath], { 
+    stdio: 'inherit'
+  });
   
-  killProcess.on('exit', () => {
-    // Start the server after attempting to kill existing processes
-    startServer();
+  killProcess.on('close', (code) => {
+    console.log(`Process termination command exited with code ${code}`);
+    // Wait a moment for the port to be released
+    setTimeout(() => {
+      startServer();
+    }, 2000);
   });
 } catch (error) {
   // If kill command fails, still try to start the server
-  console.warn('Warning: Failed to kill existing processes on port 3001:', error.message);
+  console.warn('Warning: Failed to kill existing processes:', error.message);
   startServer();
 }
 
 function startServer() {
   // Start the server with node
+  console.log('Starting the API server...');
   const server = spawn('node', [serverPath], {
     env: { ...process.env, PORT: '3001' },
     stdio: 'inherit'

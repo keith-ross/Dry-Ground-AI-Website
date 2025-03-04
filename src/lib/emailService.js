@@ -45,8 +45,16 @@ export async function sendContactEmail(formData) {
     // Log the data being sent
     console.log('Sending form data to API:', formData);
     
+    // Update the API URL to explicitly specify the full URL
+    // This is important for cross-origin requests
+    const apiUrl = window.location.hostname.includes('replit.dev') 
+      ? 'http://localhost:3001/api/contact'  // Development mode
+      : '/api/contact';                    // Production mode
+    
+    console.log('Using API URL:', apiUrl);
+    
     // Make the API request
-    const response = await fetch('/api/contact', {
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -54,14 +62,19 @@ export async function sendContactEmail(formData) {
       body: JSON.stringify(formData)
     });
     
-    // Log the raw response for debugging
+    // Log the response status and headers for debugging
+    console.log('API response status:', response.status);
+    console.log('API response headers:', Object.fromEntries([...response.headers]));
+    
+    // Get the raw response text
     const responseText = await response.text();
     console.log('Raw API response:', responseText);
     
     // Try to parse the response as JSON
     let data;
     try {
-      data = JSON.parse(responseText);
+      data = responseText ? JSON.parse(responseText) : null;
+      console.log('Parsed API response:', data);
     } catch (e) {
       console.error('Failed to parse API response as JSON:', e);
       return {
