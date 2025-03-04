@@ -1,29 +1,29 @@
+
 import sgMail from '@sendgrid/mail';
 
-// Get API key from environment variables
+// Initialize SendGrid with API key
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'info@drygroundai.com';
 
-// Initialize SendGrid client
 if (!SENDGRID_API_KEY) {
-  console.error('ERROR: SendGrid API key is missing. Make sure SENDGRID_API_KEY is set in Replit Secrets');
+  console.error('WARNING: SendGrid API key is missing in environment variables. Emails will not be sent.');
 } else {
   sgMail.setApiKey(SENDGRID_API_KEY);
-  console.log('SendGrid client initialized successfully');
+  console.log('SendGrid client initialized');
 }
 
-/**
- * Send confirmation email to the user who submitted the contact form
- */
 export async function sendContactConfirmationEmail({ name, email }) {
   try {
     if (!SENDGRID_API_KEY) {
-      console.error('SendGrid API key not found, skipping email send');
-      return { success: false, error: new Error('SendGrid API key not configured') };
+      return { 
+        success: false, 
+        message: 'SendGrid API key not configured',
+        error: new Error('SendGrid API key missing') 
+      };
     }
 
     console.log(`Sending confirmation email to ${email}`);
-
+    
     const msg = {
       to: email,
       from: ADMIN_EMAIL,
@@ -32,31 +32,42 @@ export async function sendContactConfirmationEmail({ name, email }) {
       html: `<p>Hello ${name},</p><p>Thank you for reaching out to us. We have received your message and will get back to you as soon as possible.</p><p>Best regards,<br>The Dry Ground AI Team</p>`,
     };
 
-    const response = await sgMail.send(msg);
-    console.log('Confirmation email sent successfully', response);
-    return { success: true, response };
+    const result = await sgMail.send(msg);
+    console.log('Confirmation email sent successfully');
+    return { success: true, result };
   } catch (error) {
     console.error('Error sending confirmation email:', error);
+    
+    // Extract useful error information
+    const errorInfo = {
+      message: error.message,
+      code: error.code,
+      response: error.response ? {
+        body: error.response.body,
+        statusCode: error.response.statusCode
+      } : null
+    };
+    
     return { 
-      success: false,
-      error,
-      message: error.message || 'Failed to send email'
+      success: false, 
+      message: error.message || 'Failed to send email',
+      error: errorInfo
     };
   }
 }
 
-/**
- * Send notification email to admin about a new contact form submission
- */
 export async function sendAdminNotificationEmail({ name, email, company, message }) {
   try {
     if (!SENDGRID_API_KEY) {
-      console.error('SendGrid API key not found, skipping admin notification');
-      return { success: false, error: new Error('SendGrid API key not configured') };
+      return { 
+        success: false, 
+        message: 'SendGrid API key not configured',
+        error: new Error('SendGrid API key missing')
+      };
     }
 
-    console.log(`Sending admin notification to ${ADMIN_EMAIL}`);
-
+    console.log(`Sending admin notification email to ${ADMIN_EMAIL}`);
+    
     const msg = {
       to: ADMIN_EMAIL,
       from: ADMIN_EMAIL,
@@ -65,15 +76,26 @@ export async function sendAdminNotificationEmail({ name, email, company, message
       html: `<h3>New contact form submission</h3><p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Company:</strong> ${company || 'N/A'}</p><p><strong>Message:</strong> ${message}</p>`,
     };
 
-    const response = await sgMail.send(msg);
-    console.log('Admin notification email sent successfully', response);
-    return { success: true, response };
+    const result = await sgMail.send(msg);
+    console.log('Admin notification email sent successfully');
+    return { success: true, result };
   } catch (error) {
     console.error('Error sending admin notification email:', error);
+    
+    // Extract useful error information
+    const errorInfo = {
+      message: error.message,
+      code: error.code,
+      response: error.response ? {
+        body: error.response.body,
+        statusCode: error.response.statusCode
+      } : null
+    };
+    
     return { 
-      success: false,
-      error,
-      message: error.message || 'Failed to send admin notification'
+      success: false, 
+      message: error.message || 'Failed to send admin notification',
+      error: errorInfo
     };
   }
 }

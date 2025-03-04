@@ -59,6 +59,13 @@ const ContactForm: React.FC<{ className?: string }> = ({ className = '' }) => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (isSubmitting) {
+      console.log('Form submission already in progress, ignoring duplicate submission');
+      return;
+    }
+    
     setIsSubmitting(true);
     setErrors({}); // Clear errors on submit
 
