@@ -1,4 +1,3 @@
-
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -46,7 +45,8 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ 
     status: 'ok', 
     env: process.env.NODE_ENV,
-    emailServiceConfigured: !!process.env.SENDGRID_API_KEY
+    emailServiceConfigured: !!process.env.SENDGRID_API_KEY,
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -67,10 +67,10 @@ app.get('/api/test-sendgrid', async (req, res) => {
 // Contact form submission endpoint
 app.post('/api/contact', async (req, res) => {
   console.log('Received contact form submission:', req.body);
-  
+
   // Input validation
   const { name, email, company, message } = req.body;
-  
+
   if (!name || !email || !message) {
     console.log('Missing required fields:', { name: !!name, email: !!email, message: !!message });
     return res.status(400).json({ 
@@ -78,7 +78,7 @@ app.post('/api/contact', async (req, res) => {
       message: 'Missing required fields' 
     });
   }
-  
+
   try {
     // Save to database first
     console.log('Saving contact submission to database...');

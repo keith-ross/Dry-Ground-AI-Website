@@ -89,30 +89,53 @@ const ContactForm: React.FC<ContactFormProps> = ({ className = '' }) => {
     console.log('Submitting form: ', formData);
     
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_BASE_URL}/api/contact`, {
+      // Use window.location.origin to ensure we're using the correct domain
+      const API_URL = '/api/contact';
+      
+      console.log('Sending form data to:', API_URL);
+      
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
+        credentials: 'same-origin'
       });
       
       console.log('Form submission response status:', response.status);
       
       let responseData;
       try {
+        // First try to get the response text
         const text = await response.text();
-        console.log('Raw response text:', text);
+        console.log('Raw response:', text);
         
-        if (text) {
-          responseData = JSON.parse(text);
+        // Only attempt to parse if there's actual content
+        if (text && text.trim()) {
+          try {
+            responseData = JSON.parse(text);
+          } catch (jsonError) {
+            console.error('JSON parse error:', jsonError);
+            // If we can't parse JSON, create a basic response object with the text
+            responseData = { 
+              success: false, 
+              message: `Server returned: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}` 
+            };
+          }
         } else {
-          throw new Error('Empty response');
+          // If no content, create a generic error message
+          responseData = { 
+            success: false, 
+            message: `Server returned status ${response.status} with no content` 
+          };
         }
-      } catch (parseError) {
-        console.error('Error parsing response: ', parseError);
-        throw new Error('Could not parse server response');
+      } catch (responseError) {
+        console.error('Error getting response text:', responseError);
+        responseData = { 
+          success: false, 
+          message: `Error reading server response: ${responseError.message}` 
+        };
       }
       
       if (response.ok && responseData.success) {
