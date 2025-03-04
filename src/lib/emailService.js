@@ -1,4 +1,3 @@
-
 /**
  * Email service for contact form
  */
@@ -10,50 +9,62 @@
  */
 export async function sendContactEmail(formData) {
   console.log('Submitting form data:', formData);
-  
+
   try {
-    // Get the base URL from the browser or use a default for API calls
+    // Use relative API URL for both local and production environments
     const apiUrl = '/api/contact';
     console.log('Sending form data to API:', formData);
-    console.log('Using API URL:', window.location.origin + apiUrl);
-    
+
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify(formData),
     });
-    
+
     console.log('API response status:', response.status);
-    console.log('API response headers:', response.headers);
-    
+
+    // Handle non-JSON responses gracefully
+    const responseText = await response.text();
+    console.log('Raw API response:', responseText);
+
     let data;
-    const rawResponse = await response.text();
-    console.log('Raw API response:', rawResponse);
-    
     try {
-      data = JSON.parse(rawResponse);
-      console.log('Parsed API response:', data);
+      // Only try to parse if there's actual content
+      if (responseText && responseText.trim()) {
+        data = JSON.parse(responseText);
+        console.log('Parsed API response:', data);
+      } else {
+        console.log('Empty API response');
+        return { 
+          success: false, 
+          error: 'Empty response from server' 
+        };
+      }
     } catch (e) {
       console.error('Failed to parse API response as JSON:', e);
       return { 
         success: false, 
-        error: 'Invalid response from server'
+        error: 'Invalid response from server' 
       };
     }
-    
+
     if (!response.ok) {
       return { 
         success: false, 
         error: data?.error || `Server returned error: ${response.status}` 
       };
     }
-    
-    return { success: true, data };
+
+    return { 
+      success: true, 
+      message: data?.message || 'Message sent successfully' 
+    };
   } catch (error) {
     console.error('Contact form API error:', error);
-    return { 
+    return {
       success: false, 
       error: error.message || 'Failed to fetch'
     };
