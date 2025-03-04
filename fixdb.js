@@ -2,49 +2,58 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-async function fixDatabase() {
-  console.log('===== Database Schema Fix =====');
-  
-  if (!process.env.DATABASE_URL) {
-    console.error('❌ DATABASE_URL is not set in environment variables!');
-    process.exit(1);
-  }
-  
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: false
-  });
+// Create database connection pool
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+async function runDiagnostics() {
+  console.log('Running database diagnostics...');
+  console.log(`DATABASE_URL length: ${process.env.DATABASE_URL ? process.env.DATABASE_URL.length : 0}`);
   
   try {
-    // Test connection
-    await pool.query('SELECT NOW()');
-    console.log('✅ Database connected successfully');
+    console.log('Testing connection...');
+    const result = await pool.query('SELECT NOW()');
+    console.log('Connection successful:', result.rows[0].now);
     
-    // Create contact_messages table if it doesn't exist
-    console.log('Creating/updating contact_messages table...');
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS contact_messages (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) NOT NULL,
-        phone VARCHAR(50),
-        message TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    console.log('Checking for contact_messages table...');
+    const tableCheck = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'contact_messages'
       );
     `);
     
-    console.log('✅ Table schema verified/updated');
+    if (tableCheck.rows[0].exists) {
+      console.log('Table exists, checking structure...');
+      const tableInfo = await pool.query(`
+        SELECT column_name, data_type 
+        FROM information_schema.columns 
+        WHERE table_name = 'contact_messages';
+      `);
+      console.log('Table structure:', tableInfo.rows);
+    } else {
+      console.log('Table does not exist, creating it...');
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS contact_messages (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          email VARCHAR(255) NOT NULL,
+          phone VARCHAR(50),
+          message TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+      console.log('Table created successfully.');
+    }
     
-    // Count records
-    const countResult = await pool.query('SELECT COUNT(*) FROM contact_messages');
-    console.log(`ℹ️ Current record count: ${countResult.rows[0].count}`);
-    
-    console.log('✅ Database schema fix completed successfully');
-  } catch (err) {
-    console.error('❌ Error fixing database schema:', err);
+    console.log('All diagnostics passed!');
+  } catch (error) {
+    console.error('Error during diagnostics:', error);
   } finally {
     await pool.end();
   }
 }
 
-fixDatabase().catch(console.error);
+runDiagnostics();

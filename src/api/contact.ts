@@ -1,6 +1,6 @@
 
 import { Request, Response } from 'express';
-import { query, default as pool } from '../lib/db';
+import { query } from '../lib/db';
 import { ContactFormData } from './types';
 
 export const submitContactForm = async (req: Request, res: Response) => {
@@ -43,6 +43,18 @@ export const submitContactForm = async (req: Request, res: Response) => {
 
     // Insert data into the database
     try {
+      // Check if table exists, create if it doesn't
+      await query(`
+        CREATE TABLE IF NOT EXISTS contact_messages (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          email VARCHAR(255) NOT NULL,
+          phone VARCHAR(50),
+          message TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `, []);
+      
       const queryText = `
         INSERT INTO contact_messages (name, email, phone, message)
         VALUES ($1, $2, $3, $4)
