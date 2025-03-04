@@ -158,9 +158,17 @@ app.use((err, req, res, next) => {
 });
 
 // Start the API server
+// Add environment variables loading for local development
+import dotenv from 'dotenv';
+dotenv.config();
+
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`API server running on port ${PORT}`);
+
+// For debugging
+console.log('Environment variables loaded:', {
+  port: PORT,
+  hasSendGridKey: !!process.env.SENDGRID_API_KEY,
+  adminEmail: process.env.ADMIN_EMAIL
 });
 
 export default app;
