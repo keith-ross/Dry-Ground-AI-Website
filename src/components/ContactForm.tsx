@@ -63,8 +63,9 @@ const ContactForm: React.FC<{ className?: string }> = ({ className = '' }) => {
     setErrors({}); // Clear errors on submit
 
     try {
-      // Use the full URL with port to ensure it connects to the API server
-      const response = await fetch('http://localhost:3001/api/contact', {
+      console.log('Submitting form data:', formData);
+
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,23 +73,31 @@ const ContactForm: React.FC<{ className?: string }> = ({ className = '' }) => {
         body: JSON.stringify(formData),
       });
 
+      console.log('Response status:', response.status);
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Server error response:', errorText);
-        throw new Error(`Server returned ${response.status}: ${errorText}`);
+        throw new Error(`Server returned ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (data.success) {
-        setFormData(initialFormData);
-        toast.success('Thank you! Your message has been sent.');
+        toast.success('Message sent successfully!');
+        setFormData({
+          name: '',
+          email: '',
+          company: '',
+          message: ''
+        });
       } else {
-        setErrors({ message: data.message || 'Failed to submit form. Please try again.' });
+        toast.error(data.message || 'Failed to send message');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error submitting form:', error);
-      setErrors({ message: 'An error occurred. Please try again later.' });
+      toast.error(`Error submitting form: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }

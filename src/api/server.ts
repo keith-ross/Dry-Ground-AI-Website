@@ -1,29 +1,30 @@
+
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { saveContactSubmission } from '../lib/db.js';
+import { saveContactSubmission, initDb } from '../lib/db.js';
 import { sendContactConfirmationEmail } from '../lib/emailService.js';
 
+// Create Express API server
 const app = express();
-const PORT = process.env.PORT || 3001;
+
+// Initialize database on startup
+(async () => {
+  try {
+    await initDb();
+    console.log('Database initialized on server startup');
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+  }
+})();
 
 // Middlewares
 app.use(cors({
-  origin: '*', // Allow requests from any origin for development
+  origin: '*',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(bodyParser.json());
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  res.status(500).json({ 
-    success: false, 
-    message: 'Internal server error',
-    error: err.message
-  });
-});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -33,11 +34,12 @@ app.get('/api/health', (req, res) => {
 // Contact form submission endpoint
 app.post('/api/contact', async (req, res) => {
   try {
+    console.log('Received contact form submission:', req.body);
+    
     const { name, email, company, message } = req.body;
 
-    console.log('Received contact form submission:', { name, email, company, message });
-
     if (!name || !email || !message) {
+      console.log('Missing required fields in submission');
       return res.status(400).json({ 
         success: false, 
         message: 'Name, email, and message are required' 
@@ -65,12 +67,24 @@ app.post('/api/contact', async (req, res) => {
     console.error('Error processing contact form submission:', error);
     return res.status(500).json({ 
       success: false, 
-      message: 'An error occurred processing your request' 
+      message: 'An error occurred processing your request',
+      error: error.message
     });
   }
 });
 
-// Start server
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({ 
+    success: false, 
+    message: 'Internal server error',
+    error: err.message
+  });
+});
+
+// Start the API server
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`API server running on port ${PORT}`);
 });

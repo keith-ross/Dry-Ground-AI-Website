@@ -11,6 +11,18 @@ if (!fs.existsSync(dataDir)) {
 }
 
 // Define the database path
+import path from 'path';
+import { open } from 'sqlite';
+import sqlite3 from 'sqlite3';
+import fs from 'fs';
+
+// Ensure data directory exists
+const dataDir = path.join(process.cwd(), 'data');
+if (!fs.existsSync(dataDir)) {
+  console.log('Creating data directory...');
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
 const dbPath = path.join(dataDir, 'contact_submissions.db');
 
 // Database connection
@@ -20,25 +32,32 @@ let db = null;
 export async function initDb() {
   if (db) return db;
   
-  db = await open({
-    filename: dbPath,
-    driver: sqlite3.Database
-  });
+  console.log('Initializing database at', dbPath);
   
-  // Create tables if they don't exist
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS contact_submissions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      company TEXT,
-      message TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-  
-  console.log('Database initialized successfully at', dbPath);
-  return db;
+  try {
+    db = await open({
+      filename: dbPath,
+      driver: sqlite3.Database
+    });
+    
+    // Create tables if they don't exist
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS contact_submissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        company TEXT,
+        message TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    console.log('Database initialized successfully at', dbPath);
+    return db;
+  } catch (error) {
+    console.error('Error initializing database:', error);
+    throw error;
+  }
 }
 
 // Save a contact form submission

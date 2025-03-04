@@ -6,7 +6,7 @@ import fs from 'fs';
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { saveContactSubmission } from './src/lib/db.js';
+import { saveContactSubmission, initDb } from './src/lib/db.js';
 import { sendContactConfirmationEmail } from './src/lib/emailService.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -17,6 +17,16 @@ if (!fs.existsSync(dataDir)) {
   console.log('Creating data directory...');
   fs.mkdirSync(dataDir, { recursive: true });
 }
+
+// Initialize database on startup
+(async () => {
+  try {
+    await initDb();
+    console.log('Database initialized on server startup');
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+  }
+})();
 
 // Create Express API server
 const app = express();
@@ -37,11 +47,12 @@ app.get('/api/health', (req, res) => {
 // Contact form submission endpoint
 app.post('/api/contact', async (req, res) => {
   try {
+    console.log('Received contact form submission:', req.body);
+
     const { name, email, company, message } = req.body;
 
-    console.log('Received contact form submission:', { name, email, company, message });
-
     if (!name || !email || !message) {
+      console.log('Missing required fields in submission');
       return res.status(400).json({ 
         success: false, 
         message: 'Name, email, and message are required' 
@@ -87,7 +98,7 @@ app.use((err, req, res, next) => {
 
 // Start the API server
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`API server running on port ${PORT}`);
 });
 
@@ -104,12 +115,14 @@ healthServer.listen(3002, '0.0.0.0', () => {
 // Handle process termination
 process.on('SIGINT', () => {
   console.log('Shutting down servers...');
+  server.close();
   healthServer.close();
   process.exit();
 });
 
 process.on('SIGTERM', () => {
   console.log('Shutting down servers...');
+  server.close();
   healthServer.close();
   process.exit();
 });
