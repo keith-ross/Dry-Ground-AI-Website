@@ -1,52 +1,40 @@
+
 const sgMail = require('@sendgrid/mail');
 
-// Initialize SendGrid with API key
+// Initialize SendGrid if API key is available
 if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-  console.log('SendGrid API key: Present and length:', process.env.SENDGRID_API_KEY.length);
-  console.log('Key prefix:', process.env.SENDGRID_API_KEY.substring(0, 7) + '....');
+  console.log('SendGrid API key configured');
 } else {
-  console.warn('SENDGRID_API_KEY not found in environment variables');
+  console.warn('SendGrid API key not found in environment variables');
 }
 
 /**
- * Basic function to test if SendGrid API key is valid
+ * Test the SendGrid API key
  */
 async function testSendGridApiKey() {
   if (!process.env.SENDGRID_API_KEY) {
-    return {
+    return { 
       success: false,
-      message: 'SendGrid API key not configured'
+      error: 'SendGrid API key not configured'
     };
   }
 
   try {
-    // Just check if the API key is present and has a valid format
-    if (process.env.SENDGRID_API_KEY.startsWith('SG.') && 
-        process.env.SENDGRID_API_KEY.length > 50) {
-      return {
-        success: true,
-        message: 'SendGrid API key found with valid format',
-        keyInfo: {
-          prefix: process.env.SENDGRID_API_KEY.substring(0, 7) + '....',
-          length: process.env.SENDGRID_API_KEY.length
-        }
-      };
-    } else {
-      return {
-        success: false,
-        message: 'SendGrid API key has invalid format',
-        keyInfo: {
-          prefix: process.env.SENDGRID_API_KEY.substring(0, 4) + '....',
-          length: process.env.SENDGRID_API_KEY.length
-        }
-      };
-    }
+    // Just log the key info without showing the actual key
+    const keyPrefix = process.env.SENDGRID_API_KEY.substring(0, 5);
+    console.log(`SendGrid API key: Present and length: ${process.env.SENDGRID_API_KEY.length}`);
+    console.log(`Key prefix: ${keyPrefix}....`);
+    
+    return { 
+      success: true,
+      message: 'SendGrid API key is present' 
+    };
   } catch (error) {
-    return {
+    console.error('Error testing SendGrid API key:', error);
+    return { 
       success: false,
-      message: 'Error testing SendGrid API key',
-      error: error.message
+      error: error.message || 'Unknown error testing SendGrid API key'
     };
   }
 }
@@ -56,7 +44,7 @@ async function testSendGridApiKey() {
  */
 async function sendContactFormEmail({ name, email, company, message }) {
   if (!process.env.SENDGRID_API_KEY) {
-    console.warn('SendGrid API key not found, cannot send email');
+    console.warn('SendGrid API key not configured, cannot send email');
     return { 
       success: false, 
       error: 'Email service not configured'
@@ -66,7 +54,7 @@ async function sendContactFormEmail({ name, email, company, message }) {
   try {
     // Simplified email content
     const emailContent = {
-      to: 'recipients@anchoredup.org', // This should be configurable
+      to: 'contact@anchoredup.org', // Change this to your actual email
       from: 'noreply@anchoredup.org', // This should be a verified sender
       subject: `New Contact Form Submission from ${name}`,
       text: `
@@ -83,14 +71,26 @@ ${company ? `<p><strong>Company:</strong> ${company}</p>` : ''}
       `
     };
 
+    console.log('Sending email via SendGrid:', JSON.stringify(emailContent, null, 2));
+    
     // Send email
     await sgMail.send(emailContent);
+    console.log('Email sent successfully');
 
     return { 
       success: true 
     };
   } catch (error) {
+    // Log detailed error information for debugging
     console.error('SendGrid error:', error);
+    
+    if (error.response) {
+      console.error('SendGrid API error response:', {
+        body: error.response.body,
+        statusCode: error.response.statusCode
+      });
+    }
+    
     return { 
       success: false, 
       error: error.message || 'Unknown error sending email'
