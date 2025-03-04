@@ -1,83 +1,81 @@
 
-// @ts-check
-import { spawn } from 'child_process';
-import dotenv from 'dotenv';
-import fs from 'fs';
+/**
+ * Development server script
+ * Runs both the API server and the frontend dev server
+ */
+require('dotenv').config();
+const { spawn } = require('child_process');
+const fs = require('fs');
 
-// Load environment variables
-dotenv.config();
-
-// Check if .env file exists, if not create a template
-if (!fs.existsSync('.env')) {
-  console.log('⚠️ .env file not found. Creating default template...');
-  fs.writeFileSync('.env', `# Database connection
-DATABASE_URL=postgres://username:password@hostname:port/database
-# Environment
-NODE_ENV=development
-# Server port
-PORT=3001
-`);
-  console.log('✅ Created .env file template. Please update with your actual values.');
-  process.exit(1);
-}
-
-// Verify database connection string
+// Verify environment variables
 if (!process.env.DATABASE_URL) {
-  console.error('❌ ERROR: DATABASE_URL is not set in .env file');
-  console.error('Please set up your database connection string in the .env file');
-  process.exit(1);
+  console.error('ERROR: DATABASE_URL environment variable is not set!');
+  console.error('Please make sure your .env file is properly configured.');
+  console.error('Creating a default .env file if it doesn\'t exist...');
+  
+  // Check if .env exists, if not create it with defaults
+  if (!fs.existsSync('.env')) {
+    fs.writeFileSync('.env', 
+      '# Database connection\n' +
+      'DATABASE_URL=postgres://username:password@hostname:port/database\n' +
+      '# Environment\n' +
+      'NODE_ENV=development\n' +
+      '# Server port\n' +
+      'PORT=3001\n'
+    );
+    console.error('Created default .env file. Please update it with your actual database credentials.');
+  }
 }
 
-console.log('🚀 Starting development servers...');
-
-// Run database check first
-const dbCheck = spawn('node', ['fixdb.js']);
-
-dbCheck.stdout.pipe(process.stdout);
-dbCheck.stderr.pipe(process.stderr);
-
-dbCheck.on('exit', (code) => {
-  if (code !== 0) {
-    console.error('❌ Database check failed. Please fix the issues before starting the servers.');
-    process.exit(code);
-  }
-
-  console.log('✅ Database check completed successfully. Starting servers...');
-
-  // Frontend server - Vite
-  const frontend = spawn('npx', ['vite', '--host']);
+// Function to start a process with proper logging and error handling
+function startProcess(command, args, name) {
+  console.log(`Starting ${name}...`);
   
-  frontend.stdout.pipe(process.stdout);
-  frontend.stderr.pipe(process.stderr);
-  
-  // Backend server - Node.js with ts-node
-  const backend = spawn('npx', ['tsx', 'server.ts']);
-  
-  backend.stdout.pipe(process.stdout);
-  backend.stderr.pipe(process.stderr);
-  
-  console.log('🚀 Development servers started');
-  console.log('📱 Frontend: http://localhost:3000');
-  console.log('🔌 API: http://localhost:3001');
-  
-  // Handle process termination
-  process.on('SIGINT', () => {
-    console.log('👋 Shutting down development servers...');
-    frontend.kill();
-    backend.kill();
-    process.exit(0);
+  const process = spawn(command, args, { 
+    stdio: 'pipe',
+    shell: true
   });
   
-  // Handle server process exits
-  frontend.on('exit', (code) => {
-    if (code !== 0 && code !== null) {
-      console.error(`❌ Frontend server exited with code ${code}`);
+  process.stdout.on('data', (data) => {
+    console.log(`[${name}] ${data.toString().trim()}`);
+  });
+  
+  process.stderr.on('data', (data) => {
+    console.error(`[${name}] ${data.toString().trim()}`);
+  });
+  
+  process.on('error', (error) => {
+    console.error(`[${name}] Failed to start: ${error.message}`);
+  });
+  
+  process.on('close', (code) => {
+    if (code !== 0) {
+      console.error(`[${name}] exited with code ${code}`);
+    } else {
+      console.log(`[${name}] closed`);
     }
   });
   
-  backend.on('exit', (code) => {
-    if (code !== 0 && code !== null) {
-      console.error(`❌ API server exited with code ${code}`);
-    }
-  });
-});
+  return process;
+}
+
+// Start backend API server
+const apiServer = startProcess('node', ['--loader=ts-node/esm', 'server.ts'], 'API server');
+
+// Start frontend dev server
+const frontendServer = startProcess('npm', ['run', 'dev'], 'Frontend');
+
+// Handle process termination
+function cleanup() {
+  console.log('Shutting down all processes...');
+  if (apiServer) apiServer.kill();
+  if (frontendServer) frontendServer.kill();
+  process.exit(0);
+}
+
+// Listen for termination signals
+process.on('SIGINT', cleanup);
+process.on('SIGTERM', cleanup);
+process.on('exit', cleanup);
+
+console.log('Dev environment started! Press Ctrl+C to stop all processes.');

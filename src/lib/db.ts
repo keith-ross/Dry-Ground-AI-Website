@@ -1,64 +1,66 @@
 import { Pool } from 'pg';
-import dotenv from 'dotenv';
 
-// Load environment variables if not already loaded
-dotenv.config();
+// Create a singleton database connection pool
+let _pool: Pool | null = null;
 
-if (!process.env.DATABASE_URL) {
-  console.error('ERROR: DATABASE_URL environment variable is missing!');
-  console.error('Make sure your .env file is properly configured.');
-  process.exit(1); // Exit if DATABASE_URL is not set
-}
+// Get the database connection pool, creating it if necessary
+export const pool = (() => {
+  if (!_pool) {
+    if (!process.env.DATABASE_URL) {
+      console.error('DATABASE_URL environment variable is not set');
+      throw new Error('Database configuration missing: DATABASE_URL environment variable is not set');
+    }
 
-// Initialize the pool with error handling
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  // Additional pool configuration if needed
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-});
+    console.log('Creating database connection pool');
 
-// Add event listeners for connection issues
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-});
+    try {
+      _pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        max: 20, // maximum number of clients
+        idleTimeoutMillis: 30000, // how long a client is allowed to remain idle
+        connectionTimeoutMillis: 5000, // how long to wait for a connection
+      });
 
-// Simple function to test database connection
-export async function testDatabaseConnection() {
-  const client = await pool.connect();
+      // Add error handler to the pool
+      _pool.on('error', (err) => {
+        console.error('Unexpected error on idle client', err);
+      });
+
+      // Test the connection
+      testDatabaseConnection(_pool).catch(err => {
+        console.error('Failed to connect to database:', err);
+      });
+
+    } catch (error) {
+      console.error('Error creating database pool:', error);
+      throw error;
+    }
+  }
+
+  return _pool;
+})();
+
+// Test the database connection
+export async function testDatabaseConnection(testPool = pool) {
   try {
-    const result = await client.query('SELECT NOW() as now');
-    return { 
-      connected: true, 
-      time: result.rows[0].now,
-      message: 'Successfully connected to database'
-    };
+    const client = await testPool.connect();
+    const result = await client.query('SELECT NOW()');
+    console.log('Database connection test successful:', result.rows[0].now);
+    client.release();
+    return true;
   } catch (error) {
     console.error('Database connection test failed:', error);
-    return { 
-      connected: false, 
-      error: error instanceof Error ? error.message : 'Unknown error',
-      message: 'Failed to connect to database'
-    };
-  } finally {
-    client.release();
+    throw error;
   }
 }
 
-// Test the database connection on startup
-pool.query('SELECT NOW()', (err, res) => {
-  if (err) {
-    console.error('Database connection error:', err);
-    process.exit(1); // Exit if connection fails
-  } else {
-    console.log('Database connected successfully at:', res.rows[0].now);
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  if (_pool) {
+    console.log('Closing database pool');
+    await _pool.end();
   }
-});
-
-// Handle connection errors
-pool.on('error', (err) => {
-  console.error('Unexpected database error:', err);
+  process.exit(0);
 });
 
 // Helper function for making queries
@@ -77,4 +79,4 @@ export async function query(text: string, params: any[] = []) {
   }
 }
 
-export { pool, testDatabaseConnection };
+export {  testDatabaseConnection };
