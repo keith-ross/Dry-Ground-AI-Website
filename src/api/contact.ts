@@ -1,6 +1,6 @@
 
 import { Request, Response } from 'express';
-import { query } from '../lib/db';
+import { pool } from '../lib/db';
 
 /**
  * Handles form submission from the contact form
@@ -33,8 +33,8 @@ export async function submitContactForm(req: Request, res: Response) {
     
     console.log('Inserting contact message into database...');
     
-    // Insert the message into the database
-    const result = await query(
+    // Insert the message into the database using pool directly
+    const result = await pool.query(
       'INSERT INTO contact_messages (name, email, phone, message, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id',
       [name, email, phone || null, message]
     );
@@ -54,11 +54,12 @@ export async function submitContactForm(req: Request, res: Response) {
   } catch (error) {
     console.error('Error submitting contact form:', error);
     
-    // Return error response
+    // Return detailed error response
     return res.status(500).json({
       success: false,
       error: 'Server error',
-      message: 'There was an error processing your request. Please try again later.'
+      message: 'There was an error processing your request. Please try again later.',
+      details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 }

@@ -5,53 +5,45 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
-// Validate database URL
-if (!process.env.DATABASE_URL) {
+// Get database connection string
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
   console.error('ERROR: DATABASE_URL environment variable is not set!');
-  throw new Error('DATABASE_URL environment variable is required');
+  console.error('Please make sure your .env file is properly configured.');
+  process.exit(1);
 }
 
-// Create a new pool using the connection string
+// Create a connection pool
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionString: databaseUrl,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  max: 20,              // Maximum number of clients in the pool
+  idleTimeoutMillis: 30000, // How long a client is kept idle before being closed
+  connectionTimeoutMillis: 5000, // How long to wait for a connection
 });
 
-// Test the connection on startup
-pool.connect()
-  .then(client => {
-    console.log('✅ Database connected successfully');
-    client.release();
-  })
-  .catch(err => {
-    console.error('❌ Database connection error:', err.message);
-  });
+// Verify pool works on application startup
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('Database connection failed:', err);
+  } else {
+    console.log('Database connected successfully at:', res.rows[0].now);
+  }
+});
 
-// Helper function for running queries
-export async function query(text: string, params?: any[]) {
-  const start = Date.now();
+// Helper function for making queries
+export async function query(text: string, params: any[] = []) {
   try {
-    const res = await pool.query(text, params);
-    const duration = Date.now() - start;
-    
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Executed query', { text, duration, rows: res.rowCount });
+    const client = await pool.connect();
+    try {
+      const result = await client.query(text, params);
+      return result;
+    } finally {
+      client.release();
     }
-    
-    return res;
-  } catch (err) {
-    console.error('Query error:', err.message);
-    console.error('Query:', text);
-    console.error('Params:', params);
-    throw err;
+  } catch (error) {
+    console.error('Database query error:', error);
+    throw error;
   }
 }
-
-// Graceful shutdown
-process.on('SIGINT', () => {
-  console.log('Closing database pool...');
-  pool.end();
-  process.exit(0);
-});

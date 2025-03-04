@@ -27,11 +27,15 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
     e.preventDefault();
 
     setIsSubmitting(true);
-
+    
     try {
       console.log('Sending form data: ', formData);
 
-      const response = await fetch('/api/contact', {
+      // Make sure we're sending to the correct endpoint with the right base URL
+      const apiUrl = window.location.origin + '/api/contact';
+      console.log('Submitting to:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,18 +46,24 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
       console.log('Response status:', response.status);
 
       // Get response as text first
-      const responseText = await response.text();
-      console.log('Response text:', responseText);
+      let responseText = '';
+      try {
+        responseText = await response.text();
+        console.log('Response text:', responseText);
+      } catch (textError) {
+        console.error('Error getting response text:', textError);
+      }
 
       // Try to parse as JSON if there's content
-      let responseData = {};
+      let responseData: any = {};
 
-      if (responseText) {
+      if (responseText && responseText.trim()) {
         try {
           responseData = JSON.parse(responseText);
           console.log('Response data:', responseData);
         } catch (parseError) {
           console.error('Failed to parse response as JSON:', parseError);
+          // Continue execution even if parsing fails
         }
       }
 
@@ -70,7 +80,8 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
         });
       } else {
         // Handle error response
-        const errorMessage = responseData.message || `Server error: ${response.status} - ${response.statusText}`;
+        const errorMessage = responseData.message || responseData.error || 
+          `Server error: ${response.status} - ${response.statusText || 'Unknown error'}`;
         toast.error(errorMessage);
         throw new Error(errorMessage);
       }
