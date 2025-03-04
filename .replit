@@ -16,7 +16,7 @@ author = 37597866
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "node dev.js"
 
 [[ports]]
 localPort = 3000
