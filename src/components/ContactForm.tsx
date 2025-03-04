@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { sendContactEmail } from '../lib/emailService';
@@ -17,50 +16,56 @@ const ContactForm: React.FC = () => {
     company: '',
     message: ''
   });
-  
-  const [formStatus, setFormStatus] = useState<{
-    isSubmitting: boolean;
-    isSuccess: boolean | null;
-    message: string;
-  }>({
-    isSubmitting: false,
-    isSuccess: null,
+
+  const initialFormState = {
+    name: '',
+    email: '',
+    company: '',
     message: ''
+  };
+
+  const [formStatus, setFormStatus] = useState<{
+    loading: boolean;
+    success: boolean | null;
+    error: string | null;
+  }>({
+    loading: false,
+    success: null,
+    error: null
   });
 
   const [validationErrors, setValidationErrors] = useState<{
     [key: string]: string;
   }>({});
 
-  const validateForm = (): boolean => {
+  const validateForm = (): { [key: string]: string } => {
     const errors: { [key: string]: string } = {};
-    
+
     if (!formData.name.trim()) {
       errors.name = 'Name is required';
     }
-    
+
     if (!formData.email.trim()) {
       errors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       errors.email = 'Email address is invalid';
     }
-    
+
     if (!formData.message.trim()) {
       errors.message = 'Message is required';
     }
-    
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
+
+    return errors;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-    
+
     // Clear validation error for this field when user starts typing
     if (validationErrors[name]) {
       setValidationErrors(prev => {
@@ -73,53 +78,44 @@ const ContactForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      setFormStatus({
-        isSubmitting: false,
-        isSuccess: false,
-        message: 'Please fill out all required fields correctly.'
-      });
+
+    // Reset status
+    setFormStatus({ loading: true, success: false, error: null });
+
+    // Validate form
+    const errors = validateForm(formData);
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      setFormStatus({ loading: false, success: false, error: 'Please fix the form errors' });
       return;
     }
-    
-    setFormStatus({
-      isSubmitting: true,
-      isSuccess: null,
-      message: 'Sending your message...'
-    });
-    
+
+    // Clear validation errors
+    setValidationErrors({});
+
     try {
+      console.log('Submitting form data:', formData);
+
+      // Submit form
       const result = await sendContactEmail(formData);
-      
+
       if (result.success) {
-        setFormStatus({
-          isSubmitting: false,
-          isSuccess: true,
-          message: 'Your message has been sent successfully!'
-        });
-        
-        // Reset form data on success
-        setFormData({
-          name: '',
-          email: '',
-          company: '',
-          message: ''
-        });
+        // Reset form
+        setFormData(initialFormState);
+        setFormStatus({ loading: false, success: true, error: null });
+        console.log('Form submitted successfully:', result);
       } else {
+        // Handle error
         console.error('Form submission error:', result.error);
-        setFormStatus({
-          isSubmitting: false,
-          isSuccess: false,
-          message: result.error || 'Failed to send your message. Please try again later.'
-        });
+        setFormStatus({ loading: false, success: false, error: result.error || 'Failed to send message' });
       }
     } catch (error) {
       console.error('Form submission exception:', error);
-      setFormStatus({
-        isSubmitting: false,
-        isSuccess: false,
-        message: 'An unexpected error occurred. Please try again later.'
+      setFormStatus({ 
+        loading: false, 
+        success: false, 
+        error: error instanceof Error ? error.message : 'An unexpected error occurred' 
       });
     }
   };
@@ -128,19 +124,22 @@ const ContactForm: React.FC = () => {
     <div className="w-full max-w-lg mx-auto">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Form status message */}
-        {formStatus.message && (
+        {formStatus.error && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`p-4 rounded-md ${
-              formStatus.isSuccess === true
-                ? 'bg-green-100 text-green-800'
-                : formStatus.isSuccess === false
-                ? 'bg-red-100 text-red-800'
-                : 'bg-blue-100 text-blue-800'
-            }`}
+            className={`p-4 rounded-md bg-red-100 text-red-800`}
           >
-            {formStatus.message}
+            {formStatus.error}
+          </motion.div>
+        )}
+        {formStatus.success && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`p-4 rounded-md bg-green-100 text-green-800`}
+          >
+            Your message has been sent successfully!
           </motion.div>
         )}
 
@@ -226,14 +225,14 @@ const ContactForm: React.FC = () => {
         <div>
           <motion.button
             type="submit"
-            disabled={formStatus.isSubmitting}
+            disabled={formStatus.loading}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary transition duration-150 ${
-              formStatus.isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+              formStatus.loading ? 'opacity-70 cursor-not-allowed' : ''
             }`}
           >
-            {formStatus.isSubmitting ? (
+            {formStatus.loading ? (
               <span className="flex items-center">
                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

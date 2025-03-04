@@ -1,112 +1,113 @@
 import express from 'express';
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const sgMail = require('@sendgrid/mail');
-const dotenv = require('dotenv');
-const path = require('path');
-const fs = require('fs');
+import cors from 'cors';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import sgMail from '@sendgrid/mail';
 
-// Initialize Express app
+// Get the directory name
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Load environment variables
-const envPath = path.join(__dirname, '../../.env');
-if (fs.existsSync(envPath)) {
-  console.log(`Loading environment variables from ${envPath}`);
-  dotenv.config({ path: envPath });
-} else {
-  console.log('No .env file found, using environment variables from Replit Secrets');
-  dotenv.config();
-}
-
-// Set up SendGrid API key
-const apiKey = process.env.SENDGRID_API_KEY;
-if (apiKey) {
-  sgMail.setApiKey(apiKey);
-  console.log('SendGrid API key configured successfully');
-} else {
-  console.error('SENDGRID_API_KEY is not set in environment variables');
-}
-
-// Middleware
+// Configure CORS
 app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
 
-// Request logging middleware
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  next();
-});
+// Initialize SendGrid
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    sendgrid: !!apiKey
-  });
+  res.json({ status: 'ok', message: 'API server is running' });
 });
 
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
+  console.log('Received contact form submission:', req.body);
+
+  const { name, email, company, message } = req.body;
+
+  // Validate required fields
+  if (!name || !email || !message) {
+    return res.status(400).json({
+      success: false,
+      error: 'Please provide name, email, and message'
+    });
+  }
+
   try {
-    const { name, email, message } = req.body;
-
-    // Validate input
-    if (!name || !email || !message) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Please provide name, email, and message' 
-      });
-    }
-
     // Check if SendGrid API key is configured
     if (!process.env.SENDGRID_API_KEY) {
-      return res.status(500).json({ 
-        success: false, 
-        error: 'Email service is not configured' 
+      console.error('SendGrid API key not configured');
+      return res.status(500).json({
+        success: false,
+        error: 'Email service not configured'
       });
     }
 
-    const msg = {
-      to: process.env.CONTACT_EMAIL || 'contact@example.com',
+    // Prepare admin notification email
+    const adminMsg = {
+      to: process.env.ADMIN_EMAIL || 'admin@example.com',
       from: process.env.FROM_EMAIL || 'noreply@example.com',
-      subject: `Website Contact: ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\n\nMessage: ${message}`,
-      html: `
-        <strong>Name:</strong> ${name}<br/>
-        <strong>Email:</strong> ${email}<br/>
-        <br/>
-        <strong>Message:</strong><br/>
-        ${message.replace(/\n/g, '<br/>')}
+      subject: 'New Contact Form Submission',
+      text: `
+        Name: ${name}
+        Email: ${email}
+        Company: ${company || 'N/A'}
+        Message: ${message}
       `,
+      html: `
+        <h2>New Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Company:</strong> ${company || 'N/A'}</p>
+        <p><strong>Message:</strong> ${message}</p>
+      `
     };
 
-    await sgMail.send(msg);
+    // Send email
+    console.log('Sending admin notification email...');
+    await sgMail.send(adminMsg);
 
-    return res.status(200).json({ 
-      success: true, 
-      message: 'Your message has been sent successfully!' 
+    // Optional: Send confirmation email to the user
+    const userMsg = {
+      to: email,
+      from: process.env.FROM_EMAIL || 'noreply@example.com',
+      subject: 'Thank you for contacting us',
+      text: `
+        Hi ${name},
+
+        Thank you for your message. We've received your inquiry and will get back to you as soon as possible.
+
+        Regards,
+        Dry Ground AI Team
+      `,
+      html: `
+        <h2>Thank you for your message</h2>
+        <p>Hi ${name},</p>
+        <p>Thank you for your message. We've received your inquiry and will get back to you as soon as possible.</p>
+        <p>Regards,<br>Dry Ground AI Team</p>
+      `
+    };
+
+    // Send confirmation email
+    console.log('Sending user confirmation email...');
+    await sgMail.send(userMsg);
+
+    // Return success response
+    return res.status(200).json({
+      success: true,
+      message: 'Form submitted successfully'
     });
-
   } catch (error) {
     console.error('Error sending email:', error);
-
-    // Handle SendGrid specific errors
-    if (error.response) {
-      console.error('SendGrid API error details:', error.response.body);
-      return res.status(500).json({ 
-        success: false, 
-        error: 'Failed to send email',
-        details: error.response.body
-      });
-    }
-
-    return res.status(500).json({ 
-      success: false, 
-      error: error.message || 'An unknown error occurred' 
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to send message'
     });
   }
 });
@@ -119,19 +120,13 @@ app.use((req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Server error:', err);
-  res.status(500).json({ 
-    success: false, 
-    error: 'Internal server error' 
+  res.status(500).json({
+    success: false,
+    error: 'Internal server error'
   });
 });
 
-// Start server if directly executed
-if (require.main === module) {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`API server running on port ${PORT}`);
-    console.log(`Health check available at: http://0.0.0.0:${PORT}/api/health`);
-  });
-}
-
-// Export for imports in other files
-module.exports = app;
+// Start the server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`API server running on http://0.0.0.0:${PORT}`);
+});
