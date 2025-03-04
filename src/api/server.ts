@@ -33,27 +33,39 @@ app.post('/api/contact', async (req, res) => {
       });
     }
     
-    // Save to database
-    const saveResult = await saveContactSubmission({ name, email, company, message });
-    console.log('Saved to database with ID:', saveResult.id);
+    try {
+      // Save to database
+      const saveResult = await saveContactSubmission({ name, email, company, message });
+      console.log('Saved to database with ID:', saveResult.id);
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      // Continue processing even if database save fails
+    }
     
-    // Send confirmation email
-    const emailResult = await sendContactConfirmationEmail({ name, email, company, message });
-    console.log('Email sending result:', emailResult);
+    try {
+      // Send confirmation email
+      const emailResult = await sendContactConfirmationEmail({ name, email });
+      console.log('User email sending result:', emailResult);
+      
+      // Send admin notification
+      const adminEmailResult = await sendAdminNotificationEmail({ name, email, company, message });
+      console.log('Admin email sending result:', adminEmailResult);
+    } catch (emailError) {
+      console.error('Email error:', emailError);
+      // Continue processing even if email sending fails
+    }
     
-    // Return success even if email fails, as long as we saved to the database
+    // Return success response
     return res.status(200).json({ 
       success: true, 
-      message: 'Contact form submission received',
-      emailSent: emailResult.success
+      message: 'Contact form submission received'
     });
     
   } catch (error) {
     console.error('Error processing contact form:', error);
     return res.status(500).json({ 
       success: false, 
-      message: 'An error occurred while processing your submission',
-      error: error.message
+      message: 'An error occurred while processing your submission'
     });
   }
 });
