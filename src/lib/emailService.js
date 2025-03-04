@@ -4,6 +4,63 @@
  */
 
 /**
+ * Send contact form data to the API
+ * @param {Object} formData - Form data containing name, email, company, and message
+ * @returns {Promise<Object>} Result of sending the email
+ */
+export async function sendContactEmail(formData) {
+  console.log('Submitting form data:', formData);
+  
+  try {
+    // Get the base URL from the browser or use a default for API calls
+    const apiUrl = '/api/contact';
+    console.log('Sending form data to API:', formData);
+    console.log('Using API URL:', window.location.origin + apiUrl);
+    
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+    
+    console.log('API response status:', response.status);
+    console.log('API response headers:', response.headers);
+    
+    let data;
+    const rawResponse = await response.text();
+    console.log('Raw API response:', rawResponse);
+    
+    try {
+      data = JSON.parse(rawResponse);
+      console.log('Parsed API response:', data);
+    } catch (e) {
+      console.error('Failed to parse API response as JSON:', e);
+      return { 
+        success: false, 
+        error: 'Invalid response from server'
+      };
+    }
+    
+    if (!response.ok) {
+      return { 
+        success: false, 
+        error: data?.error || `Server returned error: ${response.status}` 
+      };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    console.error('Contact form API error:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Failed to fetch'
+    };
+  }
+}
+
+/**
  * Tests if the SendGrid API is configured and working
  * @returns {Promise<Object>} Result of the test
  */

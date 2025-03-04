@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import { sendAdminNotificationEmail, sendContactConfirmationEmail } from '../lib/emailService.js';
-import { initDb, saveContactSubmission } from '../lib/db.js';
 import bodyParser from 'body-parser';
 import sgMail from '@sendgrid/mail';
 import fs from 'fs';
@@ -34,7 +33,7 @@ if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-// Simple database using JSON file (retained from original code)
+// Simple database using JSON file
 const dbPath = path.join(dataDir, 'contacts.json');
 const getContacts = () => {
   if (!fs.existsSync(dbPath)) {
@@ -48,105 +47,71 @@ const getContacts = () => {
   }
 };
 
-const saveContact = (contact) => {
-  const contacts = getContacts();
-  const newContact = {
-    ...contact,
-    id: Date.now(),
-    createdAt: new Date().toISOString()
-  };
-  contacts.push(newContact);
-  fs.writeFileSync(dbPath, JSON.stringify(contacts, null, 2));
-  return newContact;
+// Save contact submission to database
+const saveContactSubmission = (contact) => {
+  try {
+    const contacts = getContacts();
+    contact.id = Date.now().toString();
+    contact.createdAt = new Date().toISOString();
+    contacts.push(contact);
+    fs.writeFileSync(dbPath, JSON.stringify(contacts, null, 2));
+    return contact;
+  } catch (error) {
+    console.error('Error saving contact:', error);
+    throw error;
+  }
 };
-
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  const sendgridApiKey = process.env.SENDGRID_API_KEY;
-
-  console.log('Health check requested');
-
-  return res.status(200).json({
+  res.json({
     status: 'ok',
-    sendgridConfigured: !!sendgridApiKey,
-    timestamp: new Date().toISOString()
+    sendgridConfigured: !!process.env.SENDGRID_API_KEY
   });
 });
 
-// Contact form submission endpoint
+// Contact form endpoint
 app.post('/api/contact', async (req, res) => {
-  console.log('Contact form submission received:', req.body);
-
   try {
     const { name, email, company, message } = req.body;
 
     // Validate required fields
     if (!name || !email || !message) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required fields'
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Name, email and message are required' 
       });
     }
 
-    // Initialize database
-    try {
-      await initDb();
-    } catch (dbError) {
-      console.error('Database initialization error:', dbError);
-      // Continue without DB if there's an error
+    // Save to database
+    const savedContact = saveContactSubmission({ name, email, company, message });
+
+    // Send emails if SendGrid is configured
+    let emailResults = { adminEmail: null, confirmationEmail: null };
+
+    if (process.env.SENDGRID_API_KEY) {
+      // Send notification to admin
+      emailResults.adminEmail = await sendAdminNotificationEmail({ 
+        name, email, company, message 
+      });
+
+      // Send confirmation to user
+      emailResults.confirmationEmail = await sendContactConfirmationEmail({ 
+        name, email 
+      });
     }
 
-    // Save to database if available
-    let savedContact = null;
-    try {
-      savedContact = await saveContactSubmission({ name, email, company, message });
-      console.log('Saved contact submission to database:', savedContact);
-    } catch (dbError) {
-      console.error('Failed to save to database:', dbError);
-      // Continue without saving to DB
-    }
-
-    // Send notification email to admin
-    try {
-      console.log('Attempting to send admin notification email...');
-      const adminEmailResult = await sendAdminNotificationEmail({ name, email, company, message });
-
-      if (!adminEmailResult.success) {
-        console.error('Failed to send admin notification:', adminEmailResult.error);
-      } else {
-        console.log('Admin notification email sent successfully');
-      }
-    } catch (emailError) {
-      console.error('Error sending admin email:', emailError);
-    }
-
-    // Send confirmation email to user
-    try {
-      console.log('Attempting to send user confirmation email...');
-      const userEmailResult = await sendContactConfirmationEmail({ name, email });
-
-      if (!userEmailResult.success) {
-        console.error('Failed to send user confirmation:', userEmailResult.error);
-      } else {
-        console.log('User confirmation email sent successfully');
-      }
-    } catch (emailError) {
-      console.error('Error sending user email:', emailError);
-    }
-
-    // Return success response
-    return res.status(200).json({
+    res.json({
       success: true,
-      message: 'Contact form submitted successfully',
-      id: savedContact?.id
+      contact: savedContact,
+      emailsSent: !!process.env.SENDGRID_API_KEY,
+      emailResults
     });
-
   } catch (error) {
-    console.error('Error processing contact form:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Server error processing your request'
+    console.error('Error processing contact form submission:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message || 'An error occurred while processing your request' 
     });
   }
 });

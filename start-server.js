@@ -1,71 +1,69 @@
 
-/**
- * Script to start the API server
- */
 import { spawn } from 'child_process';
-import path from 'path';
+import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
+import { createRequire } from 'module';
+import http from 'http';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const serverPath = path.join(__dirname, 'src', 'api', 'server.js');
+const require = createRequire(import.meta.url);
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const PORT = process.env.PORT || 3001;
+const SERVER_PATH = `${__dirname}/src/api/server.js`;
 
 console.log('Starting API server...');
-console.log('Server path:', serverPath);
+console.log('Server path:', SERVER_PATH);
 
-// Check if server file exists
-if (!fs.existsSync(serverPath)) {
-  console.error(`ERROR: Server file not found at ${serverPath}`);
-  process.exit(1);
-}
-
-// Kill any existing process on port 3001
+// Check if the port is already in use
+console.log(`Attempting to kill any existing process on port ${PORT}...`);
 try {
-  console.log('Attempting to kill any existing process on port 3001...');
-  const killProcess = spawn('pkill', ['-f', 'node.*'+serverPath], { 
-    stdio: 'inherit'
+  // Try to check if port is in use
+  const options = {
+    host: 'localhost',
+    port: PORT,
+    path: '/api/health',
+    timeout: 1000
+  };
+
+  const req = http.get(options, res => {
+    if (res.statusCode === 200) {
+      console.log(`Port ${PORT} is already in use. Server is running.`);
+    }
+    process.exit(0);
   });
-  
-  killProcess.on('close', (code) => {
-    console.log(`Process termination command exited with code ${code}`);
-    // Wait a moment for the port to be released
-    setTimeout(() => {
-      startServer();
-    }, 2000);
+
+  req.on('error', () => {
+    // Port is not in use, continue starting server
+    startServer();
+  });
+
+  req.on('timeout', () => {
+    req.destroy();
+    startServer();
   });
 } catch (error) {
-  // If kill command fails, still try to start the server
-  console.warn('Warning: Failed to kill existing processes:', error.message);
+  console.log('Error checking port:', error.message);
   startServer();
 }
 
 function startServer() {
-  // Start the server with node
   console.log('Starting the API server...');
-  const server = spawn('node', [serverPath], {
-    env: { ...process.env, PORT: '3001', HOST: '0.0.0.0' },
-    stdio: 'inherit'
-  });
-
-  server.on('error', (error) => {
-    console.error('API server process error:', error);
-  });
-
-  server.on('exit', (code) => {
-    if (code !== 0) {
-      console.error(`API server process exited with code ${code}`);
-    } else {
-      console.log('API server process stopped');
-    }
-  });
-
-  // Handle termination signals
-  ['SIGINT', 'SIGTERM'].forEach(signal => {
-    process.on(signal, () => {
-      if (!server.killed) {
-        console.log(`${signal} received, stopping API server...`);
-        server.kill(signal);
-      }
+  
+  try {
+    // Start API server process
+    const serverProcess = spawn('node', [SERVER_PATH], {
+      stdio: 'inherit',
+      shell: true
     });
-  });
+
+    // Handle process exit
+    serverProcess.on('exit', (code) => {
+      console.log(`API server process exited with code ${code}`);
+    });
+
+    serverProcess.on('error', (err) => {
+      console.error('Failed to start API server:', err);
+    });
+  } catch (error) {
+    console.error('Error starting server:', error);
+  }
 }
