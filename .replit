@@ -9,7 +9,7 @@ run = ["sh", "-c", "npx vite preview --host 0.0.0.0 --port 3000"]
 build = ["sh", "-c", "npm run build"]
 
 [workflows]
-runButton = "API Server"
+runButton = "Start App"
 
 [[workflows.workflow]]
 name = "Run Dev Server"
@@ -82,6 +82,14 @@ author = 37597866
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "concurrently \"vite\" \"node start-server.js\""
+
+[[workflows.workflow]]
+name = "Start App"
+author = 37597866
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm install && concurrently \"vite\" \"node start-server.js\""
 
 [[ports]]
 localPort = 3000
