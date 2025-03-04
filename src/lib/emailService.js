@@ -1,5 +1,6 @@
 // src/lib/emailService.js
 import sgMail from '@sendgrid/mail';
+import axios from 'axios';
 
 // Create a version that works in both browser and Node.js environments
 const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
@@ -29,34 +30,42 @@ export function initSendGrid() {
  */
 export async function sendContactEmail(formData) {
   try {
-    // In browser, call the API
-    const apiUrl = '/api/contact';
+    console.log('Submitting form data: ', formData);
+    // Send the request to our API endpoint
+    const response = await axios.post('/api/contact', formData);
 
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    });
-
-    if (!response.ok) {
-      let errorText = await response.text();
-      try {
-        const errorJson = JSON.parse(errorText);
-        return { success: false, error: errorJson.error || 'Server error' };
-      } catch (e) {
-        return { success: false, error: errorText || 'Server error' };
-      }
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error sending contact email:', error);
+    // Return success response
     return { 
-      success: false, 
-      error: error.message || 'Failed to connect to server' 
+      success: true,
+      details: response.data
     };
+  } catch (error) {
+    console.log('Form submission exception: ', error);
+    // Handle error responses
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      console.error('API error response:', error.response.data);
+      return { 
+        success: false, 
+        error: error.response?.data?.error || 'Server error occurred', 
+        details: error.response.data 
+      };
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('No response received:', error.request);
+      return { 
+        success: false, 
+        error: 'No response from server. Please try again later.' 
+      };
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error('Request setup error:', error.message);
+      return { 
+        success: false, 
+        error: error.message || 'Unknown error sending request' 
+      };
+    }
   }
 }
 
