@@ -1,17 +1,17 @@
-#!/usr/bin/env node
 
-const app = require('./src/api/server');
-const PORT = process.env.PORT || 3001;
+const { spawn } = require('child_process');
+const path = require('path');
 
-// Start the server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`
-=============================
-API SERVER STARTED
-=============================
-Server URL: http://0.0.0.0:${PORT}
-Health check: http://0.0.0.0:${PORT}/api/health
-Contact API: http://0.0.0.0:${PORT}/api/contact (POST)
-=============================
-  `);
+console.log('Starting API server...');
+
+const serverPath = path.join(__dirname, 'src', 'api', 'server.js');
+const server = spawn('node', [serverPath], { 
+  stdio: 'inherit',
+  env: process.env
 });
+
+server.on('error', (err) => {
+  console.error('Failed to start API server:', err);
+});
+
+console.log('API server started. Press Ctrl+C to stop.');

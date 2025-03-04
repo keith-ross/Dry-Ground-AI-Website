@@ -1,7 +1,10 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { sendContactEmail } from '../lib/emailService';
+import emailService from '../lib/emailService';
+
+// Destructure to get the specific function
+const { sendContactEmail } = emailService;
 
 interface FormData {
   name: string;

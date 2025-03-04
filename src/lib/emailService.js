@@ -1,4 +1,3 @@
-
 const sgMail = require('@sendgrid/mail');
 
 /**
@@ -34,68 +33,43 @@ async function testSendGridApiKey() {
 }
 
 /**
- * Send an email using SendGrid
- * @param {Object} data Form data from the contact form
- * @returns {Object} Result of the email sending operation
+ * Send contact form email
+ * @param {Object} formData - Form data containing name, email, and message
+ * @returns {Promise<Object>} - Result of the email sending operation
  */
-async function sendContactFormEmail(data) {
+async function sendContactEmail(formData) {
   try {
-    const { name, email, company, message } = data;
-    
-    // Set the API key
-    if (!process.env.SENDGRID_API_KEY) {
-      throw new Error('SendGrid API key is not configured');
+    const response = await fetch('/api/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return {
+        success: false,
+        error: errorData.error || 'Failed to send message'
+      };
     }
-    
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    
-    // Simplified email content
-    const emailContent = {
-      to: 'contact@anchoredup.org', // Change this to your actual email
-      from: 'noreply@anchoredup.org', // This should be a verified sender
-      subject: `New Contact Form Submission from ${name}`,
-      text: `
-Name: ${name}
-Email: ${email}
-${company ? `Company: ${company}` : ''}
-Message: ${message}
-      `,
-      html: `
-<p><strong>Name:</strong> ${name}</p>
-<p><strong>Email:</strong> ${email}</p>
-${company ? `<p><strong>Company:</strong> ${company}</p>` : ''}
-<p><strong>Message:</strong> ${message}</p>
-      `
-    };
 
-    console.log('Sending email via SendGrid...');
-    
-    // Send email
-    const response = await sgMail.send(emailContent);
-    console.log('SendGrid API response:', response[0].statusCode);
-
-    return { 
-      success: true 
+    const data = await response.json();
+    return {
+      success: true,
+      message: data.message || 'Message sent successfully!'
     };
   } catch (error) {
-    // Log detailed error information for debugging
-    console.error('SendGrid error:', error);
-    
-    if (error.response) {
-      console.error('SendGrid API error response:', {
-        body: error.response.body,
-        statusCode: error.response.statusCode
-      });
-    }
-    
-    return { 
-      success: false, 
-      error: error.message || 'Unknown error sending email'
+    console.error('Error sending contact form:', error);
+    return {
+      success: false,
+      error: 'Network error occurred while sending your message'
     };
   }
 }
 
 module.exports = {
   testSendGridApiKey,
-  sendContactFormEmail
+  sendContactEmail
 };

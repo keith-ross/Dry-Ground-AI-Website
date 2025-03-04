@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -52,65 +51,49 @@ app.get('/api/health', (req, res) => {
 
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
-  console.log('Received contact form submission:', req.body);
-  
   try {
-    // Validate request body
-    const { name, email, company, message } = req.body;
-    
+    const { name, email, message } = req.body;
+
+    // Validate input
     if (!name || !email || !message) {
-      console.log('Missing required fields in request');
       return res.status(400).json({ 
         success: false, 
-        error: 'Missing required fields' 
+        error: 'Please provide name, email, and message' 
       });
     }
-    
-    if (!apiKey) {
-      console.error('Cannot send email: SendGrid API key not configured');
+
+    // Check if SendGrid API key is configured
+    if (!process.env.SENDGRID_API_KEY) {
       return res.status(500).json({ 
         success: false, 
-        error: 'Email service not configured' 
+        error: 'Email service is not configured' 
       });
     }
-    
-    // Prepare email data
-    const toEmail = process.env.TO_EMAIL || 'contact@example.com';
-    const fromEmail = process.env.FROM_EMAIL || 'noreply@example.com';
-    
+
     const msg = {
-      to: toEmail,
-      from: fromEmail,
-      subject: `New Contact Form Submission from ${name}`,
-      text: `
-Name: ${name}
-Email: ${email}
-Company: ${company || 'Not provided'}
-Message: ${message}
-      `,
+      to: process.env.CONTACT_EMAIL || 'contact@example.com',
+      from: process.env.FROM_EMAIL || 'noreply@example.com',
+      subject: `Website Contact: ${name}`,
+      text: `Name: ${name}\nEmail: ${email}\n\nMessage: ${message}`,
       html: `
-<h2>New Contact Form Submission</h2>
-<p><strong>Name:</strong> ${name}</p>
-<p><strong>Email:</strong> ${email}</p>
-<p><strong>Company:</strong> ${company || 'Not provided'}</p>
-<p><strong>Message:</strong></p>
-<p>${message.replace(/\n/g, '<br>')}</p>
+        <strong>Name:</strong> ${name}<br/>
+        <strong>Email:</strong> ${email}<br/>
+        <br/>
+        <strong>Message:</strong><br/>
+        ${message.replace(/\n/g, '<br/>')}
       `,
     };
-    
-    // Send email
-    console.log('Sending email to:', toEmail);
+
     await sgMail.send(msg);
-    
-    console.log('Email sent successfully');
+
     return res.status(200).json({ 
       success: true, 
       message: 'Your message has been sent successfully!' 
     });
-    
+
   } catch (error) {
     console.error('Error sending email:', error);
-    
+
     // Handle SendGrid specific errors
     if (error.response) {
       console.error('SendGrid API error details:', error.response.body);
@@ -120,7 +103,7 @@ Message: ${message}
         details: error.response.body
       });
     }
-    
+
     return res.status(500).json({ 
       success: false, 
       error: error.message || 'An unknown error occurred' 
