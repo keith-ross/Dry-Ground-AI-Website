@@ -1,99 +1,106 @@
+
 import pg from 'pg';
 import dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config();
 
-const { Pool } = pg;
-
 async function setupDatabase() {
   console.log('===== Database Setup =====');
-
-  if (!process.env.DATABASE_URL) {
-    console.error('❌ DATABASE_URL is not set in environment variables!');
+  
+  // Get database connection string
+  const databaseUrl = process.env.DATABASE_URL;
+  
+  if (!databaseUrl) {
+    console.error('❌ ERROR: DATABASE_URL environment variable is not set!');
+    console.error('Please make sure your .env file is properly configured.');
     process.exit(1);
   }
-
+  
   console.log('🔍 Connecting to database...');
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: false
+  
+  // Create a new client
+  const client = new pg.Client({
+    connectionString: databaseUrl,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   });
-
+  
   try {
-    // Test connection
-    const connResult = await pool.query('SELECT NOW()');
+    // Connect to the database
+    await client.connect();
     console.log('✅ Database connected successfully');
-    console.log(`✅ Server time: ${connResult.rows[0].now}`);
-
+    
+    // Test the connection
+    const timeResult = await client.query('SELECT NOW() as time');
+    console.log(`✅ Server time: ${timeResult.rows[0].time}`);
+    
     // Check if contact_messages table exists
-    const tableResult = await pool.query(`
+    const tableExists = await client.query(`
       SELECT EXISTS (
-        SELECT FROM information_schema.tables 
+        SELECT FROM information_schema.tables
         WHERE table_schema = 'public'
         AND table_name = 'contact_messages'
-      );
+      )
     `);
-
-    const tableExists = tableResult.rows[0].exists;
-
-    if (tableExists) {
-      console.log('✅ contact_messages table already exists');
-    } else {
-      console.log('⚠️ contact_messages table does not exist, creating it...');
-
-      // Create the contact_messages table
-      await pool.query(`
+    
+    // If the table doesn't exist, create it
+    if (!tableExists.rows[0].exists) {
+      console.log('📝 Creating contact_messages table...');
+      
+      await client.query(`
         CREATE TABLE contact_messages (
           id SERIAL PRIMARY KEY,
-          name VARCHAR(100) NOT NULL,
-          email VARCHAR(100) NOT NULL,
-          phone VARCHAR(20),
+          name VARCHAR(255) NOT NULL,
+          email VARCHAR(255) NOT NULL,
+          phone VARCHAR(50),
           message TEXT NOT NULL,
-          created_at TIMESTAMP NOT NULL DEFAULT NOW()
-        );
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        )
       `);
-
+      
       console.log('✅ contact_messages table created successfully');
+    } else {
+      console.log('✅ contact_messages table already exists');
     }
-
-    // Apply Row Level Security
-    console.log('🔒 Setting up Row Level Security...');
-
-    await pool.query('ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;');
-
-    // Drop existing policies to avoid conflicts
-    await pool.query('DROP POLICY IF EXISTS "public_insert_policy" ON contact_messages;');
-    await pool.query('DROP POLICY IF EXISTS "auth_select_policy" ON contact_messages;');
-
-    // Create new policies
-    await pool.query(`
-      CREATE POLICY "public_insert_policy" 
-      ON contact_messages
-      FOR INSERT
-      TO public
-      WITH CHECK (true);
-    `);
-
-    await pool.query(`
-      CREATE POLICY "auth_select_policy"
-      ON contact_messages
-      FOR SELECT
-      TO authenticated
-      USING (true);
-    `);
-
-    console.log('✅ Row Level Security policies configured');
-    console.log('✅ Database setup completed successfully');
-
+    
+    // Add security policy for RLS (Row Level Security) if needed
+    try {
+      console.log('🔒 Setting up Row Level Security...');
+      
+      // Create contact_messages RLS policy
+      await client.query(`
+        ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
+      `);
+      
+      // Create policy to allow authenticated users to select
+      await client.query(`
+        DO $$ 
+        BEGIN
+          -- Check if the role exists
+          IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
+            CREATE ROLE service_role;
+          END IF;
+        END $$;
+        
+        DROP POLICY IF EXISTS "Allow service role select" ON contact_messages;
+        CREATE POLICY "Allow service role select" ON contact_messages 
+          FOR SELECT USING (true);
+      `);
+      
+      console.log('✅ Row Level Security configured successfully');
+    } catch (error) {
+      console.error('❌ Error setting up RLS:', error.message);
+    }
+    
+    console.log('✅ Database setup completed successfully!');
   } catch (error) {
     console.error('❌ Database setup failed:', error);
   } finally {
-    await pool.end();
+    // Close the database connection
+    await client.end();
     console.log('Database connection closed');
   }
 }
 
 // Run the setup
-setupDatabase().catch(console.error);
+setupDatabase();

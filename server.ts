@@ -34,8 +34,11 @@ app.use((req, res, next) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  console.error(err.stack);
+  console.error('Unhandled error:', err instanceof Error ? err.message : 'Unknown error');
+  
+  if (err instanceof Error) {
+    console.error(err.stack);
+  }
   
   // Make sure we don't send headers if they're already sent
   if (res.headersSent) {
@@ -46,11 +49,11 @@ app.use((err, req, res, next) => {
   const errorResponse = {
     success: false,
     error: 'Internal server error',
-    details: process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : err.message || 'Unknown error'
+    details: process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : (err instanceof Error ? err.message : 'Unknown error')
   };
   
   // Add stack trace in development
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'production' && err instanceof Error) {
     errorResponse.stack = err.stack;
   }
   

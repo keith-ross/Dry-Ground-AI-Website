@@ -1,42 +1,53 @@
+
 import { Request, Response } from 'express';
-import pool from '../lib/db';
+import { ContactFormData } from '../api/types';
+import { db } from '../lib/db';
 
 export async function submitContactForm(req: Request, res: Response) {
-  console.log('Contact form submission received:', req.body);
-
   try {
-    const { name, email, phone, message } = req.body;
-
-    // Validate required fields
+    console.log('Received contact form submission:', req.body);
+    
+    // Validate request body
+    const { name, email, phone, message } = req.body as ContactFormData;
+    
     if (!name || !email || !message) {
-      console.log('Missing required fields');
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Missing required fields' 
+      console.log('Missing required fields in form submission');
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields',
+        message: 'Name, email and message are required'
       });
     }
-
-    // Insert into database
-    const result = await pool.query(
-      `INSERT INTO contact_messages (name, email, phone, message, created_at) 
-       VALUES ($1, $2, $3, $4, NOW()) RETURNING id`,
-      [name, email, phone, message]
-    );
-
-    console.log('Contact message saved successfully, ID:', result.rows[0].id);
-
-    return res.status(200).json({ 
-      success: true, 
-      messageId: result.rows[0].id 
-    });
+    
+    // Store form data in database
+    try {
+      const result = await db.query(
+        'INSERT INTO contact_messages (name, email, phone, message) VALUES ($1, $2, $3, $4) RETURNING id',
+        [name, email, phone || null, message]
+      );
+      
+      const insertedId = result.rows[0]?.id;
+      console.log(`Successfully inserted contact message with ID: ${insertedId}`);
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Contact form submitted successfully',
+        data: { id: insertedId }
+      });
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      return res.status(500).json({
+        success: false,
+        error: 'Database error',
+        message: 'Failed to store contact message'
+      });
+    }
   } catch (error) {
-    console.error('Error submitting contact form:', error);
-
-    // Send detailed error in development
-    return res.status(500).json({ 
+    console.error('Error in submitContactForm:', error);
+    return res.status(500).json({
       success: false, 
-      error: 'Failed to submit contact form',
-      details: process.env.NODE_ENV === 'production' ? 'Server error' : error.message
+      error: 'Server error',
+      message: error instanceof Error ? error.message : 'Unknown error occurred'
     });
   }
 }
