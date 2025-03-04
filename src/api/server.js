@@ -54,18 +54,18 @@ app.get('/api/health', (req, res) => {
 app.post('/api/contact', async (req, res) => {
   console.log('Received contact form submission:', req.body);
 
-  // Input validation
-  const { name, email, company, message } = req.body;
-
-  if (!name || !email || !message) {
-    console.log('Missing required fields:', { name: !!name, email: !!email, message: !!message });
-    return res.status(400).json({ 
-      success: false, 
-      error: 'Missing required fields' 
-    });
-  }
-
   try {
+    // Input validation
+    const { name, email, company, message } = req.body;
+
+    if (!name || !email || !message) {
+      console.log('Missing required fields:', { name: !!name, email: !!email, message: !!message });
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields' 
+      });
+    }
+
     // Save to database first
     console.log('Saving contact submission to database...');
     const dbResult = await saveContactSubmission({ name, email, company, message });
@@ -86,15 +86,16 @@ app.post('/api/contact', async (req, res) => {
       // Still return success since we saved to DB
       return res.status(200).json({ 
         success: true,
-        message: 'Form submitted and saved, but email notification failed' 
+        message: 'Form submitted and saved, but email notification failed',
+        emailError: emailResult.error 
       });
     }
   } catch (error) {
     console.error('Error processing form submission:', error);
+    // Ensure we're sending a proper JSON response even in error cases
     return res.status(500).json({ 
       success: false, 
-      error: 'Server error occurred',
-      details: error.message
+      error: error?.message || 'Server error occurred'
     });
   }
 });

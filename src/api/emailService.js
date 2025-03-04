@@ -19,8 +19,22 @@ export const sendEmail = async (data) => {
   try {
     const { name, email, company, message } = data;
 
+    // Check for environment variables
     if (!process.env.FROM_EMAIL || !process.env.ADMIN_EMAIL) {
-      throw new Error('Missing required environment variables: FROM_EMAIL or ADMIN_EMAIL');
+      console.warn('Missing required environment variables: FROM_EMAIL or ADMIN_EMAIL');
+      return { 
+        success: false, 
+        error: 'Email configuration is incomplete. Check server environment variables.'
+      };
+    }
+
+    // Check if SendGrid is properly initialized
+    if (!sgMail || typeof sgMail.send !== 'function') {
+      console.error('SendGrid client is not properly initialized');
+      return { 
+        success: false, 
+        error: 'Email service is not properly configured'
+      };
     }
 
     const msg = {

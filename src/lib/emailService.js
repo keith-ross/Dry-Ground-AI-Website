@@ -1,9 +1,11 @@
+
 // src/lib/emailService.js
-import '@sendgrid/mail'; // Import for type checking but don't use directly
 
 // Function for client-side to send email via API endpoint
 export const sendContactEmail = async (data) => {
   try {
+    console.log('Submitting form data:', data);
+    
     const response = await fetch('/api/contact', {
       method: 'POST',
       headers: {
@@ -12,10 +14,24 @@ export const sendContactEmail = async (data) => {
       body: JSON.stringify(data),
     });
 
-    const result = await response.json();
+    // Check if the response is empty
+    const responseText = await response.text();
+    if (!responseText) {
+      throw new Error('Empty response from server');
+    }
 
+    // Try to parse the response as JSON
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('Failed to parse server response:', responseText);
+      throw new Error(`Invalid JSON response: ${parseError.message}`);
+    }
+
+    // Check if the request was successful
     if (!response.ok) {
-      throw new Error(result.error || 'Server error occurred');
+      throw new Error(result.error || `Server error: ${response.status}`);
     }
 
     return result;
