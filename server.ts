@@ -36,12 +36,28 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   console.error(err.stack);
-  res.status(500).json({ 
-    success: false, 
-    error: 'Internal server error', 
-    message: err.message || 'Unknown error'
-  });
+  
+  // Make sure we don't send headers if they're already sent
+  if (res.headersSent) {
+    return next(err);
+  }
+  
+  // Send detailed error in development, generic in production
+  const errorResponse = {
+    success: false,
+    error: 'Internal server error',
+    details: process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : err.message || 'Unknown error'
+  };
+  
+  // Add stack trace in development
+  if (process.env.NODE_ENV !== 'production') {
+    errorResponse.stack = err.stack;
+  }
+  
+  res.status(500).json(errorResponse);
 });
+
+// Register routes AFTER error handling middleware is set up
 
 // API Routes
 app.post('/api/contact', submitContactForm);

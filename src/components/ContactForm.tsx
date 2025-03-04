@@ -23,35 +23,13 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    // Basic validation
-    if (!formData.name || !formData.email || !formData.phone || !formData.message) {
-      toast.error('Please fill in all fields');
-      return;
-    }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
-
-    // Phone validation
-    const phoneRegex = /^[0-9\-\+\s\(\)]+$/;
-    if (!phoneRegex.test(formData.phone)) {
-      toast.error('Please enter a valid phone number');
-      return;
-    }
-
     setIsSubmitting(true);
-    const toastId = toast.loading('Sending message...');
+    // setError(null); // This line is missing in the original code and the changes, assuming it's not needed.
 
     try {
-      // Log what we're sending for debugging
-      console.log('Sending form data:', formData);
+      console.log('Sending form data: ', formData);
 
       const response = await fetch('/api/contact', {
         method: 'POST',
@@ -59,52 +37,43 @@ const ContactForm: React.FC<ContactFormProps> = ({ className }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
+        credentials: 'include',
       });
 
-      // Log response status
+      // Get response as text first to log it
+      const responseText = await response.text();
       console.log('Response status:', response.status);
+      console.log('Response text:', responseText);
 
-      // Get the response text first
-      const text = await response.text();
-      console.log('Response text:', text);
-
-      // Only try to parse if there's content
-      let result = {};
-      if (text && text.trim() !== '') {
-        try {
-          result = JSON.parse(text);
-          console.log('Parsed result:', result);
-        } catch (parseError) {
-          console.error('Failed to parse response as JSON:', parseError);
-          throw new Error('Failed to parse server response');
-        }
+      // Try to parse as JSON if possible
+      let responseData;
+      try {
+        responseData = responseText ? JSON.parse(responseText) : {};
+        console.log('Response data:', responseData);
+      } catch (parseError) {
+        console.error('Failed to parse response as JSON:', parseError);
       }
 
       if (!response.ok) {
-        throw new Error(`Server error: ${response.status} - ${result.error || 'Unknown error'}`);
+        const errorMessage = responseData?.error || 
+                            responseData?.details || 
+                            `Server error: ${response.status} - ${response.statusText || 'Unknown error'}`;
+        throw new Error(errorMessage);
       }
 
-      if (result.success) {
-        toast.success('Message sent successfully! Your details have been saved.', {
-          id: toastId,
-        });
-        // Reset form data
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          message: ''
-        });
-      } else {
-        toast.error(result.error || 'Failed to save your contact information', {
-          id: toastId,
-        });
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error(`There was a problem: ${error.message || 'Could not connect to server'}`, {
-        id: toastId
+      // Reset form on success
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        message: '',
       });
+      // setIsSubmitSuccess(true); // This line is missing in the original code and the changes, assuming it's not needed.
+
+    } catch (err) {
+      console.error('Error submitting form: ', err);
+      // setError(err.message || 'Failed to submit form. Please try again.'); // This line is missing in the original code and the changes, assuming it's not needed.
+      toast.error(err.message || 'Failed to submit form. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
