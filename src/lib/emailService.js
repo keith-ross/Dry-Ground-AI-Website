@@ -36,36 +36,45 @@ export async function testSendGridApiKey() {
 }
 
 /**
- * Sends a contact form submission
- * @param {Object} formData - The form data to send
- * @returns {Promise<Object>} Result of the submission
+ * Send contact form data to the API
+ * @param {Object} formData The form data to send
+ * @returns {Promise<Object>} Result of the API call
  */
-export async function sendContactEmail(formData) {
+export async function submitContactForm(formData) {
   try {
-    // Log the data being sent
-    console.log('Sending form data to API:', formData);
+    console.log('Submitting form data:', formData);
     
-    // Update the API URL to use the Replit domain
-    // Get the current hostname and construct the API URL
-    const hostname = window.location.hostname;
-    const apiUrl = hostname.includes('replit.dev') || hostname.includes('replit.app')
-      ? `https://${hostname}/api/contact`  // Use HTTPS with the same domain
-      : '/api/contact';                   // For production/deployment
+    // Determine the API URL based on the current environment
+    // Get the current URL from the window location
+    const currentUrl = window.location.href;
+    const currentDomain = window.location.hostname;
+    
+    // Determine the base URL for the API
+    let apiBase;
+    if (currentDomain.includes('replit.dev')) {
+      // If running on Replit, use the same domain but different port
+      apiBase = `${window.location.protocol}//${currentDomain}`;
+    } else {
+      apiBase = ''; // Use relative URL for production
+    }
+    
+    // Build the full API URL
+    const apiUrl = `${apiBase}/api/contact`;
     
     console.log('Using API URL:', apiUrl);
     
-    // Make the API request
+    // Send the request to the API
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify(formData)
     });
     
-    // Log the response status and headers for debugging
     console.log('API response status:', response.status);
-    console.log('API response headers:', Object.fromEntries([...response.headers]));
+    console.log('API response headers:', response.headers);
     
     // Get the raw response text
     const responseText = await response.text();
@@ -74,7 +83,7 @@ export async function sendContactEmail(formData) {
     // Try to parse the response as JSON
     let data;
     try {
-      data = responseText ? JSON.parse(responseText) : null;
+      data = JSON.parse(responseText);
       console.log('Parsed API response:', data);
     } catch (e) {
       console.error('Failed to parse API response as JSON:', e);
@@ -105,4 +114,52 @@ export async function sendContactEmail(formData) {
       error: error.message || 'Failed to send message'
     };
   }
+}
+
+/**
+ * Send email to the admin with contact form data
+ * This function would typically be called from the server
+ */
+export async function sendAdminNotificationEmail({ name, email, company, message }) {
+  // This is a server-side function mock
+  // In a real implementation, this would use SendGrid or another email service
+  console.log('Would send admin notification email with:', { name, email, company, message });
+  
+  // Check for SendGrid API key
+  if (!process.env.SENDGRID_API_KEY) {
+    return {
+      success: false,
+      error: 'SendGrid API key is not configured'
+    };
+  }
+  
+  // In a real implementation, this would send an actual email
+  return {
+    success: true,
+    message: 'Admin notification email sent'
+  };
+}
+
+/**
+ * Send confirmation email to the user
+ * This function would typically be called from the server
+ */
+export async function sendContactConfirmationEmail({ name, email }) {
+  // This is a server-side function mock
+  // In a real implementation, this would use SendGrid or another email service
+  console.log('Would send confirmation email to:', { name, email });
+  
+  // Check for SendGrid API key
+  if (!process.env.SENDGRID_API_KEY) {
+    return {
+      success: false,
+      error: 'SendGrid API key is not configured'
+    };
+  }
+  
+  // In a real implementation, this would send an actual email
+  return {
+    success: true,
+    message: 'Confirmation email sent to user'
+  };
 }

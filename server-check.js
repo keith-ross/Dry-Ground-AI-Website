@@ -3,94 +3,88 @@
  * Script to check if the API server is running
  */
 import http from 'http';
-import { exec } from 'child_process';
+import { execSync } from 'child_process';
 
-// Function to check if a process is running on port 3001
-function checkPortInUse(port, callback) {
-  const options = {
-    host: '0.0.0.0',
-    port: port,
-    timeout: 1000
-  };
+const PORT = 3001;
 
-  const req = http.request(options, (res) => {
-    console.log(`Port ${port} is in use! Status: ${res.statusCode}`);
-    callback(true, res.statusCode);
-  });
-
-  req.on('error', (err) => {
-    if (err.code === 'ECONNREFUSED') {
-      console.log(`Port ${port} is free. No server running.`);
-      callback(false);
-    } else {
-      console.log(`Error checking port ${port}: ${err.message}`);
-      callback(false);
-    }
-  });
-
-  req.end();
-}
-
-// Find processes using port 3001
-function findProcessesOnPort(port) {
+// Check if a process is running on the given port
+function checkPort() {
   return new Promise((resolve) => {
-    exec(`ps aux | grep "node.*server\\.js"`, (error, stdout, stderr) => {
-      if (error) {
-        console.log('Error finding processes:', error.message);
-        resolve([]);
-        return;
-      }
-      
-      if (stderr) {
-        console.log('Error output:', stderr);
-      }
-      
-      const processes = stdout.split('\n')
-        .filter(line => line.trim() && !line.includes('grep'))
-        .map(line => {
-          const parts = line.trim().split(/\s+/);
-          return {
-            pid: parts[1],
-            command: parts.slice(10).join(' ')
-          };
+    const req = http.request({
+      host: '0.0.0.0',
+      port: PORT,
+      path: '/api/health',
+      method: 'GET',
+      timeout: 2000
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      res.on('end', () => {
+        resolve({
+          status: res.statusCode,
+          running: res.statusCode === 200,
+          data
         });
-      
-      resolve(processes);
+      });
     });
+    
+    req.on('error', () => {
+      resolve({
+        status: 0,
+        running: false
+      });
+    });
+    
+    req.end();
   });
 }
 
-// Main function
-async function checkServerStatus() {
+async function checkServer() {
   console.log('Checking API server status...');
   
-  checkPortInUse(3001, async (inUse, statusCode) => {
-    if (inUse) {
-      console.log(`✅ Server is running on port 3001. Status code: ${statusCode}`);
+  try {
+    const result = await checkPort();
+    
+    if (result.running) {
+      console.log(`Port ${PORT} is in use! Status: ${result.status}`);
+      console.log(`✅ Server is running on port ${PORT}. Status code: ${result.status}`);
       
-      // Check if it's our server
-      const processes = await findProcessesOnPort(3001);
-      console.log('Found these server processes:');
-      processes.forEach(proc => {
-        console.log(`PID: ${proc.pid}, Command: ${proc.command}`);
-      });
-      
+      if (result.data) {
+        try {
+          const parsed = JSON.parse(result.data);
+          console.log('Server response:', parsed);
+        } catch (e) {
+          console.log('Raw server response:', result.data);
+        }
+      }
     } else {
-      console.log('❌ Server is NOT running on port 3001');
-      
-      // Try to find any node processes that might be our server
-      const processes = await findProcessesOnPort(3001);
-      if (processes.length > 0) {
-        console.log('Found these node processes that might be servers:');
-        processes.forEach(proc => {
-          console.log(`PID: ${proc.pid}, Command: ${proc.command}`);
+      console.log(`❌ No server detected on port ${PORT}`);
+    }
+    
+    // List running server processes
+    try {
+      console.log('Found these server processes:');
+      const processes = execSync('ps aux | grep "node.*server\\.js" | grep -v grep').toString();
+      if (processes.trim()) {
+        processes.split('\n').filter(Boolean).forEach(proc => {
+          const parts = proc.trim().split(/\s+/);
+          const pid = parts[1];
+          const command = parts.slice(10).join(' ');
+          console.log(`PID: ${pid}, Command: ${command}`);
         });
       } else {
         console.log('No server processes found');
       }
+    } catch (e) {
+      console.log('Could not find server processes');
     }
-  });
+    
+  } catch (error) {
+    console.error('Error checking server status:', error);
+  }
 }
 
 // Run the check
-checkServerStatus();
+checkServer();
