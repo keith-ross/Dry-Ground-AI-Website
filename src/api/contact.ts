@@ -1,11 +1,13 @@
+
 import { Request, Response } from 'express';
-import { pool, query } from '../lib/db';
+import { ContactFormData } from './types';
+import { query } from '../lib/db';
 
 /**
  * Handles form submission from the contact form
  */
 export async function submitContactForm(req: Request, res: Response) {
-  const { name, email, phone, message } = req.body;
+  const { name, email, phone, message } = req.body as ContactFormData;
 
   // Basic validation
   if (!name || !email || !message) {

@@ -1,14 +1,20 @@
 
+/**
+ * Contact form data structure
+ */
 export interface ContactFormData {
   name: string;
   email: string;
-  phone: string;
+  phone?: string;
   message: string;
 }
 
+/**
+ * API response structure
+ */
 export interface ApiResponse<T = any> {
   success: boolean;
-  message?: string;
-  error?: string;
+  message: string;
   data?: T;
+  error?: string;
 }
