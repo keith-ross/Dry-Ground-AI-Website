@@ -55,14 +55,21 @@ ${formData.company ? `<p><strong>Company:</strong> ${formData.company}</p>` : ''
 };
 
 
-// Client-side email service
-// This file handles the client-side contact form submission
-// by sending requests to our API server instead of directly using SendGrid
+
+// Email service for the contact form
+// Client-side uses import.meta.env
+const clientApiKey = import.meta.env.VITE_SENDGRID_API_KEY;
+const clientFromEmail = import.meta.env.VITE_FROM_EMAIL || 'noreply@example.com';
+const clientAdminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com';
+
+if (clientApiKey) {
+  sgMail.setApiKey(clientApiKey);
+}
 
 /**
  * Sends contact form data to our API server
  */
-export const sendContactEmailClient = async (formData) => {
+export const sendContactEmail = async (formData) => {
   try {
     // Send the form data to our API endpoint
     const response = await fetch('/api/contact', {
@@ -91,12 +98,10 @@ export const sendContactEmailClient = async (formData) => {
 
 // Export check functions for diagnostics
 export const checkEmailConfig = () => {
-  // Server-side check
-  const serverConfig = {
-    apiKeyExists: !!apiKey,
-    fromEmail,
-    adminEmail
+  return {
+    apiKeyExists: !!clientApiKey,
+    fromEmail: clientFromEmail,
+    adminEmail: clientAdminEmail,
+    clientSide: "Uses API call"
   };
-  // Client-side can't check email config directly.  Return a merged object for consistency.
-  return { ...serverConfig, clientSide: "Uses API call" };
 };
