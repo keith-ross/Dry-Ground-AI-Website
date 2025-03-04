@@ -1,39 +1,35 @@
-import app from './src/api/server.js';
+
+import { spawn } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 import chalk from 'chalk';
+
+// Check if .env file exists and log a message if it doesn't
+const envPath = path.resolve('.env');
+if (!fs.existsSync(envPath)) {
+  console.log(chalk.yellow('No .env file found, will use environment variables from Replit Secrets'));
+}
 
 console.log(chalk.blue('Starting API server...'));
 
-const PORT = process.env.PORT || 3001;
-
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(chalk.green(`API server running on port ${PORT}`));
+// Use ts-node to run the server.ts file with ESM loader
+const server = spawn('node', ['--loader', 'ts-node/esm', 'src/api/server.ts'], {
+  stdio: 'inherit',
+  env: {
+    ...process.env,
+    // Force NODE_ENV to development in local environment
+    NODE_ENV: 'development',
+  },
 });
 
-// Add close method to app for graceful shutdown
-app.close = () => {
-  return new Promise((resolve, reject) => {
-    server.close((err) => {
-      if (err) {
-        console.error(chalk.red('Error closing server:'), err);
-        reject(err);
-      } else {
-        console.log(chalk.yellow('Server closed successfully'));
-        resolve();
-      }
-    });
-  });
-};
-
-process.on('uncaughtException', (err) => {
-  console.error(chalk.red('[Uncaught Exception]'), err);
-});
-
-process.on('SIGINT', async () => {
-  console.log(chalk.yellow('Shutting down server...'));
-  try {
-    await app.close();
-    process.exit(0);
-  } catch (err) {
-    process.exit(1);
+server.on('close', (code) => {
+  if (code !== 0) {
+    console.log(chalk.red(`API server process exited with code ${code}`));
   }
+});
+
+// Handle process termination to clean up child process
+process.on('SIGINT', () => {
+  server.kill('SIGINT');
+  process.exit(0);
 });
