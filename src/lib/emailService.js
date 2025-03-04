@@ -6,10 +6,10 @@ export const sendContactEmail = async (data) => {
   try {
     console.log('Submitting form data:', data);
     
-    // Use absolute URL with port 3001 to ensure we reach the API server
+    // Use absolute URL but handle Replit deployment case differently
     const apiUrl = window.location.hostname === 'localhost' 
       ? 'http://localhost:3001/api/contact'
-      : `${window.location.protocol}//${window.location.hostname}:3001/api/contact`;
+      : `${window.location.protocol}//${window.location.hostname}/api/contact`;
     
     console.log('Using API URL:', apiUrl);
     

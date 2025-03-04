@@ -12,6 +12,17 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
+
+// Handle OPTIONS requests for CORS preflight
+app.options('*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+  res.sendStatus(204);
+});
 
 // Configure CORS to allow requests from any origin during development
 app.use(cors({
@@ -21,6 +32,7 @@ app.use(cors({
   methods: ['GET', 'POST'],
   credentials: true
 }));
+
 
 // Initialize database
 initDb().catch(error => {
@@ -53,12 +65,6 @@ app.get('/api/health', (req, res) => {
 // Contact form submission endpoint
 app.post('/api/contact', async (req, res) => {
   try {
-    // Set CORS headers for all responses
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.setHeader('Content-Type', 'application/json');
-
     console.log('Received contact form submission:', req.body);
     const { name, email, company, message } = req.body;
 
