@@ -1,109 +1,149 @@
+
 import express from 'express';
 import cors from 'cors';
-import { promises as fs } from 'fs';
+import dotenv from 'dotenv';
 import path from 'path';
-import { dirname } from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-// Setup __dirname equivalent for ES modules
-const __dirname = dirname(fileURLToPath(import.meta.url));
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-// Port configuration
-const PORT = process.env.PORT || 3001;
+// Import email service
+import { sendContactConfirmationEmail, sendAdminNotificationEmail } from '../lib/emailService.js';
+
+// Load environment variables from .env file
+const envPath = path.join(__dirname, '../../.env');
+if (fs.existsSync(envPath)) {
+  console.log(`Loading environment variables from ${envPath}`);
+  dotenv.config({ path: envPath });
+} else {
+  console.log('No .env file found, using environment variables directly');
+  dotenv.config();
+}
+
+// Verify critical environment variables
+console.log('API Server Environment:');
+console.log('- NODE_ENV:', process.env.NODE_ENV);
+console.log('- PORT:', process.env.PORT || 3001);
+console.log('- SENDGRID_API_KEY exists:', !!process.env.SENDGRID_API_KEY);
+console.log('- SENDGRID_API_KEY length:', process.env.SENDGRID_API_KEY ? process.env.SENDGRID_API_KEY.length : 0);
 
 // Create Express app
 const app = express();
+const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors());
 app.use(express.json());
 
-// Health check endpoint
+// Configure CORS to allow requests from any origin during development
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? [/\.replit\.dev$/, /anchoredup\.org$/] // Restrict in production
+    : '*',                                   // Allow all in development
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
+
+// Basic database mock (replace with actual DB when ready)
+const contactSubmissions = [];
+
+// Function to save contact form submissions
+async function saveContactSubmission(data) {
+  const submission = {
+    id: Date.now(),
+    ...data,
+    createdAt: new Date().toISOString()
+  };
+  
+  contactSubmissions.push(submission);
+  console.log('Saved submission to memory store:', submission);
+  return submission;
+}
+
+// Define routes
 app.get('/api/health', (req, res) => {
-  console.log('Health check endpoint called');
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.status(200).json({ 
+    status: 'ok', 
+    env: process.env.NODE_ENV,
+    emailServiceConfigured: !!process.env.SENDGRID_API_KEY
+  });
 });
 
-// Endpoint to handle contact form submissions
+// Contact form submission endpoint
 app.post('/api/contact', async (req, res) => {
+  console.log('Received contact form submission:', req.body);
+  
   try {
+    // Input validation
     const { name, email, company, message } = req.body;
-
-    // Log the received data
-    console.log('Received contact form submission:', { name, email, company, message });
-
-    // Validate required fields
+    
     if (!name || !email || !message) {
-      console.log('Missing required fields');
+      console.log('Missing required fields:', { name: !!name, email: !!email, message: !!message });
       return res.status(400).json({ 
         success: false, 
-        error: 'Name, email and message are required' 
+        message: 'Missing required fields' 
       });
     }
-
-    // Store the submission in a simple log file for now
-    const timestamp = new Date().toISOString();
-    const submission = {
-      timestamp,
-      name,
-      email,
-      company: company || '(Not provided)',
-      message
-    };
-
-    // Create data directory if it doesn't exist
-    const dataDir = path.join(__dirname, '../../data');
-    try {
-      await fs.mkdir(dataDir, { recursive: true });
-    } catch (err) {
-      console.error('Error creating data directory:', err);
-    }
-
-    // Save to file
-    try {
-      const filePath = path.join(dataDir, 'contact-submissions.json');
-
-      // Try to read existing data first
-      let submissions = [];
+    
+    // Save to database first
+    console.log('Saving contact submission to database...');
+    const saveResult = await saveContactSubmission({ name, email, company, message });
+    console.log('Saved to database with ID:', saveResult.id);
+    
+    // Send email notifications
+    let emailResults = { confirmation: null, admin: null };
+    
+    if (process.env.SENDGRID_API_KEY) {
       try {
-        const data = await fs.readFile(filePath, 'utf8');
-        submissions = JSON.parse(data);
-      } catch (err) {
-        // File doesn't exist or is invalid, start with empty array
-        console.log('Creating new submissions file');
+        // Send confirmation email to the user
+        console.log('Sending confirmation email to user...');
+        emailResults.confirmation = await sendContactConfirmationEmail({ name, email });
+        
+        // Send notification to admin
+        console.log('Sending notification to admin...');
+        emailResults.admin = await sendAdminNotificationEmail({ name, email, company, message });
+        
+        console.log('Both emails sent successfully');
+      } catch (emailError) {
+        console.error('Error sending emails:', emailError);
+        // Don't fail the request, just log the error
+        emailResults.error = emailError.message;
       }
-
-      // Add new submission and save
-      submissions.push(submission);
-      await fs.writeFile(filePath, JSON.stringify(submissions, null, 2));
-      console.log('Saved submission to file');
-
-    } catch (err) {
-      console.error('Error saving submission:', err);
-      // Continue anyway - we'll at least return success to the user
+    } else {
+      console.log('Email sending skipped: SendGrid API key not configured');
+      emailResults.skipped = true;
     }
-
-    // For now, we'll simulate sending emails
-    console.log('Would send email notification to admin for:', email);
-    console.log('Would send confirmation email to user:', email);
-
-    // Return success
-    console.log('Contact form submission processed successfully');
-    return res.status(200).json({ 
-      success: true, 
-      message: 'Thank you! Your message has been received.' 
+    
+    // Return success response
+    return res.status(200).json({
+      success: true,
+      message: 'Contact form submission received',
+      data: {
+        submission: {
+          id: saveResult.id,
+          timestamp: saveResult.createdAt
+        },
+        emailSent: emailResults.skipped ? false : !!emailResults.confirmation
+      }
     });
-
+    
   } catch (error) {
     console.error('Error processing contact form submission:', error);
-    return res.status(500).json({ 
-      success: false, 
-      error: 'Server error processing your request'
+    return res.status(500).json({
+      success: false,
+      message: 'Server error processing form submission',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 });
 
-// Start the API server
+// Start the server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`API server running on http://0.0.0.0:${PORT}`);
+  console.log(`API server listening on port ${PORT}`);
 });
+
+// Export the app for testing
+export default app;

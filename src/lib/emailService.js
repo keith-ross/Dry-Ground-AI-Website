@@ -2,6 +2,16 @@
  * Email service for contact form
  */
 
+import sgMail from '@sendgrid/mail';
+
+// Initialize SendGrid with API key
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log('SendGrid API key is configured');
+} else {
+  console.warn('WARNING: SendGrid API key is not configured');
+}
+
 /**
  * Send contact form data to the API
  * @param {Object} formData - Form data containing name, email, company, and message
@@ -185,49 +195,82 @@ export async function submitContactForm(formData) {
 }
 
 /**
- * Send email to the admin with contact form data
- * This function would typically be called from the server
+ * Send confirmation email to contact form submitter
+ * @param {Object} options - Email options
+ * @param {string} options.name - Recipient name
+ * @param {string} options.email - Recipient email
+ * @returns {Promise} - SendGrid response
  */
-export async function sendAdminNotificationEmail({ name, email, company, message }) {
-  // This is a server-side function mock
-  // In a real implementation, this would use SendGrid or another email service
-  console.log('Would send admin notification email with:', { name, email, company, message });
-  
-  // Check for SendGrid API key
+export async function sendContactConfirmationEmail({ name, email }) {
   if (!process.env.SENDGRID_API_KEY) {
-    return {
-      success: false,
-      error: 'SendGrid API key is not configured'
-    };
+    console.error('SendGrid API key not configured. Cannot send confirmation email.');
+    throw new Error('Email service not configured');
   }
-  
-  // In a real implementation, this would send an actual email
-  return {
-    success: true,
-    message: 'Admin notification email sent'
-  };
+
+  try {
+    const msg = {
+      to: email,
+      from: 'contact@anchoredup.org', // Replace with your verified sender
+      subject: 'Thank you for contacting Anchored Up',
+      text: `Hello ${name},\n\nThank you for contacting Anchored Up. We have received your message and will get back to you as soon as possible.\n\nBest regards,\nThe Anchored Up Team`,
+      html: `<p>Hello ${name},</p><p>Thank you for contacting Anchored Up. We have received your message and will get back to you as soon as possible.</p><p>Best regards,<br>The Anchored Up Team</p>`,
+    };
+
+    console.log('Sending confirmation email to:', email);
+    const response = await sgMail.send(msg);
+    console.log('Confirmation email sent successfully');
+    return response;
+  } catch (error) {
+    console.error('Error sending confirmation email:', error);
+    if (error.response) {
+      console.error('SendGrid API error:', error.response.body);
+    }
+    throw error;
+  }
 }
 
 /**
- * Send confirmation email to the user
- * This function would typically be called from the server
+ * Send notification email to admin
+ * @param {Object} submission - Contact form submission
+ * @param {string} submission.name - Submitter name
+ * @param {string} submission.email - Submitter email
+ * @param {string} submission.company - Submitter company
+ * @param {string} submission.message - Message content
+ * @returns {Promise} - SendGrid response
  */
-export async function sendContactConfirmationEmail({ name, email }) {
-  // This is a server-side function mock
-  // In a real implementation, this would use SendGrid or another email service
-  console.log('Would send confirmation email to:', { name, email });
-  
-  // Check for SendGrid API key
+export async function sendAdminNotificationEmail(submission) {
   if (!process.env.SENDGRID_API_KEY) {
-    return {
-      success: false,
-      error: 'SendGrid API key is not configured'
-    };
+    console.error('SendGrid API key not configured. Cannot send admin notification.');
+    throw new Error('Email service not configured');
   }
-  
-  // In a real implementation, this would send an actual email
-  return {
-    success: true,
-    message: 'Confirmation email sent to user'
-  };
+
+  try {
+    const { name, email, company, message } = submission;
+
+    const msg = {
+      to: 'admin@anchoredup.org', // Replace with admin email
+      from: 'contact@anchoredup.org', // Replace with your verified sender
+      subject: 'New Contact Form Submission',
+      text: `New contact form submission:\n\nName: ${name}\nEmail: ${email}\nCompany: ${company || 'N/A'}\nMessage: ${message}`,
+      html: `
+        <h2>New Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Company:</strong> ${company || 'N/A'}</p>
+        <p><strong>Message:</strong></p>
+        <p>${message.replace(/\n/g, '<br>')}</p>
+      `,
+    };
+
+    console.log('Sending admin notification email');
+    const response = await sgMail.send(msg);
+    console.log('Admin notification email sent successfully');
+    return response;
+  } catch (error) {
+    console.error('Error sending admin notification email:', error);
+    if (error.response) {
+      console.error('SendGrid API error:', error.response.body);
+    }
+    throw error;
+  }
 }

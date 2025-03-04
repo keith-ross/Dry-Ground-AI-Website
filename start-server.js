@@ -14,7 +14,7 @@ console.log('Starting API server...');
 console.log('Server path:', SERVER_PATH);
 
 // Check if the port is already in use
-console.log(`Attempting to kill any existing process on port ${PORT}...`);
+console.log(`Checking if port ${PORT} is already in use...`);
 try {
   // Try to check if port is in use
   const options = {
@@ -26,18 +26,24 @@ try {
 
   const req = http.get(options, res => {
     if (res.statusCode === 200) {
-      console.log(`Port ${PORT} is already in use. Server is running.`);
+      console.log(`Port ${PORT} is in use! Status: ${res.statusCode}`);
+      console.log('Server is already running.');
+    } else {
+      console.log(`Port ${PORT} has a service responding with status: ${res.statusCode}`);
+      console.log('Attempting to start a new server instance...');
+      startServer();
     }
-    process.exit(0);
   });
 
   req.on('error', () => {
     // Port is not in use, continue starting server
+    console.log(`Port ${PORT} is available.`);
     startServer();
   });
 
   req.on('timeout', () => {
     req.destroy();
+    console.log(`Request timed out. Port ${PORT} may be available.`);
     startServer();
   });
 } catch (error) {
@@ -52,7 +58,8 @@ function startServer() {
     // Start API server process
     const serverProcess = spawn('node', [SERVER_PATH], {
       stdio: 'inherit',
-      shell: true
+      shell: true,
+      env: { ...process.env, PORT }
     });
 
     // Handle process exit

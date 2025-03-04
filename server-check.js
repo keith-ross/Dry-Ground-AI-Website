@@ -1,3 +1,4 @@
+
 import http from 'http';
 import { exec } from 'child_process';
 
@@ -18,11 +19,26 @@ function checkServerStatus() {
   const req = http.get(options, res => {
     if (res.statusCode === 200) {
       console.log(`✅ Server is running on port ${PORT}. Status code: ${res.statusCode}`);
+      
+      // Collect response data
+      let data = '';
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      
+      res.on('end', () => {
+        try {
+          const healthData = JSON.parse(data);
+          console.log('Server health info:', healthData);
+        } catch (e) {
+          console.log('Could not parse health response');
+        }
+        listServerProcesses();
+      });
     } else {
       console.log(`❌ Server responded with status code: ${res.statusCode}`);
+      listServerProcesses();
     }
-
-    listServerProcesses();
   });
 
   req.on('error', (err) => {

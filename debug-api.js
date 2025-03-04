@@ -4,53 +4,42 @@
  */
 import fetch from 'node-fetch';
 
-async function testApiConnection() {
-  console.log('\n----------------------------------');
-  console.log('TESTING API CONNECTION');
-  console.log('----------------------------------');
-  
+// Configuration
+const API_BASE_URL = process.env.API_URL || 'http://localhost:3001';
+const API_ENDPOINT = '/api/contact';
+
+// Test data
+const testData = {
+  name: 'Test User',
+  email: 'test@example.com',
+  company: 'Test Company',
+  message: 'This is a test message'
+};
+
+// Test the health endpoint
+async function checkHealth() {
+  console.log('Checking API health...');
   try {
-    // Get hostname from environment or use a default
-    const hostname = process.env.REPL_SLUG 
-      ? `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
-      : 'localhost:3001';
-      
-    console.log('Testing API health endpoint...');
-    const healthResponse = await fetch(`https://${hostname}/api/health`);
-    console.log('Response status:', healthResponse.status);
+    const response = await fetch(`${API_BASE_URL}/api/health`);
+    const data = await response.json();
     
-    const healthText = await healthResponse.text();
-    console.log('Response body:', healthText);
+    console.log('Health check status:', response.status);
+    console.log('Health check response:', data);
     
-    try {
-      const healthJson = JSON.parse(healthText);
-      console.log('Parsed JSON:', healthJson);
-    } catch (e) {
-      console.log('Response is not valid JSON');
-    }
+    return response.status === 200;
   } catch (error) {
-    console.error('Error connecting to API:', error.message);
+    console.error('Health check failed:', error.message);
+    return false;
   }
-  
-  console.log('\n----------------------------------');
-  console.log('TESTING CONTACT FORM SUBMISSION');
-  console.log('----------------------------------');
+}
+
+// Test the contact form endpoint
+async function testContactForm() {
+  console.log('Testing contact form endpoint...');
+  console.log('Sending test data:', testData);
   
   try {
-    const testData = {
-      name: 'Test User',
-      email: 'test@example.com',
-      company: 'Debug Company',
-      message: 'This is a test message from debug-api.js'
-    };
-    
-    console.log('Sending test data:', testData);
-    // Get hostname from environment or use a default
-    const hostname = process.env.REPL_SLUG 
-      ? `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
-      : 'localhost:3001';
-      
-    const response = await fetch(`https://${hostname}/api/contact`, {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINT}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -58,24 +47,47 @@ async function testApiConnection() {
       body: JSON.stringify(testData)
     });
     
-    console.log('Response status:', response.status);
-    console.log('Response headers:', response.headers);
+    console.log('API response status:', response.status);
     
-    const responseText = await response.text();
-    console.log('Raw response:', responseText);
-    
+    let responseData;
     try {
-      const responseJson = JSON.parse(responseText);
-      console.log('Parsed JSON:', responseJson);
-    } catch (e) {
-      console.log('Response is not valid JSON');
+      responseData = await response.json();
+      console.log('API response data:', responseData);
+    } catch (parseError) {
+      const rawText = await response.text();
+      console.log('Could not parse response as JSON. Raw response:', rawText);
     }
+    
+    return response.status === 200;
   } catch (error) {
-    console.error('Error testing contact form:', error.message);
+    console.error('Contact form test failed:', error.message);
+    return false;
   }
 }
 
-// Run the tests
-testApiConnection().catch(error => {
-  console.error('Unhandled error during API testing:', error);
+// Run tests
+async function runTests() {
+  console.log('API URL:', API_BASE_URL);
+  
+  // Check health first
+  const healthStatus = await checkHealth();
+  if (!healthStatus) {
+    console.log('❌ API health check failed. Cannot proceed with further tests.');
+    return;
+  }
+  
+  console.log('✅ API health check passed.');
+  
+  // Test contact form
+  const contactFormStatus = await testContactForm();
+  if (contactFormStatus) {
+    console.log('✅ Contact form test passed.');
+  } else {
+    console.log('❌ Contact form test failed.');
+  }
+}
+
+// Run all tests
+runTests().catch(error => {
+  console.error('Error running tests:', error);
 });
