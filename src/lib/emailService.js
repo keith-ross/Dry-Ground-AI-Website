@@ -1,70 +1,63 @@
+
 // Email service using SendGrid
 import sgMail from '@sendgrid/mail';
 
 // Configure SendGrid if API key is available
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const apiKey = import.meta.env.VITE_SENDGRID_API_KEY || process.env.SENDGRID_API_KEY;
+const fromEmail = import.meta.env.VITE_FROM_EMAIL || process.env.FROM_EMAIL || 'noreply@example.com';
+const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'admin@example.com';
+
+if (apiKey) {
+  sgMail.setApiKey(apiKey);
 }
 
 /**
- * Sends an email using SendGrid
- * @param {Object} params - Email parameters
- * @param {string} params.name - Sender's name
- * @param {string} params.email - Sender's email
- * @param {string} params.message - Email message
- * @returns {Promise<Object>} - Result of the email operation
+ * Sends email notification for contact form submissions
  */
-export async function sendEmail({ name, email, message }) {
-  // Check if SendGrid is configured
-  if (!process.env.SENDGRID_API_KEY) {
-    console.warn('SENDGRID_API_KEY is not configured. Email sending is disabled.');
+export const sendContactEmail = async (formData) => {
+  if (!apiKey) {
+    console.warn('SendGrid API key not configured - email sending disabled');
     return { success: false, error: 'Email service not configured' };
   }
 
-  if (!process.env.FROM_EMAIL || !process.env.ADMIN_EMAIL) {
-    console.warn('FROM_EMAIL or ADMIN_EMAIL is not configured.');
-    return { success: false, error: 'Email configuration incomplete' };
-  }
-
   try {
-    // Prepare email data
     const msg = {
-      to: process.env.ADMIN_EMAIL,
-      from: process.env.FROM_EMAIL,
-      subject: `Contact Form Submission from ${name}`,
+      to: adminEmail,
+      from: fromEmail,
+      subject: `New Contact Form Submission from ${formData.name}`,
       text: `
-Name: ${name}
-Email: ${email}
-
-Message:
-${message}
+Name: ${formData.name}
+Email: ${formData.email}
+${formData.company ? `Company: ${formData.company}` : ''}
+Message: ${formData.message}
       `,
       html: `
-<h2>New Contact Form Submission</h2>
-<p><strong>Name:</strong> ${name}</p>
-<p><strong>Email:</strong> ${email}</p>
-<h3>Message:</h3>
-<p>${message.replace(/\n/g, '<br>')}</p>
+<h3>New Contact Form Submission</h3>
+<p><strong>Name:</strong> ${formData.name}</p>
+<p><strong>Email:</strong> ${formData.email}</p>
+${formData.company ? `<p><strong>Company:</strong> ${formData.company}</p>` : ''}
+<p><strong>Message:</strong></p>
+<p>${formData.message.replace(/\n/g, '<br>')}</p>
       `,
     };
 
-    // Send email
-    console.log('Sending email with data:', JSON.stringify(msg, null, 2));
-    const response = await sgMail.send(msg);
-    console.log('Email sent successfully', response[0].statusCode);
+    await sgMail.send(msg);
     return { success: true };
   } catch (error) {
     console.error('Error sending email:', error);
-
-    // Detailed error logging
-    if (error.response) {
-      console.error('SendGrid error details:', error.response.body);
-    }
-
     return { 
       success: false, 
-      error: error.message || 'Failed to send email',
-      details: error.toString()
+      error: 'Failed to send email notification',
+      details: error.message || 'Unknown error'
     };
   }
-}
+};
+
+// Export check functions for diagnostics
+export const checkEmailConfig = () => {
+  return {
+    apiKeyExists: !!apiKey,
+    fromEmail,
+    adminEmail
+  };
+};
