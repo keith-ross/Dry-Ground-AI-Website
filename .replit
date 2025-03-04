@@ -9,7 +9,7 @@ run = ["sh", "-c", "npx vite preview --host 0.0.0.0 --port 3000"]
 build = ["sh", "-c", "npm run build"]
 
 [workflows]
-runButton = "Dev Server"
+runButton = "Run Dev Server"
 
 [[workflows.workflow]]
 name = "Run Dev Server"
