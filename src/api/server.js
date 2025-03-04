@@ -52,12 +52,17 @@ app.get('/api/health', (req, res) => {
 
 // Contact form submission endpoint
 app.post('/api/contact', async (req, res) => {
-  console.log('Received contact form submission:', req.body);
-
   try {
-    // Input validation
+    // Set CORS headers for all responses
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Content-Type', 'application/json');
+
+    console.log('Received contact form submission:', req.body);
     const { name, email, company, message } = req.body;
 
+    // Validate required fields
     if (!name || !email || !message) {
       console.log('Missing required fields:', { name: !!name, email: !!email, message: !!message });
       return res.status(400).json({ 

@@ -6,7 +6,14 @@ export const sendContactEmail = async (data) => {
   try {
     console.log('Submitting form data:', data);
     
-    const response = await fetch('/api/contact', {
+    // Use absolute URL with port 3001 to ensure we reach the API server
+    const apiUrl = window.location.hostname === 'localhost' 
+      ? 'http://localhost:3001/api/contact'
+      : `${window.location.protocol}//${window.location.hostname}:3001/api/contact`;
+    
+    console.log('Using API URL:', apiUrl);
+    
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
