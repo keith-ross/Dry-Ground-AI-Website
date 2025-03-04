@@ -43,7 +43,7 @@ function startServer() {
   // Start the server with node
   console.log('Starting the API server...');
   const server = spawn('node', [serverPath], {
-    env: { ...process.env, PORT: '3001' },
+    env: { ...process.env, PORT: '3001', HOST: '0.0.0.0' },
     stdio: 'inherit'
   });
 

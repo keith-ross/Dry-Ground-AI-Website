@@ -48,7 +48,7 @@ export async function sendContactEmail(formData) {
     // Update the API URL to explicitly specify the full URL
     // This is important for cross-origin requests
     const apiUrl = window.location.hostname.includes('replit.dev') 
-      ? 'http://localhost:3001/api/contact'  // Development mode
+      ? 'http://0.0.0.0:3001/api/contact'  // Development mode
       : '/api/contact';                    // Production mode
     
     console.log('Using API URL:', apiUrl);

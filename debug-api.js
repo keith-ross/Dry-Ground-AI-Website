@@ -11,7 +11,7 @@ async function testApiConnection() {
   
   try {
     console.log('Testing API health endpoint...');
-    const healthResponse = await fetch('http://localhost:3001/api/health');
+    const healthResponse = await fetch('http://0.0.0.0:3001/api/health');
     console.log('Response status:', healthResponse.status);
     
     const healthText = await healthResponse.text();
@@ -40,7 +40,7 @@ async function testApiConnection() {
     };
     
     console.log('Sending test data:', testData);
-    const response = await fetch('http://localhost:3001/api/contact', {
+    const response = await fetch('http://0.0.0.0:3001/api/contact', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
