@@ -13,88 +13,76 @@ if (fs.existsSync(path.resolve('.env'))) {
   console.log('No .env file found, using environment variables from system');
 }
 
-// Create Express app
+// Log environment variables for debugging
+console.log('API Key exists:', !!process.env.SENDGRID_API_KEY);
+console.log('Admin email:', process.env.ADMIN_EMAIL || 'Not set');
+
 const app = express();
 
-// Configure middleware
+// Enable CORS
 app.use(cors());
+
+// Parse JSON request body
 app.use(bodyParser.json());
 
-// API routes
+// Check API route
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'API is running' });
+});
+
+// Import email service after environment setup
+import { sendContactConfirmationEmail, sendAdminNotificationEmail } from '../lib/emailService.js';
+
+// Contact form submission endpoint
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, company, message } = req.body;
 
+    // Validate required fields
     if (!name || !email || !message) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Missing required fields' 
+        message: 'Name, email and message are required' 
       });
     }
 
-    // Import after environment variables are loaded
-    const { sendContactConfirmationEmail, sendAdminNotificationEmail } = await import('../lib/emailService.js');
+    console.log('Received contact form submission:', { name, email, company, message });
 
-    // Log environment variables for debugging (redacted for security)
-    console.log('Email service environment:', {
-      hasApiKey: !!process.env.SENDGRID_API_KEY,
-      adminEmail: process.env.ADMIN_EMAIL || 'not set'
-    });
-
-    // Send confirmation email to the user
+    // Send confirmation email to user
     const userEmailResult = await sendContactConfirmationEmail({ name, email });
 
     // Send notification email to admin
-    const adminEmailResult = await sendAdminNotificationEmail({ 
-      name, 
-      email, 
-      company, 
-      message 
-    });
+    const adminEmailResult = await sendAdminNotificationEmail({ name, email, company, message });
 
-    console.log('Email sending results:', {
-      user: userEmailResult.success ? 'success' : 'failed',
-      admin: adminEmailResult.success ? 'success' : 'failed'
-    });
+    console.log('Email sending results:', { userEmailResult, adminEmailResult });
 
-    if (!userEmailResult.success || !adminEmailResult.success) {
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to send one or more emails',
-        details: {
-          userEmail: userEmailResult,
-          adminEmail: adminEmailResult
-        }
+    if (userEmailResult.success || adminEmailResult.success) {
+      return res.json({ 
+        success: true, 
+        message: 'Contact form submitted successfully' 
+      });
+    } else {
+      console.error('Failed to send emails:', { userEmailResult, adminEmailResult });
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to send confirmation emails',
+        error: userEmailResult.error || adminEmailResult.error
       });
     }
-
-    return res.status(200).json({ 
-      success: true, 
-      message: 'Contact form submission successful' 
-    });
   } catch (error) {
-    console.error('Contact form submission error:', error);
-    return res.status(500).json({ 
+    console.error('Error processing contact form:', error);
+    res.status(500).json({ 
       success: false, 
-      error: error.message || 'Internal server error'
+      message: 'An error occurred while processing your request',
+      error: error.message 
     });
   }
-});
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
 });
 
 // Start the API server
 const PORT = process.env.PORT || 3001;
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`API server running on port ${PORT}`);
-  console.log('Environment variables loaded:', {
-    port: PORT,
-    hasSendGridKey: !!process.env.SENDGRID_API_KEY,
-    adminEmail: process.env.ADMIN_EMAIL
-  });
 });
 
 // Handle graceful shutdown

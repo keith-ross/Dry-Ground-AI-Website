@@ -1,68 +1,15 @@
-
 import sgMail from '@sendgrid/mail';
 
-// Initialize SendGrid with API key from environment variable
+// Get API key from environment variables
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'info@drygroundai.com';
 
+// Initialize SendGrid client
 if (!SENDGRID_API_KEY) {
-  console.error('SendGrid API key is missing! Please add SENDGRID_API_KEY to your Replit Secrets.');
+  console.error('ERROR: SendGrid API key is missing. Make sure SENDGRID_API_KEY is set in Replit Secrets');
 } else {
-  try {
-    sgMail.setApiKey(SENDGRID_API_KEY);
-    console.log('SendGrid client initialized successfully');
-  } catch (error) {
-    console.error('Error initializing SendGrid client:', error);
-  }
-}
-
-/**
- * Send an email using SendGrid
- */
-export async function sendEmail(options) {
-  try {
-    if (!SENDGRID_API_KEY) {
-      throw new Error('SendGrid API key is missing');
-    }
-
-    const { to, subject, text, html } = options;
-    
-    const msg = {
-      to,
-      from: ADMIN_EMAIL,
-      subject,
-      text,
-      html: html || text,
-    };
-
-    console.log(`Attempting to send email to ${to} with subject "${subject}"`);
-    const [response] = await sgMail.send(msg);
-    
-    console.log('Email sent successfully:', {
-      statusCode: response.statusCode,
-      to,
-      subject
-    });
-    
-    return { 
-      success: true, 
-      statusCode: response.statusCode 
-    };
-  } catch (error) {
-    console.error('Error sending email:', {
-      message: error.message,
-      response: error.response ? {
-        body: error.response.body,
-        statusCode: error.response.statusCode
-      } : 'No response data'
-    });
-    
-    return { 
-      success: false, 
-      error: error.message,
-      details: error.response ? error.response.body : null
-    };
-  }
+  sgMail.setApiKey(SENDGRID_API_KEY);
+  console.log('SendGrid client initialized successfully');
 }
 
 /**
@@ -70,20 +17,30 @@ export async function sendEmail(options) {
  */
 export async function sendContactConfirmationEmail({ name, email }) {
   try {
-    const text = `Hello ${name},\n\nThank you for reaching out to us. We have received your message and will get back to you as soon as possible.\n\nBest regards,\nThe Dry Ground AI Team`;
-    const html = `<p>Hello ${name},</p><p>Thank you for reaching out to us. We have received your message and will get back to you as soon as possible.</p><p>Best regards,<br>The Dry Ground AI Team</p>`;
-    
-    return await sendEmail({
+    if (!SENDGRID_API_KEY) {
+      console.error('SendGrid API key not found, skipping email send');
+      return { success: false, error: new Error('SendGrid API key not configured') };
+    }
+
+    console.log(`Sending confirmation email to ${email}`);
+
+    const msg = {
       to: email,
+      from: ADMIN_EMAIL,
       subject: 'Thank you for contacting Dry Ground AI',
-      text,
-      html
-    });
+      text: `Hello ${name},\n\nThank you for reaching out to us. We have received your message and will get back to you as soon as possible.\n\nBest regards,\nThe Dry Ground AI Team`,
+      html: `<p>Hello ${name},</p><p>Thank you for reaching out to us. We have received your message and will get back to you as soon as possible.</p><p>Best regards,<br>The Dry Ground AI Team</p>`,
+    };
+
+    const response = await sgMail.send(msg);
+    console.log('Confirmation email sent successfully', response);
+    return { success: true, response };
   } catch (error) {
-    console.error('Error in sendContactConfirmationEmail:', error);
+    console.error('Error sending confirmation email:', error);
     return { 
-      success: false, 
-      error: error.message 
+      success: false,
+      error,
+      message: error.message || 'Failed to send email'
     };
   }
 }
@@ -93,20 +50,30 @@ export async function sendContactConfirmationEmail({ name, email }) {
  */
 export async function sendAdminNotificationEmail({ name, email, company, message }) {
   try {
-    const text = `New contact form submission:\n\nName: ${name}\nEmail: ${email}\nCompany: ${company || 'N/A'}\nMessage: ${message}`;
-    const html = `<h3>New contact form submission</h3><p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Company:</strong> ${company || 'N/A'}</p><p><strong>Message:</strong> ${message}</p>`;
-    
-    return await sendEmail({
+    if (!SENDGRID_API_KEY) {
+      console.error('SendGrid API key not found, skipping admin notification');
+      return { success: false, error: new Error('SendGrid API key not configured') };
+    }
+
+    console.log(`Sending admin notification to ${ADMIN_EMAIL}`);
+
+    const msg = {
       to: ADMIN_EMAIL,
+      from: ADMIN_EMAIL,
       subject: 'New Contact Form Submission',
-      text,
-      html
-    });
+      text: `New contact form submission:\n\nName: ${name}\nEmail: ${email}\nCompany: ${company || 'N/A'}\nMessage: ${message}`,
+      html: `<h3>New contact form submission</h3><p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Company:</strong> ${company || 'N/A'}</p><p><strong>Message:</strong> ${message}</p>`,
+    };
+
+    const response = await sgMail.send(msg);
+    console.log('Admin notification email sent successfully', response);
+    return { success: true, response };
   } catch (error) {
-    console.error('Error in sendAdminNotificationEmail:', error);
+    console.error('Error sending admin notification email:', error);
     return { 
-      success: false, 
-      error: error.message 
+      success: false,
+      error,
+      message: error.message || 'Failed to send admin notification'
     };
   }
 }

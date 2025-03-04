@@ -8,6 +8,8 @@ import chalk from 'chalk';
 const envPath = path.resolve('.env');
 if (!fs.existsSync(envPath)) {
   console.log(chalk.yellow('No .env file found, will use environment variables from Replit Secrets'));
+  // Check if API key exists in environment variables
+  console.log(chalk.blue('SendGrid API Key exists:'), !!process.env.SENDGRID_API_KEY);
 }
 
 console.log(chalk.blue('Starting API server...'));
