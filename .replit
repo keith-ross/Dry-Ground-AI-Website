@@ -60,12 +60,12 @@ task = "shell.exec"
 args = "node server.js"
 
 [[workflows.workflow]]
-name = "Verify Deployment Database"
+name = "View Messages"
 author = 37597866
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "NODE_ENV=production node verify-deployment.js"
+args = "node view-messages.js"
 
 [[ports]]
 localPort = 3000
