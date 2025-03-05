@@ -74,17 +74,34 @@ app.post('/api/contact', async (req, res) => {
       });
     }
     
-    const result = await pool.query(
-      'INSERT INTO contact_messages (name, email, phone, message) VALUES ($1, $2, $3, $4) RETURNING id',
-      [name, email, phone, message]
-    );
+    // Log database connection status before attempting query
+    console.log('Database URL configured:', !!process.env.DATABASE_URL);
+    console.log('Environment:', process.env.NODE_ENV || 'development');
     
-    console.log('✅ Message saved to database with ID:', result.rows[0].id);
-    
-    return res.status(200).json({ 
-      success: true, 
-      message: 'Your message has been received. Thank you for contacting us!' 
-    });
+    try {
+      const result = await pool.query(
+        'INSERT INTO contact_messages (name, email, phone, message) VALUES ($1, $2, $3, $4) RETURNING id',
+        [name, email, phone, message]
+      );
+      
+      console.log('✅ Message saved to database with ID:', result.rows[0].id);
+      
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Your message has been received. Thank you for contacting us!' 
+      });
+    } catch (dbError) {
+      console.error('❌ Database error:', dbError);
+      console.error('Error code:', dbError.code);
+      console.error('Error detail:', dbError.detail);
+      
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Database error',
+        message: dbError.message,
+        code: dbError.code
+      });
+    }
   } catch (err) {
     console.error('❌ Error processing contact form:', err);
     return res.status(500).json({ 
