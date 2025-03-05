@@ -152,11 +152,14 @@ if (process.env.NODE_ENV === 'production') {
 
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT} (mapped to external port 80)`);
+  console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://0.0.0.0:${PORT}/api/health`);
   console.log(`📑 API endpoints: http://0.0.0.0:${PORT}/api/contact`);
   console.log(`💻 Server address: 0.0.0.0:${PORT}`);
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  
+  // Log DATABASE_URL presence (not the actual value for security)
+  console.log(`💾 Database URL configured: ${process.env.DATABASE_URL ? 'Yes' : 'No'}`);
 });
 
 // Handle process termination

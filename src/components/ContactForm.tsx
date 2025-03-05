@@ -28,8 +28,14 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
     try {
       console.log('Sending form data: ', formData);
 
-      // Use relative URL for API endpoint to work with Vite proxy
-      const apiUrl = '/api/contact';
+      // Determine if we're in production based on the URL
+      const isProduction = window.location.hostname.includes('replit.app');
+      
+      // In production, use the full URL; in development, use the relative URL
+      const apiUrl = isProduction 
+        ? `${window.location.origin}/api/contact` 
+        : '/api/contact';
+      
       console.log('Submitting to:', apiUrl);
 
       const response = await fetch(apiUrl, {
