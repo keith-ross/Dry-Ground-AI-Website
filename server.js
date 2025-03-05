@@ -1,9 +1,9 @@
-
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import pkg from 'pg';
-const { Pool } = pkg;
+import { fileURLToPath } from 'url';
+import path from 'path';
+import pg from 'pg';
 
 // Load environment variables
 dotenv.config();
@@ -16,6 +16,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 // Setup database connection
+const { Pool } = pg;
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
@@ -36,16 +37,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // CORS configuration
-app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, etc)
-    if (!origin) return callback(null, true);
-    return callback(null, true); // Allow all origins for troubleshooting
-  },
-  methods: ['GET', 'POST', 'OPTIONS'],
-  credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(cors());
 
 // Parse JSON bodies with increased size limit
 app.use(express.json({ limit: '1mb' }));
@@ -61,80 +53,79 @@ app.use((req, res, next) => {
 
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
+  console.log('Contact form submission received:', req.body);
+
   try {
-    console.log('Received contact form submission:', req.body);
-    
+    // Validate request body
     const { name, email, phone, message } = req.body;
-    
+
     if (!name || !email || !message) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Missing required fields',
-        message: 'Name, email and message are required'
+      console.error('Missing required fields in contact form submission');
+      return res.status(400).json({
+        success: false,
+        message: 'Name, email, and message are required'
       });
     }
-    
-    // Log database connection status before attempting query
-    console.log('Database URL configured:', !!process.env.DATABASE_URL);
-    console.log('Environment:', process.env.NODE_ENV || 'development');
-    
-    try {
-      const result = await pool.query(
-        'INSERT INTO contact_messages (name, email, phone, message) VALUES ($1, $2, $3, $4) RETURNING id',
-        [name, email, phone, message]
-      );
-      
-      console.log('✅ Message saved to database with ID:', result.rows[0].id);
-      
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Your message has been received. Thank you for contacting us!' 
-      });
-    } catch (dbError) {
-      console.error('❌ Database error:', dbError);
-      console.error('Error code:', dbError.code);
-      console.error('Error detail:', dbError.detail);
-      
-      return res.status(500).json({ 
-        success: false, 
-        error: 'Database error',
-        message: dbError.message,
-        code: dbError.code
-      });
-    }
-  } catch (err) {
-    console.error('❌ Error processing contact form:', err);
-    return res.status(500).json({ 
-      success: false, 
-      error: 'Internal server error',
-      message: err.message
+
+    // Insert into database
+    const result = await pool.query(
+      `INSERT INTO contact_messages (name, email, phone, message) 
+       VALUES ($1, $2, $3, $4) 
+       RETURNING id`,
+      [name, email, phone || null, message]
+    );
+
+    console.log('Contact form submission saved with ID:', result.rows[0].id);
+
+    // Return success response
+    return res.status(200).json({
+      success: true,
+      message: 'Your message has been received. Thank you for contacting us!'
+    });
+
+  } catch (error) {
+    console.error('Error saving contact form submission:', error);
+    return res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to save your message'
     });
   }
 });
 
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.status(200).json({ status: 'ok', environment: process.env.NODE_ENV || 'development' });
 });
 
 // Database health check
 app.get('/api/db-health', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');
-    res.json({ 
-      status: 'ok', 
+    res.json({
+      status: 'ok',
       db_connected: true,
       server_time: result.rows[0].now
     });
   } catch (err) {
     console.error('Database health check failed:', err);
-    res.status(500).json({ 
-      status: 'error', 
+    res.status(500).json({
+      status: 'error',
       db_connected: false,
       message: err instanceof Error ? err.message : 'Unknown database error'
     });
   }
 });
+
+// Serve static assets in production
+if (process.env.NODE_ENV === 'production') {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  app.use(express.static(path.join(__dirname, 'dist')));
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  });
+}
 
 // Global error handler
 app.use((err, req, res, next) => {
@@ -150,23 +141,6 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-// Serve static assets in production
-if (process.env.NODE_ENV === 'production') {
-  import('path').then(path => {
-    import('url').then(({ fileURLToPath }) => {
-      const __filename = fileURLToPath(import.meta.url);
-      const __dirname = path.dirname(__filename);
-      
-      console.log('🌐 Serving static files from:', path.join(__dirname, 'dist'));
-      app.use(express.static(path.join(__dirname, 'dist')));
-      
-      app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-      });
-    });
-  });
-}
-
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
@@ -174,7 +148,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`📑 API endpoints: http://0.0.0.0:${PORT}/api/contact`);
   console.log(`💻 Server address: 0.0.0.0:${PORT}`);
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-  
+
   // Log DATABASE_URL presence (not the actual value for security)
   console.log(`💾 Database URL configured: ${process.env.DATABASE_URL ? 'Yes' : 'No'}`);
 });
@@ -184,3 +158,5 @@ process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully');
   process.exit(0);
 });
+
+export { pool };

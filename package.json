@@ -4,12 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node dev.js",
     "build": "vite build",
-    "lint": "eslint .",
     "preview": "vite preview",
-    "server": "tsx server.ts",
-    "start": "node --loader ts-node/esm server.ts"
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "server": "node server.js",
+    "start": "NODE_ENV=production node server.js",
+    "test": "vitest"
   },
   "dependencies": {
     "@sendgrid/mail": "^7.7.0",
