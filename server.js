@@ -133,12 +133,30 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
+// Serve static assets in production
+if (process.env.NODE_ENV === 'production') {
+  import('path').then(path => {
+    import('url').then(({ fileURLToPath }) => {
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = path.dirname(__filename);
+      
+      console.log('🌐 Serving static files from:', path.join(__dirname, 'dist'));
+      app.use(express.static(path.join(__dirname, 'dist')));
+      
+      app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+      });
+    });
+  });
+}
+
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT} (mapped to external port 80)`);
   console.log(`📊 Health check: http://0.0.0.0:${PORT}/api/health`);
   console.log(`📑 API endpoints: http://0.0.0.0:${PORT}/api/contact`);
   console.log(`💻 Server address: 0.0.0.0:${PORT}`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 // Handle process termination
