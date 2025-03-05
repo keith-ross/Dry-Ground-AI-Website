@@ -34,7 +34,7 @@ const ROIBenchmarks = () => {
         <div className="text-center mb-12">
           <h2 className="text-base font-semibold text-brand-primary tracking-wide uppercase">ROI Projections</h2>
           <p className="mt-2 text-3xl font-extrabold text-white sm:text-4xl">
-            Industry Standard Benchmarks
+            Benchmarks
           </p>
           <p className="mt-4 max-w-2xl text-xl text-gray-300 mx-auto">
             Our AI solutions consistently deliver measurable business outcomes aligned with industry benchmarks.
