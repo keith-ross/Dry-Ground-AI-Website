@@ -5,7 +5,7 @@ run = "npm run dev"
 channel = "stable-24_05"
 
 [deployment]
-run = ["sh", "-c", "npm run dev"]
+run = ["sh", "-c", "node server.js"]
 deploymentTarget = "cloudrun"
 
 [workflows]
@@ -60,12 +60,12 @@ task = "shell.exec"
 args = "node server.js"
 
 [[workflows.workflow]]
-name = "Check Deployment Env"
+name = "Verify Deployment Database"
 author = 37597866
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node check-deployment.js"
+args = "NODE_ENV=production node verify-deployment.js"
 
 [[ports]]
 localPort = 3000
