@@ -16,7 +16,7 @@ const Hero = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div>
-            <h1 className="font-bold tracking-tight text-white text-4xl sm:text-5xl md:text-6xl">
+            <h1 className="font-bold tracking-tight text-white text-4xl sm:text-5xl md:text-6xl max-w-4xl">
               <span className="block xl:inline">Helping New SMB Owners </span>
               <span className="block text-brand-primary xl:inline">Achieve Stability</span>
             </h1>
