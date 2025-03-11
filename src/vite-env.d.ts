@@ -14,4 +14,6 @@ interface Window {
   VG_CONFIG?: {
     [key: string]: any;
   };
+  dataLayer?: any[];
+  gtag?: (...args: any[]) => void;
 }

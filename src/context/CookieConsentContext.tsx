@@ -52,6 +52,13 @@ export const CookieConsentProvider: React.FC<{children: React.ReactNode}> = ({ c
   // Enable REB2B tracking
   const enableTracking = () => {
     // REB2B is already loaded in index.html, nothing to do here
+    
+    // Enable Google Analytics by setting consent to 'granted'
+    if (window.gtag) {
+      window.gtag('consent', 'update', {
+        'analytics_storage': 'granted'
+      });
+    }
   };
   
   // Disable REB2B tracking
@@ -64,6 +71,13 @@ export const CookieConsentProvider: React.FC<{children: React.ReactNode}> = ({ c
       // This is a simple approach - depending on the tracking service, 
       // you might need a more specific implementation
       window.reb2b.disabled = true;
+    }
+    
+    // Disable Google Analytics by setting consent to 'denied'
+    if (window.gtag) {
+      window.gtag('consent', 'update', {
+        'analytics_storage': 'denied'
+      });
     }
   };
   
