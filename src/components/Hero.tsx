@@ -16,15 +16,15 @@ const Hero = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div>
-            <h1 className="font-bold tracking-tight text-white text-4xl sm:text-5xl md:text-6xl max-w-4xl">
-              <span className="block xl:inline">Helping New SMB Owners </span>
-              <span className="block text-brand-primary xl:inline">Achieve Stability</span>
+            <h1 className="font-extrabold tracking-tight text-white text-4xl sm:text-5xl md:text-6xl max-w-3xl leading-tight">
+              <span className="block">Helping New SMB Owners </span>
+              <span className="block text-brand-primary">Achieve Stability</span>
             </h1>
-            <p className="mt-6 text-base text-gray-300 sm:text-lg md:text-xl md:max-w-3xl mx-auto">
+            <p className="mt-6 text-base text-gray-300 sm:text-lg md:text-xl max-w-2xl">
               We help new SMB owners with chaotic and inefficient operations get more sleep by leveraging AI 
               to fast track stability and clarity. Our solutions turn complexity into strategic advantage.
             </p>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mt-8">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mt-8 max-w-2xl leading-tight">
               What's your AI strategy?
             </h2>
             <div className="mt-8 flex flex-wrap gap-4">

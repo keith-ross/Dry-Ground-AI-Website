@@ -13,7 +13,7 @@ const AIStrategy = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-base font-semibold text-brand-primary tracking-wide uppercase">AI Strategy</h2>
-            <p className="mt-2 text-3xl font-extrabold text-white sm:text-4xl text-wrap">
+            <p className="mt-2 text-3xl font-extrabold text-white sm:text-4xl md:text-5xl text-wrap max-w-2xl leading-tight">
               Discover Your Optimal AI Path
             </p>
             <p className="mt-4 text-xl text-gray-300">
