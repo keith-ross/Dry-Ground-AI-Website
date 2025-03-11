@@ -36,7 +36,7 @@ const Footer = () => {
           <div className="col-span-1">
             <Logo />
             <p className="mt-4 text-gray-300 max-w-md">
-              Dry Ground AI delivers cutting-edge artificial intelligence solutions that transform businesses through data-driven insights and innovative technology.
+              We help new SMB owners with chaotic and inefficient operations get more sleep by leveraging AI to fast track stability and clarity.
             </p>
             <div className="mt-6">
               <a href="mailto:info@dryground.ai" className="text-gray-400 hover:text-brand-primary transition-colors flex items-center">
