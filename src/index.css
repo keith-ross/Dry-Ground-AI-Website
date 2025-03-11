@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom utility for better text wrapping */
+.text-balance {
+  text-wrap: balance;
+}
+
 @tailwind utilities;

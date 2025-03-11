@@ -1,96 +1,106 @@
+
 import React from 'react';
-import { ArrowRight, Cpu, Network, Zap, BrainCircuit } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   return (
-    <div className="relative overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-brand-darker via-brand-secondary/20 to-brand-darker opacity-70"></div>
-
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-brand-primary/10 rounded-full filter blur-3xl animate-pulse"></div>
-        <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-brand-accent/10 rounded-full filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-      </div>
-
+    <section className="relative bg-brand-darker overflow-hidden">
+      {/* Background elements */}
+      <div className="absolute inset-0 bg-gradient-to-br from-brand-dark to-brand-darker"></div>
+      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-brand-primary/10 rounded-full filter blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-brand-primary/5 rounded-full filter blur-3xl"></div>
+      
+      {/* Animated grid pattern */}
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div>
-            <h1 className="font-extrabold tracking-tight text-white text-4xl sm:text-5xl md:text-6xl max-w-3xl leading-tight">
-              <span className="block">Helping New SMB Owners </span>
-              <span className="block text-brand-primary">Achieve Stability</span>
-            </h1>
+            <div className="text-white">
+              <h1 className="font-extrabold tracking-tight text-4xl sm:text-5xl md:text-6xl text-balance mb-2">
+                Helping New SMB Owners
+              </h1>
+              <h1 className="font-extrabold tracking-tight text-4xl sm:text-5xl md:text-6xl text-brand-primary text-balance">
+                Achieve Stability
+              </h1>
+            </div>
+            
             <p className="mt-6 text-base text-gray-300 sm:text-lg md:text-xl max-w-2xl">
               We help new SMB owners with chaotic and inefficient operations get more sleep by leveraging AI 
               to fast track stability and clarity. Our solutions turn complexity into strategic advantage.
             </p>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mt-8 max-w-2xl leading-tight">
+            
+            <h2 className="text-4xl font-extrabold tracking-tight text-white mt-8 text-balance">
               What's your AI strategy?
             </h2>
+            
             <div className="mt-8 flex flex-wrap gap-4">
-              <a
-                href="https://strategy.dryground.ai/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brand-primary hover:bg-brand-secondary transition-colors duration-300"
+              <Link
+                to="/contact"
+                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brand-primary hover:bg-brand-secondary transition-colors duration-300"
               >
-                Try Our AI Strategizer
-              </a>
-              <a
-                href="#services"
-                className="px-6 py-3 border border-gray-700 text-base font-medium rounded-md text-gray-200 hover:bg-brand-dark transition-colors duration-300 flex items-center"
+                Get Started
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+              <Link
+                to="/services"
+                className="inline-flex items-center justify-center px-6 py-3 border border-gray-700 text-base font-medium rounded-md text-white hover:bg-gray-800 transition-colors duration-300"
               >
-                Explore Services
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </a>
+                Learn More
+              </Link>
             </div>
-            <p className="mt-4 text-xl text-gray-300 max-w-3xl">
-              Not sure where to start? Our AI Strategizer helps you identify the right AI solutions for your business needs.
-            </p>
           </div>
-          <div className="hidden md:flex justify-center">
-            <div className="relative w-80 h-80">
-              {/* Main circular elements */}
-              <div className="absolute inset-0 border-4 border-brand-primary/30 rounded-full animate-spin" style={{ animationDuration: '15s' }}></div>
-              <div className="absolute inset-4 border-4 border-brand-secondary/20 rounded-full animate-spin" style={{ animationDuration: '10s', animationDirection: 'reverse' }}></div>
-              <div className="absolute inset-8 border-4 border-brand-accent/10 rounded-full animate-spin" style={{ animationDuration: '20s' }}></div>
-
-              {/* Center element */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="relative flex items-center justify-center w-32 h-32 bg-brand-dark rounded-2xl overflow-hidden border border-brand-primary/30 shadow-lg shadow-brand-primary/20">
-                  <Zap className="h-16 w-16 text-brand-primary absolute" />
+          
+          <div className="relative">
+            {/* Main illustration */}
+            <div className="relative mx-auto w-full max-w-md">
+              <div className="relative block w-full overflow-hidden rounded-2xl shadow-xl">
+                <div className="w-full h-0 pb-[100%] bg-gradient-to-br from-brand-primary/20 to-brand-secondary/40 rounded-2xl overflow-hidden">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="p-4">
+                      <div className="relative w-full max-w-sm mx-auto">
+                        <div className="absolute inset-0 bg-brand-darker/30 backdrop-blur-sm rounded-xl"></div>
+                        <div className="relative p-4">
+                          <div className="h-2 w-20 bg-brand-primary/40 rounded mb-3"></div>
+                          <div className="h-2 w-full bg-gray-700/40 rounded mb-2"></div>
+                          <div className="h-2 w-full bg-gray-700/40 rounded mb-2"></div>
+                          <div className="h-2 w-2/3 bg-gray-700/40 rounded mb-4"></div>
+                          
+                          <div className="flex items-center space-x-2 mb-4">
+                            <div className="w-6 h-6 rounded-full bg-brand-primary/40"></div>
+                            <div className="h-2 w-20 bg-brand-primary/40 rounded"></div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="h-24 bg-gray-700/30 rounded-lg flex items-center justify-center">
+                              <div className="w-8 h-8 rounded-full bg-brand-primary/40"></div>
+                            </div>
+                            <div className="h-24 bg-gray-700/30 rounded-lg flex items-center justify-center">
+                              <div className="w-8 h-8 rounded-full bg-brand-primary/40"></div>
+                            </div>
+                            <div className="h-24 bg-gray-700/30 rounded-lg flex items-center justify-center">
+                              <div className="w-8 h-8 rounded-full bg-brand-primary/40"></div>
+                            </div>
+                            <div className="h-24 bg-gray-700/30 rounded-lg flex items-center justify-center">
+                              <div className="w-8 h-8 rounded-full bg-brand-primary/40"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              {/* Orbital icons */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-brand-dark p-3 rounded-full shadow-lg border border-brand-primary/20">
-                <Cpu className="w-6 h-6 text-brand-primary" />
-              </div>
-
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-brand-dark p-3 rounded-full shadow-lg border border-brand-primary/20">
-                <Network className="w-6 h-6 text-brand-accent" />
-              </div>
-
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 bg-brand-dark p-3 rounded-full shadow-lg border border-brand-primary/20">
-                <BrainCircuit className="w-6 h-6 text-brand-primary" />
-              </div>
-
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 bg-brand-dark p-3 rounded-full shadow-lg border border-brand-primary/20">
-                <svg className="w-6 h-6 text-brand-accent" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M20 7H4C2.89543 7 2 7.89543 2 9V19C2 20.1046 2.89543 21 4 21H20C21.1046 21 22 20.1046 22 19V9C22 7.89543 21.1046 7 20 7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M16 21V5C16 4.46957 15.7893 3.96086 15.4142 3.58579C15.0391 3.21071 14.5304 3 14 3H10C9.46957 3 8.96086 3.21071 8.58579 3.58579C8.21071 3.96086 8 4.46957 8 5V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-
-              {/* Subtle glow effects */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="absolute w-40 h-40 bg-brand-primary/10 rounded-full filter blur-xl"></div>
-              </div>
+              
+              {/* Decorative elements */}
+              <div className="absolute -top-6 -right-6 w-32 h-32 bg-brand-primary/30 rounded-full blur-xl"></div>
+              <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-brand-accent/30 rounded-full blur-xl"></div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
