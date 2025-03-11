@@ -6,19 +6,19 @@ const metrics = [
     icon: <TrendingUp className="h-10 w-10 text-brand-primary" />,
     title: "20-50%",
     description: "Efficiency Increase",
-    details: "Streamline operations and reduce manual tasks through intelligent automation and process optimization."
+    details: "Streamline chaotic operations and reduce manual tasks giving new SMB owners back valuable time and mental space."
   },
   {
     icon: <Users className="h-10 w-10 text-brand-accent" />,
     title: "10-35%",
     description: "Customer Satisfaction Improvement",
-    details: "Enhance customer experiences with personalized interactions and faster response times."
+    details: "Create consistent customer experiences even with limited resources, building loyalty and reducing churn."
   },
   {
     icon: <DollarSign className="h-10 w-10 text-brand-primary" />,
     title: "10-20%",
     description: "Revenue Growth",
-    details: "Unlock new opportunities and optimize existing channels to drive sustainable business growth."
+    details: "Achieve financial stability by identifying profitable opportunities and optimizing existing channels."
   }
 ];
 

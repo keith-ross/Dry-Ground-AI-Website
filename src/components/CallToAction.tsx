@@ -7,7 +7,7 @@ const CallToAction = () => {
     <section id="contact" className="py-20 bg-brand-dark relative overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-brand-secondary/20 to-brand-primary/10"></div>
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="bg-brand-darker rounded-2xl shadow-xl overflow-hidden">
           <div className="px-6 py-12 sm:px-12 lg:px-16 lg:py-16">
@@ -39,10 +39,10 @@ const CallToAction = () => {
                   </a>
                 </div>
               </div>
-              
+
               <div className="relative">
                 <ContactForm className="bg-brand-dark p-6 rounded-xl border border-gray-700" />
-                
+
                 {/* Decorative elements */}
                 <div className="absolute -top-6 -right-6 w-12 h-12 bg-brand-primary/30 rounded-full blur-xl"></div>
                 <div className="absolute -bottom-6 -left-6 w-12 h-12 bg-brand-accent/30 rounded-full blur-xl"></div>
