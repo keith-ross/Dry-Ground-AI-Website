@@ -1,23 +1,27 @@
 
 import React, { useState, useEffect } from 'react';
+import { useCookieConsent } from '../context/CookieConsentContext';
 
 const CookieConsent = () => {
   const [visible, setVisible] = useState(false);
+  const { consentGiven, acceptCookies, declineCookies } = useCookieConsent();
 
   useEffect(() => {
-    const consent = localStorage.getItem('cookieConsent');
-    if (!consent) {
+    // Show banner if consent status is not determined yet
+    if (consentGiven === null) {
       setVisible(true);
+    } else {
+      setVisible(false);
     }
-  }, []);
+  }, [consentGiven]);
 
-  const acceptCookies = () => {
-    localStorage.setItem('cookieConsent', 'accepted');
+  const handleAccept = () => {
+    acceptCookies();
     setVisible(false);
   };
 
-  const declineCookies = () => {
-    localStorage.setItem('cookieConsent', 'declined');
+  const handleDecline = () => {
+    declineCookies();
     setVisible(false);
   };
 
@@ -35,13 +39,13 @@ const CookieConsent = () => {
           </div>
           <div className="flex space-x-4">
             <button
-              onClick={declineCookies}
+              onClick={handleDecline}
               className="px-4 py-2 text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 rounded-md transition"
             >
               Decline
             </button>
             <button
-              onClick={acceptCookies}
+              onClick={handleAccept}
               className="px-4 py-2 text-sm font-medium text-white bg-brand-primary hover:bg-brand-accent rounded-md transition"
             >
               Accept
