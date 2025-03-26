@@ -5,7 +5,7 @@ const Logo = () => {
   return (
     <div className="flex items-center">
       <img 
-        src={`https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/content/logo.svg`}
+        src="/logo.svg"
         alt="Dry Ground AI Logo" 
         className="h-10 w-10" 
         style={{ display: 'block' }} 
