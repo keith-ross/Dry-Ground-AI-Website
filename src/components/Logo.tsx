@@ -5,10 +5,14 @@ const Logo = () => {
   return (
     <div className="flex items-center">
       <img 
-        src="/content/logo.svg"
+        src="https://dryground.drygroundai.repl.co/content/logo.svg"
         alt="Dry Ground AI Logo" 
         className="h-10 w-10" 
-        style={{ display: 'block' }} 
+        style={{ display: 'block' }}
+        onError={(e) => {
+          console.error('Logo failed to load');
+          e.currentTarget.style.display = 'none';
+        }} 
         onError={(e) => console.error('Logo failed to load:', e)}
       />
       <span className="ml-3 text-xl font-bold text-white whitespace-nowrap">
