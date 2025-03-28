@@ -4,7 +4,7 @@ const Logo = () => {
   return (
     <div className="flex items-center">
       <img 
-        src="/logo.svg"
+        src="/content/storage/v1/objects/public/replit-objstore-ee2842a3-0cf1-4329-a0fa-6b8f18df8752/logo.svg"
         alt="Dry Ground AI Logo" 
         className="h-10 w-10" 
         style={{ display: 'block' }}
