@@ -83,20 +83,23 @@ app.post("/api/contact", async (req, res) => {
 
     // Send webhook notification
     try {
-      await fetch('https://dryground.app.n8n.cloud/webhook-test/e665a01f-c7dd-4700-bae9-4493510fe4b4', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+      await fetch(
+        "https://https://dryground.app.n8n.cloud/webhook/e665a01f-c7dd-4700-bae9-4493510fe4b4",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: savedMessage.id,
+            name: savedMessage.name,
+            email: savedMessage.email,
+            phone: savedMessage.phone,
+            message: savedMessage.message,
+            created_at: savedMessage.created_at,
+          }),
         },
-        body: JSON.stringify({
-          id: savedMessage.id,
-          name: savedMessage.name,
-          email: savedMessage.email,
-          phone: savedMessage.phone,
-          message: savedMessage.message,
-          created_at: savedMessage.created_at
-        })
-      });
+      );
       console.log("Webhook notification sent successfully");
     } catch (webhookError) {
       console.error("Failed to send webhook notification:", webhookError);
