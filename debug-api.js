@@ -29,7 +29,7 @@ async function testContactApi() {
     
     // Try to connect to the health endpoint first
     try {
-      const healthResponse = await fetch('http://0.0.0.0:3001/api/health');
+      const healthResponse = await fetch('http://0.0.0.0:5000/api/health');
       if (healthResponse.ok) {
         const healthData = await healthResponse.json();
         console.log('✅ Server is running. Health check response:', healthData);
