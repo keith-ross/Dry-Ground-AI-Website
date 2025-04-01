@@ -19,6 +19,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "lucide-react": "^0.344.0",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.9",
     "pg": "^8.13.3",
     "react": "^18.3.1",

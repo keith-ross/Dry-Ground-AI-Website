@@ -2,10 +2,10 @@
 import fetch from 'node-fetch';
 
 async function checkServerStatus() {
-  console.log('Checking if server is running on port 5000...');
+  console.log('Checking if server is running on port 3001...');
   
   try {
-    const response = await fetch('http://0.0.0.0:5000/api/health');
+    const response = await fetch('http://0.0.0.0:3001/api/health');
     
     if (response.ok) {
       const data = await response.json();

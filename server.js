@@ -37,7 +37,7 @@ const pool = new Pool({
 })();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 
 // CORS configuration
 app.use(cors());
@@ -130,14 +130,6 @@ if (process.env.NODE_ENV === "production") {
     res.sendFile(path.join(__dirname, "dist", "index.html"));
   });
 }
-
-// Serve static files from the dist directory
-app.use(express.static('dist'));
-
-// Handle all other routes by serving the index.html
-app.get('*', (req, res) => {
-  res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
-});
 
 // Global error handler
 app.use((err, req, res, next) => {
