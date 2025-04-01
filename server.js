@@ -131,6 +131,14 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
+// Serve static files from the dist directory
+app.use(express.static('dist'));
+
+// Handle all other routes by serving the index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
+});
+
 // Global error handler
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
