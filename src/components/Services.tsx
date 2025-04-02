@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brain, LineChart, Database, Code, Users, Shield, Bot, Workflow, Cpu, MessageSquare, Phone, Send } from 'lucide-react';
+import { Brain, LineChart, Database, Code, Users, Shield, Bot, Workflow, Cpu, MessageSquare, Phone, Send, Calendar } from 'lucide-react';
 
 const services = [
   {
@@ -58,6 +58,17 @@ const Services = () => {
           <p className="mt-4 max-w-2xl text-xl text-gray-300 mx-auto">
             Our services are designed to meet you wherever you are on your AI journey, from initial adoption to industry leadership.
           </p>
+          <div className="mt-8">
+            <a
+              href="https://drygroundpartners.com/consultation"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brand-primary hover:bg-brand-secondary transition-colors duration-300"
+            >
+              Schedule a Consultation
+              <Calendar className="ml-2 h-5 w-5" />
+            </a>
+          </div>
         </div>
 
         {/* Maturity path visualization - simplified version */}
@@ -95,7 +106,7 @@ const Services = () => {
             >
               {/* Decorative gradient */}
               <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/5 to-brand-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              
+
               <div className="relative">
                 <div className="flex justify-between items-start mb-4">
                   <div className="p-3 inline-flex items-center justify-center rounded-md bg-brand-darker group-hover:bg-brand-darker/70 transition-colors duration-300">
@@ -119,7 +130,7 @@ const Services = () => {
                     </li>
                   ))}
                 </ul>
-                
+
                 {/* Channel icons for AI Agents & Chatbots */}
                 {index === 0 && (
                   <div className="mt-6 flex space-x-3">

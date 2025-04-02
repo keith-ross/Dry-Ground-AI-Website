@@ -37,6 +37,15 @@ const Hero = () => {
                 Try Our AI Strategizer
               </a>
               <a
+                href="https://drygroundpartners.com/consultation"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brand-accent hover:bg-brand-accent/80 transition-colors duration-300 flex items-center"
+              >
+                Schedule a Call
+                <Calendar className="ml-2 h-4 w-4" />
+              </a>
+              <a
                 href="#services"
                 className="px-6 py-3 border border-gray-700 text-base font-medium rounded-md text-gray-200 hover:bg-brand-dark transition-colors duration-300 flex items-center"
               >
