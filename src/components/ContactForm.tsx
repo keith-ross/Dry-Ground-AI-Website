@@ -15,10 +15,17 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({...prev, [name]: ''})); //clear error on change
   };
 
   const validatePhone = (phone: string) => {
@@ -33,16 +40,31 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    let formErrors = {name: '', email: '', phone: '', message: ''};
+
+    if (!formData.name) {
+      formErrors.name = 'Name is required';
+    }
     if (!validateEmail(formData.email)) {
-      toast.error('Please enter a valid email address');
-      return;
+      formErrors.email = 'Please enter a valid email address';
+    }
+    if (!formData.email) {
+      formErrors.email = 'Email is required';
+    }
+    if (!validatePhone(formData.phone)) {
+      formErrors.phone = 'Please enter a valid phone number (minimum 10 digits)';
+    }
+    if (!formData.phone) {
+      formErrors.phone = 'Phone number is required';
+    }
+    if (!formData.message) {
+      formErrors.message = 'Message is required';
     }
 
-    if (!validatePhone(formData.phone)) {
-      toast.error('Please enter a valid phone number (minimum 10 digits)');
-      return;
-    }
+    setErrors(formErrors);
+
+    if (Object.values(formErrors).some(err => err !== '')) return;
+
 
     setIsSubmitting(true);
 
@@ -51,12 +73,12 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
 
       // Determine if we're in production based on the URL
       const isProduction = window.location.hostname.includes('replit.app');
-      
+
       // In production, use the full URL; in development, use the relative URL
       const apiUrl = isProduction 
         ? `${window.location.origin}/api/contact` 
         : '/api/contact';
-      
+
       console.log('Submitting to:', apiUrl);
 
       const response = await fetch(apiUrl, {
@@ -106,8 +128,9 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
           value={formData.name}
           onChange={handleChange}
           required
-          className="mt-1 block w-full rounded-md bg-gray-800 border border-gray-700 shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm"
+          className={`mt-1 block w-full rounded-md bg-gray-800 border ${errors.name ? 'border-red-500' : 'border-gray-700'} shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm`}
         />
+        {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
       </div>
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-gray-300">
@@ -120,8 +143,9 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
           value={formData.email}
           onChange={handleChange}
           required
-          className="mt-1 block w-full rounded-md bg-gray-800 border border-gray-700 shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm"
+          className={`mt-1 block w-full rounded-md bg-gray-800 border ${errors.email ? 'border-red-500' : 'border-gray-700'} shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm`}
         />
+        {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
       </div>
       <div>
         <label htmlFor="phone" className="block text-sm font-medium text-gray-300">
@@ -134,8 +158,9 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
           value={formData.phone}
           onChange={handleChange}
           required
-          className="mt-1 block w-full rounded-md bg-gray-800 border border-gray-700 shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm"
+          className={`mt-1 block w-full rounded-md bg-gray-800 border ${errors.phone ? 'border-red-500' : 'border-gray-700'} shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm`}
         />
+        {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
       </div>
       <div>
         <label htmlFor="message" className="block text-sm font-medium text-gray-300">
@@ -148,8 +173,9 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
           value={formData.message}
           onChange={handleChange}
           required
-          className="mt-1 block w-full rounded-md bg-gray-800 border border-gray-700 shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm"
+          className={`mt-1 block w-full rounded-md bg-gray-800 border ${errors.message ? 'border-red-500' : 'border-gray-700'} shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm`}
         />
+        {errors.message && <p className="mt-1 text-sm text-red-500">{errors.message}</p>}
       </div>
       <button
         type="submit"
