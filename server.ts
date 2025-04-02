@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import path from 'path';
 import dotenv from 'dotenv';
@@ -34,7 +34,7 @@ const pool = new Pool({
 })();
 
 // Define contact form submission handler
-async function submitContactForm(req, res) {
+async function submitContactForm(req: Request, res: Response) {
   try {
     console.log('Received contact form submission:', req.body);
     
@@ -72,17 +72,8 @@ async function submitContactForm(req, res) {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS configuration
-app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, etc)
-    if (!origin) return callback(null, true);
-    return callback(null, true); // Allow all origins for troubleshooting
-  },
-  methods: ['GET', 'POST', 'OPTIONS'],
-  credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// CORS configuration (simplified from edited code)
+app.use(cors());
 
 // Parse JSON bodies with increased size limit
 app.use(express.json({ limit: '1mb' }));
@@ -99,15 +90,14 @@ app.use((req, res, next) => {
 // API Routes
 app.post('/api/contact', submitContactForm);
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
+// Health check endpoint (simplified from edited code)
+app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Database health check
 app.get('/api/db-health', async (req, res) => {
   try {
-    const { pool } = await import('./src/lib/db');
     const result = await pool.query('SELECT NOW()');
     res.json({ 
       status: 'ok', 
@@ -125,7 +115,7 @@ app.get('/api/db-health', async (req, res) => {
 });
 
 // Global error handler
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('Unhandled error:', err);
 
   if (!res.headersSent) {

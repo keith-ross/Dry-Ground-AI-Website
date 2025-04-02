@@ -1,11 +1,9 @@
-
 /**
  * Development server script
  * Runs both the API server and the frontend dev server
  */
 import dotenv from 'dotenv';
 import { spawn } from 'child_process';
-import fs from 'fs';
 
 // Load environment variables
 dotenv.config();
@@ -17,13 +15,12 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 }
 
-// Function to start a process
+// Function to start a process (simplified from original)
 function startProcess(command, args, name) {
   console.log(`Starting ${name}...`);
 
   const proc = spawn(command, args, {
     stdio: 'inherit',
-    shell: true
   });
 
   proc.on('error', (error) => {
@@ -40,14 +37,21 @@ function startProcess(command, args, name) {
 }
 
 // Start backend API server
-console.log('Starting API server on port 3001...');
-const apiServer = startProcess('npx', ['ts-node', '--esm', 'server.ts'], 'API Server');
+console.log('Starting API server...');
+const apiServer = startProcess('npx', ['ts-node', 'server.ts'], 'API Server');
 
 // Start frontend dev server
 console.log('Starting frontend dev server...');
-const frontendServer = startProcess('npx', ['vite', '--host', '0.0.0.0'], 'Frontend');
+const frontendServer = startProcess('npx', ['vite'], 'Frontend');
 
-// Cleanup on exit
+// Handle process termination (improved from original)
+process.on('SIGTERM', () => {
+  console.log('Shutting down dev environment...');
+  apiServer.kill();
+  frontendServer.kill();
+  process.exit(0);
+});
+
 process.on('SIGINT', () => {
   console.log('Shutting down dev environment...');
   apiServer.kill();
