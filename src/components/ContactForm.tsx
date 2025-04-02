@@ -199,7 +199,10 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
         </form>
       )}
       {isSubmitted && ( // Conditionally render success message
-        <p className="text-green-500">Thank you! Your message has been sent.</p>
+        <div className="bg-brand-dark p-6 rounded-xl border border-gray-700 text-center">
+          <h3 className="text-xl font-semibold text-gray-100 mb-4">Thank you for reaching out!</h3>
+          <p className="text-gray-300">We have received your message and will be in touch soon.</p>
+        </div>
       )}
     </>
   );
