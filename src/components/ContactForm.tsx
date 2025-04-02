@@ -15,6 +15,7 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false); // Added state for submission status
   const [errors, setErrors] = useState({
     name: '',
     email: '',
@@ -93,7 +94,7 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
 
       const data = await response.json().catch(() => null);
       console.log('Response data:', data);
-      
+
       if (response.ok) {
         toast.success(
           data.message || 'Thank you for your message! We will be in contact with you shortly.',
@@ -106,13 +107,7 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
             }
           }
         );
-        // Reset form
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          message: ''
-        });
+        setIsSubmitted(true); // Set submitted to true
       } else {
         toast.error(data?.message || 'Failed to send message. Please try again.');
       }
@@ -125,80 +120,87 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className={`${className} space-y-4`}>
-      <h3 className="text-xl font-semibold text-gray-100">Send Us a Message</h3>
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-300">
-          Name
-        </label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-          className={`mt-1 block w-full rounded-md bg-gray-800 border ${errors.name ? 'border-red-500' : 'border-gray-700'} shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm`}
-        />
-        {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
-      </div>
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-          Email
-        </label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-          className={`mt-1 block w-full rounded-md bg-gray-800 border ${errors.email ? 'border-red-500' : 'border-gray-700'} shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm`}
-        />
-        {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
-      </div>
-      <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-gray-300">
-          Phone Number
-        </label>
-        <input
-          type="tel"
-          id="phone"
-          name="phone"
-          value={formData.phone}
-          onChange={handleChange}
-          required
-          className={`mt-1 block w-full rounded-md bg-gray-800 border ${errors.phone ? 'border-red-500' : 'border-gray-700'} shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm`}
-        />
-        {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
-      </div>
-      <div>
-        <label htmlFor="message" className="block text-sm font-medium text-gray-300">
-          Message
-        </label>
-        <textarea
-          id="message"
-          name="message"
-          rows={4}
-          value={formData.message}
-          onChange={handleChange}
-          required
-          className={`mt-1 block w-full rounded-md bg-gray-800 border ${errors.message ? 'border-red-500' : 'border-gray-700'} shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm`}
-        />
-        {errors.message && <p className="mt-1 text-sm text-red-500">{errors.message}</p>}
-      </div>
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="inline-flex items-center justify-center w-full px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary disabled:opacity-70"
-      >
-        {isSubmitting ? 'Sending...' : (
-          <>
-            <Send className="mr-2 h-4 w-4" />
-            Send Message
-          </>
-        )}
-      </button>
-    </form>
+    <>
+      {!isSubmitted && ( // Conditionally render the form
+        <form onSubmit={handleSubmit} className={`${className} space-y-4`}>
+          <h3 className="text-xl font-semibold text-gray-100">Send Us a Message</h3>
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-300">
+              Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              className={`mt-1 block w-full rounded-md bg-gray-800 border ${errors.name ? 'border-red-500' : 'border-gray-700'} shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm`}
+            />
+            {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
+          </div>
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className={`mt-1 block w-full rounded-md bg-gray-800 border ${errors.email ? 'border-red-500' : 'border-gray-700'} shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm`}
+            />
+            {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
+          </div>
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-300">
+              Phone Number
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              required
+              className={`mt-1 block w-full rounded-md bg-gray-800 border ${errors.phone ? 'border-red-500' : 'border-gray-700'} shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm`}
+            />
+            {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
+          </div>
+          <div>
+            <label htmlFor="message" className="block text-sm font-medium text-gray-300">
+              Message
+            </label>
+            <textarea
+              id="message"
+              name="message"
+              rows={4}
+              value={formData.message}
+              onChange={handleChange}
+              required
+              className={`mt-1 block w-full rounded-md bg-gray-800 border ${errors.message ? 'border-red-500' : 'border-gray-700'} shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm`}
+            />
+            {errors.message && <p className="mt-1 text-sm text-red-500">{errors.message}</p>}
+          </div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="inline-flex items-center justify-center w-full px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary disabled:opacity-70"
+          >
+            {isSubmitting ? 'Sending...' : (
+              <>
+                <Send className="mr-2 h-4 w-4" />
+                Send Message
+              </>
+            )}
+          </button>
+        </form>
+      )}
+      {isSubmitted && ( // Conditionally render success message
+        <p className="text-green-500">Thank you! Your message has been sent.</p>
+      )}
+    </>
   );
 }
