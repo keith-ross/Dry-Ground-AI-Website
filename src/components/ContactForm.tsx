@@ -21,8 +21,29 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const validatePhone = (phone: string) => {
+    const phoneRegex = /^\+?[\d\s-()]{10,}$/;
+    return phoneRegex.test(phone);
+  };
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateEmail(formData.email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    if (!validatePhone(formData.phone)) {
+      toast.error('Please enter a valid phone number (minimum 10 digits)');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {

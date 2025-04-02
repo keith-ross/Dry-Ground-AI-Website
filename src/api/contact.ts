@@ -13,7 +13,25 @@ export async function submitContactForm(req: Request, res: Response) {
       console.error('Missing required fields in contact form submission');
       return res.status(400).json({ 
         success: false, 
-        message: 'Name, email, phone number, and message are required' 
+        message: 'All fields are required' 
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter a valid email address'
+      });
+    }
+
+    // Validate phone format (minimum 10 digits)
+    const phoneRegex = /^\+?[\d\s-()]{10,}$/;
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter a valid phone number (minimum 10 digits)'
       });
     }
     
