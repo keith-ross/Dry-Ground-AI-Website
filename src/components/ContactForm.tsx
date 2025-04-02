@@ -93,8 +93,6 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
 
       const data = await response.json().catch(() => null);
       console.log('Response data:', data);
-
-      const data = await response.json();
       
       if (response.ok) {
         toast.success(
