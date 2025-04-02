@@ -5,13 +5,12 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
   React.useEffect(() => {
-    // Initialize the chatbot script
+    // Initialize AI agent script
     window.VG_CONFIG = {
-      ID: "2uuwikul2u04ke1f", // YOUR AGENT ID
-      region: 'na', // YOUR ACCOUNT REGION 
-      render: 'bottom-right', // can be 'full-width' or 'bottom-left' or 'bottom-right'
+      ID: "2uuwikul2u04ke1f",
+      region: 'na',
+      render: 'bottom-right',
       stylesheets: [
-        // Base TIXAE Agents CSS
         "https://vg-bunny-cdn.b-cdn.net/vg_live_build/styles.css",
       ],
     };
@@ -21,7 +20,6 @@ const Footer = () => {
     VG_SCRIPT.defer = true;
     document.body.appendChild(VG_SCRIPT);
     
-    // Cleanup function to remove the script when component unmounts
     return () => {
       if (document.body.contains(VG_SCRIPT)) {
         document.body.removeChild(VG_SCRIPT);
@@ -36,7 +34,7 @@ const Footer = () => {
           <div className="col-span-1">
             <Logo />
             <p className="mt-4 text-gray-300 max-w-md">
-              We help new SMB owners with chaotic and inefficient operations get more sleep by leveraging AI to fast track stability and clarity.
+              AI Solutions for Small Businesses
             </p>
             <div className="mt-6">
               <a href="mailto:info@dryground.ai" className="text-gray-400 hover:text-brand-primary transition-colors flex items-center">

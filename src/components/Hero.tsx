@@ -20,7 +20,7 @@ const Hero = () => {
               <span className="block">AI Solutions for </span>
               <span className="block text-brand-primary">Small Businesses</span>
             </h1>
-            <p className="mt-6 text-base text-gray-300 sm:text-lg md:text-xl max-w-2xl">
+            <p className="mt-4 text-xl text-gray-300 max-w-3xl">
               We help new SMB owners with chaotic and inefficient operations get more sleep by leveraging AI 
               to fast track stability and clarity. Our solutions turn complexity into strategic advantage.
             </p>
