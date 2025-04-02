@@ -104,7 +104,7 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
       </div>
       <div>
         <label htmlFor="phone" className="block text-sm font-medium text-gray-300">
-          Phone (optional)
+          Phone Number
         </label>
         <input
           type="tel"
@@ -112,6 +112,7 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
           name="phone"
           value={formData.phone}
           onChange={handleChange}
+          required
           className="mt-1 block w-full rounded-md bg-gray-800 border border-gray-700 shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm"
         />
       </div>

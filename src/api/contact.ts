@@ -9,11 +9,11 @@ export async function submitContactForm(req: Request, res: Response) {
     // Validate request body
     const { name, email, phone, message } = req.body;
     
-    if (!name || !email || !message) {
+    if (!name || !email || !phone || !message) {
       console.error('Missing required fields in contact form submission');
       return res.status(400).json({ 
         success: false, 
-        message: 'Name, email, and message are required' 
+        message: 'Name, email, phone number, and message are required' 
       });
     }
     
