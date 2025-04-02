@@ -34,7 +34,7 @@ author = 37597866
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node dev.js"
+args = "node server.js & npx vite"
 
 [[workflows.workflow]]
 name = "Dev"

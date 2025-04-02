@@ -94,9 +94,11 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
       const data = await response.json().catch(() => null);
       console.log('Response data:', data);
 
+      const data = await response.json();
+      
       if (response.ok) {
         toast.success(
-          'Thank you for your message! We will be in contact with you shortly.',
+          data.message || 'Thank you for your message! We will be in contact with you shortly.',
           {
             duration: 5000,
             style: {
