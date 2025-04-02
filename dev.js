@@ -38,7 +38,7 @@ function startProcess(command, args, name) {
 
 // Start backend API server
 console.log('Starting API server...');
-const apiServer = startProcess('npx', ['ts-node', 'server.ts'], 'API Server');
+const apiServer = startProcess('node', ['server.js'], 'API Server');
 
 // Start frontend dev server
 console.log('Starting frontend dev server...');
