@@ -1,21 +1,15 @@
+
 import React from 'react';
 
 const Logo = () => {
   return (
     <div className="flex items-center">
       <img 
-        src="/content/storage/v1/objects/public/replit-objstore-ee2842a3-0cf1-4329-a0fa-6b8f18df8752/logo.svg"
-        alt="Dry Ground AI Logo" 
-        className="h-10 w-10" 
-        style={{ display: 'block' }}
-        onError={(e) => {
-          console.error('Logo failed to load');
-          e.currentTarget.style.display = 'none';
-        }}
+        src="/favicon.svg" 
+        alt="Dry Ground AI"
+        className="h-8 w-auto"
+        style={{ minWidth: '32px' }} // Prevent collapse while loading
       />
-      <span className="ml-3 text-xl font-bold text-white whitespace-nowrap">
-        DRY GROUND <span className="text-[#00B7FF]">AI</span>
-      </span>
     </div>
   );
 };
