@@ -16,7 +16,7 @@ const Hero = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div>
-            <h1 className="font-extrabold tracking-tight text-white text-4xl sm:text-5xl md:text-6xl max-w-3xl leading-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white max-w-3xl leading-tight">
               <span className="block">AI Solutions for </span>
               <span className="block text-brand-primary">Small Businesses</span>
             </h1>
