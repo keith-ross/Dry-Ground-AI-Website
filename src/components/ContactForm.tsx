@@ -95,7 +95,17 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
       console.log('Response data:', data);
 
       if (response.ok) {
-        toast.success('Message sent successfully!');
+        toast.success(
+          'Thank you for your message! We will be in contact with you shortly.',
+          {
+            duration: 5000,
+            style: {
+              background: '#10B981',
+              color: '#fff',
+              padding: '16px',
+            }
+          }
+        );
         // Reset form
         setFormData({
           name: '',
