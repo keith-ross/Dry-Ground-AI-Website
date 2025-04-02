@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Cpu, Network, Zap, BrainCircuit } from 'lucide-react';
+import { ArrowRight, Cpu, Network, Zap, BrainCircuit, Calendar } from 'lucide-react';
 
 const Hero = () => {
   return (
