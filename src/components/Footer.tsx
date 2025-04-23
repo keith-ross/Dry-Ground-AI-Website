@@ -17,41 +17,41 @@ const Footer = () => {
 
       cleanup();
 
-      // Add styles to head with more specific selectors
+      // Add styles before loading widget
       const style = document.createElement('style');
       style.setAttribute('data-elevenlabs', 'true');
       style.textContent = `
-        elevenlabs-convai,
-        elevenlabs-convai * {
-          --watermark-display: none !important;
-        }
-        
-        elevenlabs-convai [class*="watermark"],
+        /* Hide all branding elements */
+        elevenlabs-convai *, 
         elevenlabs-convai [class*="powered"],
         elevenlabs-convai [class*="footer"],
         elevenlabs-convai [class*="branding"],
-        elevenlabs-convai div[class*="powered-by"],
-        elevenlabs-convai div[class*="watermark"],
-        elevenlabs-convai div[class*="footer"],
-        elevenlabs-convai div[class*="branding"],
-        elevenlabs-convai span[class*="powered"],
-        elevenlabs-convai a[href*="elevenlabs.io"],
-        elevenlabs-convai::part(powered-by),
-        elevenlabs-convai::part(watermark),
-        elevenlabs-convai::part(footer),
-        elevenlabs-convai::part(branding) {
+        elevenlabs-convai [class*="watermark"],
+        elevenlabs-convai div[data-testid*="powered"],
+        elevenlabs-convai div[data-testid*="footer"],
+        elevenlabs-convai div[data-testid*="branding"],
+        elevenlabs-convai div[data-testid*="watermark"] {
+          --watermark-display: none !important;
+          --footer-display: none !important;
+          --branding-display: none !important;
+        }
+
+        /* Target absolutely any element containing ElevenLabs text or links */
+        elevenlabs-convai *:has(a[href*="elevenlabs"]),
+        elevenlabs-convai *:has(span:contains("ElevenLabs")),
+        elevenlabs-convai *:has(div:contains("ElevenLabs")),
+        elevenlabs-convai *:has(p:contains("ElevenLabs")) {
           display: none !important;
-          opacity: 0 !important;
           visibility: hidden !important;
-          clip-path: inset(100%) !important;
-          clip: rect(0 0 0 0) !important;
+          opacity: 0 !important;
           height: 0 !important;
           width: 0 !important;
-          margin: 0 !important;
-          padding: 0 !important;
           position: absolute !important;
-          pointer-events: none !important;
           overflow: hidden !important;
+          clip: rect(0 0 0 0) !important;
+          margin: -1px !important;
+          padding: 0 !important;
+          border: 0 !important;
         }
       `;
       document.head.appendChild(style);
@@ -71,19 +71,31 @@ const Footer = () => {
       agent.style.display = 'block';
       container.appendChild(agent);
 
-      // Load script with error handling
-      const script = document.createElement('script');
-      script.src = 'https://elevenlabs.io/convai-widget/index.js';
-      script.async = true;
-      script.type = 'text/javascript';
-      script.onerror = (error) => {
-        console.error('Failed to load ElevenLabs widget script:', error);
+      // Create and load script with better error handling
+      const loadScript = () => {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://elevenlabs.io/convai-widget/index.js';
+          script.async = true;
+          script.type = 'text/javascript';
+          
+          script.onload = resolve;
+          script.onerror = () => {
+            reject(new Error('Failed to load ElevenLabs widget'));
+            cleanup(); // Clean up on error
+          };
+
+          if (!document.querySelector('script[src*="elevenlabs"]')) {
+            document.body.appendChild(script);
+          }
+        });
       };
-      
-      // Only append if not already present
-      if (!document.querySelector('script[src*="elevenlabs"]')) {
-        document.body.appendChild(script);
-      }
+
+      // Load script with retry
+      loadScript().catch(error => {
+        console.error('Error loading widget:', error);
+        setTimeout(loadScript, 2000); // Retry once after 2 seconds
+      });
 
       return () => {
         cleanup();
