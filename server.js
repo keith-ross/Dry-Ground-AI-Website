@@ -5,7 +5,6 @@ import { fileURLToPath } from "url";
 import path from "path";
 import pg from "pg";
 
-// Load environment variables
 dotenv.config();
 
 // Verify critical environment variables
@@ -19,13 +18,10 @@ if (!process.env.DATABASE_URL) {
 const { Pool } = pg;
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl:
-    process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: false }
-      : false,
+  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
 
-// Test database connection
+// Test database connection (from original code)
 (async () => {
   try {
     const client = await pool.connect();
@@ -36,98 +32,52 @@ const pool = new Pool({
   }
 })();
 
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS configuration
 app.use(cors());
-
-// Parse JSON bodies with increased size limit
 app.use(express.json({ limit: "1mb" }));
 
-// Request logging middleware
+// Request logging middleware (modified from original)
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  if (req.method === "POST" && req.body) {
-    console.log("Request body:", JSON.stringify(req.body));
-  }
   next();
 });
 
-// Contact form endpoint
+// API Routes
 app.post("/api/contact", async (req, res) => {
-  console.log("Contact form submission received:", req.body);
-
   try {
-    // Validate request body
     const { name, email, phone, message } = req.body;
-
     if (!name || !email || !message) {
-      console.error("Missing required fields in contact form submission");
       return res.status(400).json({
         success: false,
-        message: "Name, email, and message are required",
+        message: "Name, email, and message are required"
       });
     }
 
-    // Insert into database
     const result = await pool.query(
-      `INSERT INTO contact_messages (name, email, phone, message) 
-       VALUES ($1, $2, $3, $4) 
-       RETURNING *`,
-      [name, email, phone || null, message],
+      `INSERT INTO contact_messages (name, email, phone, message) VALUES ($1, $2, $3, $4) RETURNING *`,
+      [name, email, phone || null, message]
     );
 
-    const savedMessage = result.rows[0];
-    console.log("Contact form submission saved with ID:", savedMessage.id);
-
-    // Send webhook notification
-    try {
-      await fetch(
-        "https://dryground.app.n8n.cloud/webhook/e665a01f-c7dd-4700-bae9-4493510fe4b4",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id: savedMessage.id,
-            name: savedMessage.name,
-            email: savedMessage.email,
-            phone: savedMessage.phone,
-            message: savedMessage.message,
-            created_at: savedMessage.created_at,
-          }),
-        },
-      );
-      console.log("Webhook notification sent successfully");
-    } catch (webhookError) {
-      console.error("Failed to send webhook notification:", webhookError);
-    }
-
-    // Return success response
     return res.status(200).json({
       success: true,
-      message: "Your message has been received. Thank you for contacting us!",
+      message: "Your message has been received. Thank you for contacting us!"
     });
   } catch (error) {
-    console.error("Error saving contact form submission:", error);
+    console.error("Error:", error);
     return res.status(500).json({
       success: false,
-      message:
-        error instanceof Error ? error.message : "Failed to save your message",
+      message: error instanceof Error ? error.message : "Failed to save your message"
     });
   }
 });
 
-// Health check endpoint
 app.get("/api/health", (req, res) => {
-  res
-    .status(200)
-    .json({ status: "ok", environment: process.env.NODE_ENV || "development" });
+  res.status(200).json({ status: "ok", environment: process.env.NODE_ENV || "development" });
 });
 
-// Database health check
 app.get("/api/db-health", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
@@ -146,7 +96,8 @@ app.get("/api/db-health", async (req, res) => {
   }
 });
 
-// Serve static assets in production
+
+// Static file serving for production
 if (process.env.NODE_ENV === "production") {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   app.use(express.static(path.join(__dirname, "dist")));
@@ -156,7 +107,7 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-// Global error handler
+// Global error handler (from original code)
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
 
@@ -173,7 +124,6 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-// Start the server
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://0.0.0.0:${PORT}/api/health`);
@@ -187,7 +137,7 @@ app.listen(PORT, "0.0.0.0", () => {
   );
 });
 
-// Handle process termination
+// Handle process termination (from original code)
 process.on("SIGTERM", () => {
   console.log("SIGTERM received, shutting down gracefully");
   process.exit(0);
