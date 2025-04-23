@@ -34,11 +34,11 @@ author = 37597866
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node server.js"
+args = "node --loader ts-node/esm server.ts"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npx vite --host 0.0.0.0"
+args = "npx vite --host 0.0.0.0 --port 5000"
 
 [[workflows.workflow]]
 name = "Dev"
