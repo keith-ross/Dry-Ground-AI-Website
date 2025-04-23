@@ -94,20 +94,6 @@ const Footer = () => {
           subtree: true
         });
 
-        // Add widget container before script loading
-        const widgetContainer = document.createElement('div');
-        widgetContainer.id = 'elevenlabs-widget';
-        widgetContainer.style.position = 'fixed';
-        widgetContainer.style.bottom = '20px';
-        widgetContainer.style.right = '20px';
-        widgetContainer.style.zIndex = '9999';
-        document.body.appendChild(widgetContainer);
-
-        const agent = document.createElement('elevenlabs-convai');
-        agent.setAttribute('agent-id', 'Zf5qHjvSmfkmqR4p4001');
-        agent.style.display = 'block';
-        widgetContainer.appendChild(agent);
-
         // Create and load script
         const script = document.createElement('script');
         script.src = 'https://elevenlabs.io/convai-widget/index.js';
