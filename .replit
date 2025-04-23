@@ -34,7 +34,7 @@ author = 37597866
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node server.js & npx vite"
+args = "node server.js & VITE_PORT=5000 npx vite --host --port 5000"
 
 [[workflows.workflow]]
 name = "Dev"

@@ -5,54 +5,28 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
   React.useEffect(() => {
-    // Add the agent element directly
-    const agentElement = document.createElement("elevenlabs-convai");
-    agentElement.setAttribute("agent-id", "Zf5qHjvSmfkmqR4p4001");
-    document.body.appendChild(agentElement);
-    
-    // Add style to hide the powered by text
-    const styleElement = document.createElement("style");
-    styleElement.innerText = `
-      .convai-by-elevenlabs {
-        display: none !important;
-      }
-    `;
-    document.head.appendChild(styleElement);
-    
-    // Initialize script
-    const elevenlabsScript = document.createElement("script");
-    elevenlabsScript.src = "https://elevenlabs.io/convai-widget/index.js";
-    elevenlabsScript.async = true;
-    elevenlabsScript.type = "text/javascript";
-    document.body.appendChild(elevenlabsScript);
+    // Remove any existing elements
+    const existingScript = document.querySelector('script[src="https://elevenlabs.io/convai-widget/index.js"]');
+    const existingAgent = document.querySelector('elevenlabs-convai');
+    if (existingScript) existingScript.remove();
+    if (existingAgent) existingAgent.remove();
+
+    // Add the agent element
+    const agent = document.createElement('elevenlabs-convai');
+    agent.setAttribute('agent-id', 'Zf5qHjvSmfkmqR4p4001');
+    document.body.appendChild(agent);
+
+    // Add the script
+    const script = document.createElement('script');
+    script.src = 'https://elevenlabs.io/convai-widget/index.js';
+    script.async = true;
+    script.type = 'text/javascript';
+    document.body.appendChild(script);
 
     return () => {
-      if (document.body.contains(elevenlabsScript)) {
-        document.body.removeChild(elevenlabsScript);
-      }
-      if (document.body.contains(agentElement)) {
-        document.body.removeChild(agentElement);
-      }
-      if (document.head.contains(styleElement)) {
-        document.head.removeChild(styleElement);
-      }
+      if (document.body.contains(script)) document.body.removeChild(script);
+      if (document.body.contains(agent)) document.body.removeChild(agent);
     };
-
-    /* Original AI agent configuration (commented out)
-    window.VG_CONFIG = {
-      ID: "2uuwikul2u04ke1f",
-      region: 'na',
-      render: 'bottom-right',
-      stylesheets: [
-        "https://vg-bunny-cdn.b-cdn.net/vg_live_build/styles.css",
-      ],
-    };
-    
-    const VG_SCRIPT = document.createElement("script");
-    VG_SCRIPT.src = "https://vg-bunny-cdn.b-cdn.net/vg_live_build/vg_bundle.js";
-    VG_SCRIPT.defer = true;
-    document.body.appendChild(VG_SCRIPT);
-    */
   }, []);
 
   return (
@@ -72,7 +46,7 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">
             &copy; {new Date().getFullYear()} Dry Ground AI. All rights reserved.
@@ -83,11 +57,6 @@ const Footer = () => {
             <Link to="/cookie-policy" className="text-gray-400 hover:text-brand-primary text-sm transition-colors">Cookie Policy</Link>
           </div>
         </div>
-      </div>
-      
-      <div style={{ width: 0, height: 0 }} id="VG_OVERLAY_CONTAINER">
-        {/* Here is where TIXAE Agents renders the widget. */}
-        {/* Set render to 'full-width' then adjust the width and height to 500px (for example) to render the chatbot itself without the popup. */}
       </div>
     </footer>
   );
