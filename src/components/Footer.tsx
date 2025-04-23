@@ -2,6 +2,15 @@
 import React from 'react';
 import { Mail } from 'lucide-react';
 import Logo from './Logo';
+
+// Add meta tag for script-src
+React.useEffect(() => {
+  const meta = document.createElement('meta');
+  meta.httpEquiv = 'Content-Security-Policy';
+  meta.content = "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://elevenlabs.io;";
+  document.head.appendChild(meta);
+  return () => meta.remove();
+}, []);
 import { Link } from 'react-router-dom';
 
 const Footer = () => {
@@ -85,16 +94,39 @@ const Footer = () => {
           subtree: true
         });
 
+        // Add widget container before script loading
+        const widgetContainer = document.createElement('div');
+        widgetContainer.id = 'elevenlabs-widget';
+        widgetContainer.style.position = 'fixed';
+        widgetContainer.style.bottom = '20px';
+        widgetContainer.style.right = '20px';
+        widgetContainer.style.zIndex = '9999';
+        document.body.appendChild(widgetContainer);
+
+        const agent = document.createElement('elevenlabs-convai');
+        agent.setAttribute('agent-id', 'Zf5qHjvSmfkmqR4p4001');
+        agent.style.display = 'block';
+        widgetContainer.appendChild(agent);
+
+        // Create and load script
         const script = document.createElement('script');
         script.src = 'https://elevenlabs.io/convai-widget/index.js';
         script.async = true;
-        script.type = 'text/javascript';
+        script.crossOrigin = 'anonymous';
         
-        await new Promise((resolve, reject) => {
-          script.onload = resolve;
-          script.onerror = reject;
-          document.body.appendChild(script);
-        });
+        try {
+          await new Promise((resolve, reject) => {
+            script.onload = resolve;
+            script.onerror = (e) => reject(new Error('Failed to load ElevenLabs widget script'));
+            document.head.appendChild(script);
+          });
+          
+          // Ensure styles are applied after script loads
+          setTimeout(applyStyles, 500);
+        } catch (error) {
+          console.error('Failed to load ElevenLabs widget script:', error);
+          cleanup();
+        }
 
         setTimeout(applyStyles, 1000);
       };
