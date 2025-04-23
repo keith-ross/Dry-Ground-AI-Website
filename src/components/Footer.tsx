@@ -12,9 +12,19 @@ const Footer = () => {
     elevenlabsScript.type = "text/javascript";
     document.body.appendChild(elevenlabsScript);
 
-    // Add the agent element
+    // Add the agent element with custom styling
     const agentElement = document.createElement("elevenlabs-convai");
     agentElement.setAttribute("agent-id", "Zf5qHjvSmfkmqR4p4001");
+    
+    // Add style to hide the powered by text
+    const styleElement = document.createElement("style");
+    styleElement.textContent = `
+      elevenlabs-convai::part(powered-by) {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(styleElement);
+    
     document.body.appendChild(agentElement);
 
     return () => {
