@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Mail } from 'lucide-react';
 import Logo from './Logo';
@@ -5,16 +6,29 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
   React.useEffect(() => {
-    // Remove any existing elements
-    const existingScript = document.querySelector('script[src="https://elevenlabs.io/convai-widget/index.js"]');
-    const existingAgent = document.querySelector('elevenlabs-convai');
-    if (existingScript) existingScript.remove();
-    if (existingAgent) existingAgent.remove();
+    // Remove any existing elements first
+    document.querySelectorAll('elevenlabs-convai').forEach(el => el.remove());
+    document.querySelectorAll('script[src*="elevenlabs"]').forEach(el => el.remove());
+
+    // Create and insert style to hide branding
+    const style = document.createElement('style');
+    style.textContent = `
+      .convai-by-elevenlabs,
+      elevenlabs-convai::part(powered-by) {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Add widget container
+    const container = document.createElement('div');
+    container.id = 'elevenlabs-widget';
+    document.body.appendChild(container);
 
     // Add the agent element
     const agent = document.createElement('elevenlabs-convai');
     agent.setAttribute('agent-id', 'Zf5qHjvSmfkmqR4p4001');
-    document.body.appendChild(agent);
+    container.appendChild(agent);
 
     // Add the script
     const script = document.createElement('script');
@@ -24,8 +38,9 @@ const Footer = () => {
     document.body.appendChild(script);
 
     return () => {
-      if (document.body.contains(script)) document.body.removeChild(script);
-      if (document.body.contains(agent)) document.body.removeChild(agent);
+      container.remove();
+      style.remove();
+      script.remove();
     };
   }, []);
 
