@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 const Footer = () => {
   React.useEffect(() => {
     try {
-      // Cleanup any existing elements
+      // Cleanup function
       const cleanup = () => {
         document.querySelectorAll('elevenlabs-convai').forEach(el => el.remove());
         document.querySelectorAll('script[src*="elevenlabs"]').forEach(el => el.remove());
@@ -17,33 +17,41 @@ const Footer = () => {
 
       cleanup();
 
-      // Add styles to head
+      // Add styles to head with more specific selectors
       const style = document.createElement('style');
       style.setAttribute('data-elevenlabs', 'true');
       style.textContent = `
-        /* Target elements with specific class names */
-        [class*="footer"],
-        [class*="branding"],
-        [class*="powered"],
-        .convai-by-elevenlabs,
-        elevenlabs-convai::part(powered-by),
-        /* Target specific elements containing branding text */
-        div:has(span:contains("Powered by ElevenLabs")),
-        div:has(a[href*="elevenlabs.io"]),
-        /* Target direct elements */
+        elevenlabs-convai,
+        elevenlabs-convai * {
+          --watermark-display: none !important;
+        }
+        
+        elevenlabs-convai [class*="watermark"],
+        elevenlabs-convai [class*="powered"],
+        elevenlabs-convai [class*="footer"],
+        elevenlabs-convai [class*="branding"],
         elevenlabs-convai div[class*="powered-by"],
         elevenlabs-convai div[class*="watermark"],
         elevenlabs-convai div[class*="footer"],
-        elevenlabs-convai div[class*="branding"] {
+        elevenlabs-convai div[class*="branding"],
+        elevenlabs-convai span[class*="powered"],
+        elevenlabs-convai a[href*="elevenlabs.io"],
+        elevenlabs-convai::part(powered-by),
+        elevenlabs-convai::part(watermark),
+        elevenlabs-convai::part(footer),
+        elevenlabs-convai::part(branding) {
           display: none !important;
           opacity: 0 !important;
           visibility: hidden !important;
-          pointer-events: none !important;
+          clip-path: inset(100%) !important;
+          clip: rect(0 0 0 0) !important;
           height: 0 !important;
           width: 0 !important;
+          margin: 0 !important;
+          padding: 0 !important;
           position: absolute !important;
+          pointer-events: none !important;
           overflow: hidden !important;
-          clip: rect(0 0 0 0) !important;
         }
       `;
       document.head.appendChild(style);
@@ -63,12 +71,19 @@ const Footer = () => {
       agent.style.display = 'block';
       container.appendChild(agent);
 
-      // Load script
+      // Load script with error handling
       const script = document.createElement('script');
       script.src = 'https://elevenlabs.io/convai-widget/index.js';
       script.async = true;
       script.type = 'text/javascript';
-      document.body.appendChild(script);
+      script.onerror = (error) => {
+        console.error('Failed to load ElevenLabs widget script:', error);
+      };
+      
+      // Only append if not already present
+      if (!document.querySelector('script[src*="elevenlabs"]')) {
+        document.body.appendChild(script);
+      }
 
       return () => {
         cleanup();
