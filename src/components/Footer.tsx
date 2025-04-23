@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Mail } from 'lucide-react';
 import Logo from './Logo';
@@ -7,87 +8,83 @@ const Footer = () => {
   React.useEffect(() => {
     let observer: MutationObserver | null = null;
     
-    const applyStyles = () => {
-      const style = document.createElement('style');
-      style.setAttribute('data-elevenlabs', 'true');
-      style.textContent = `
-        /* Hide all branding elements */
-        elevenlabs-convai [class*="footer"],
-        elevenlabs-convai [class*="branding"],
-        elevenlabs-convai [class*="powered"],
-        elevenlabs-convai div:has(> span:contains("Powered by ElevenLabs")),
-        elevenlabs-convai div:has(> a[href*="elevenlabs.io"]),
-        elevenlabs-convai::part(footer),
-        elevenlabs-convai::part(branding),
-        elevenlabs-convai::part(powered-by),
-        elevenlabs-convai::part(watermark),
-        elevenlabs-convai div[class*="powered-by"],
-        elevenlabs-convai div[class*="watermark"],
-        elevenlabs-convai div[class*="footer"],
-        elevenlabs-convai div[class*="branding"] {
-          display: none !important;
-          visibility: hidden !important;
-          opacity: 0 !important;
-          height: 0 !important;
-          padding: 0 !important;
-          margin: 0 !important;
-          width: 0 !important;
-          position: absolute !important;
-          overflow: hidden !important;
-          clip: rect(0 0 0 0) !important;
-          pointer-events: none !important;
-        }
-      `;
-      document.head.appendChild(style);
-    };
-
-    const cleanup = () => {
-      if (observer) {
-        observer.disconnect();
-        observer = null;
-      }
-      document.querySelectorAll('elevenlabs-convai').forEach(el => el.remove());
-      document.querySelectorAll('script[src*="elevenlabs"]').forEach(el => el.remove());
-      document.querySelectorAll('style[data-elevenlabs]').forEach(el => el.remove());
-      const existingContainer = document.getElementById('elevenlabs-widget');
-      if (existingContainer) existingContainer.remove();
-    };
-
-    const initializeWidget = async () => {
-      cleanup();
-      applyStyles();
-
-      // Create container
-      const container = document.createElement('div');
-      container.id = 'elevenlabs-widget';
-      container.style.position = 'fixed';
-      container.style.bottom = '20px';
-      container.style.right = '20px';
-      container.style.zIndex = '9999';
-      document.body.appendChild(container);
-
-      // Add agent
-      const agent = document.createElement('elevenlabs-convai');
-      agent.setAttribute('agent-id', 'Zf5qHjvSmfkmqR4p4001');
-      agent.style.display = 'block';
-      container.appendChild(agent);
-
-      // Observe DOM for widget elements
-      observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          if (mutation.addedNodes.length) {
-            applyStyles();
+    try {
+      const applyStyles = () => {
+        const style = document.createElement('style');
+        style.setAttribute('data-elevenlabs', 'true');
+        style.textContent = `
+          /* Hide all branding elements */
+          elevenlabs-convai [class*="footer"],
+          elevenlabs-convai [class*="branding"],
+          elevenlabs-convai [class*="powered"],
+          elevenlabs-convai div:has(> span:contains("Powered by ElevenLabs")),
+          elevenlabs-convai div:has(> a[href*="elevenlabs.io"]),
+          elevenlabs-convai::part(footer),
+          elevenlabs-convai::part(branding),
+          elevenlabs-convai::part(powered-by),
+          elevenlabs-convai::part(watermark),
+          elevenlabs-convai div[class*="powered-by"],
+          elevenlabs-convai div[class*="watermark"],
+          elevenlabs-convai div[class*="footer"],
+          elevenlabs-convai div[class*="branding"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 0 !important;
+            position: absolute !important;
+            overflow: hidden !important;
+            clip: rect(0 0 0 0) !important;
+            pointer-events: none !important;
           }
+        `;
+        document.head.appendChild(style);
+      };
+
+      const cleanup = () => {
+        if (observer) {
+          observer.disconnect();
+          observer = null;
+        }
+        document.querySelectorAll('elevenlabs-convai').forEach(el => el.remove());
+        document.querySelectorAll('script[src*="elevenlabs"]').forEach(el => el.remove());
+        document.querySelectorAll('style[data-elevenlabs]').forEach(el => el.remove());
+        const existingContainer = document.getElementById('elevenlabs-widget');
+        if (existingContainer) existingContainer.remove();
+      };
+
+      const initializeWidget = async () => {
+        cleanup();
+        applyStyles();
+
+        const container = document.createElement('div');
+        container.id = 'elevenlabs-widget';
+        container.style.position = 'fixed';
+        container.style.bottom = '20px';
+        container.style.right = '20px';
+        container.style.zIndex = '9999';
+        document.body.appendChild(container);
+
+        const agent = document.createElement('elevenlabs-convai');
+        agent.setAttribute('agent-id', 'Zf5qHjvSmfkmqR4p4001');
+        agent.style.display = 'block';
+        container.appendChild(agent);
+
+        observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.addedNodes.length) {
+              applyStyles();
+            }
+          });
         });
-      });
 
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
 
-      // Load widget script
-      try {
         const script = document.createElement('script');
         script.src = 'https://elevenlabs.io/convai-widget/index.js';
         script.async = true;
@@ -99,19 +96,14 @@ const Footer = () => {
           document.body.appendChild(script);
         });
 
-        // Re-apply styles after script loads
         setTimeout(applyStyles, 1000);
-      } catch (error) {
-        console.error('Failed to load ElevenLabs widget:', error);
-        cleanup();
-      }
-    };
+      };
 
-    initializeWidget();
-
-    return cleanup;
+      initializeWidget();
+      return cleanup;
     } catch (error) {
       console.error("Error loading ElevenLabs widget:", error);
+      return () => {};
     }
   }, []);
 
