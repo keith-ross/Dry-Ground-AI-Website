@@ -5,7 +5,28 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
   React.useEffect(() => {
-    // Initialize AI agent script
+    // Initialize new AI agent
+    const elevenlabsScript = document.createElement("script");
+    elevenlabsScript.src = "https://elevenlabs.io/convai-widget/index.js";
+    elevenlabsScript.async = true;
+    elevenlabsScript.type = "text/javascript";
+    document.body.appendChild(elevenlabsScript);
+
+    // Add the agent element
+    const agentElement = document.createElement("elevenlabs-convai");
+    agentElement.setAttribute("agent-id", "Zf5qHjvSmfkmqR4p4001");
+    document.body.appendChild(agentElement);
+
+    return () => {
+      if (document.body.contains(elevenlabsScript)) {
+        document.body.removeChild(elevenlabsScript);
+      }
+      if (document.body.contains(agentElement)) {
+        document.body.removeChild(agentElement);
+      }
+    };
+
+    /* Original AI agent configuration (commented out)
     window.VG_CONFIG = {
       ID: "2uuwikul2u04ke1f",
       region: 'na',
@@ -19,12 +40,7 @@ const Footer = () => {
     VG_SCRIPT.src = "https://vg-bunny-cdn.b-cdn.net/vg_live_build/vg_bundle.js";
     VG_SCRIPT.defer = true;
     document.body.appendChild(VG_SCRIPT);
-    
-    return () => {
-      if (document.body.contains(VG_SCRIPT)) {
-        document.body.removeChild(VG_SCRIPT);
-      }
-    };
+    */
   }, []);
 
   return (
