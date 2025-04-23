@@ -5,19 +5,9 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
   React.useEffect(() => {
-    try {
-      // Cleanup function
-      const cleanup = () => {
-        document.querySelectorAll('elevenlabs-convai').forEach(el => el.remove());
-        document.querySelectorAll('script[src*="elevenlabs"]').forEach(el => el.remove());
-        document.querySelectorAll('style[data-elevenlabs]').forEach(el => el.remove());
-        const existingContainer = document.getElementById('elevenlabs-widget');
-        if (existingContainer) existingContainer.remove();
-      };
-
-      cleanup();
-
-      // Add styles before loading widget
+    let observer: MutationObserver | null = null;
+    
+    const applyStyles = () => {
       const style = document.createElement('style');
       style.setAttribute('data-elevenlabs', 'true');
       style.textContent = `
@@ -49,6 +39,23 @@ const Footer = () => {
         }
       `;
       document.head.appendChild(style);
+    };
+
+    const cleanup = () => {
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+      document.querySelectorAll('elevenlabs-convai').forEach(el => el.remove());
+      document.querySelectorAll('script[src*="elevenlabs"]').forEach(el => el.remove());
+      document.querySelectorAll('style[data-elevenlabs]').forEach(el => el.remove());
+      const existingContainer = document.getElementById('elevenlabs-widget');
+      if (existingContainer) existingContainer.remove();
+    };
+
+    const initializeWidget = async () => {
+      cleanup();
+      applyStyles();
 
       // Create container
       const container = document.createElement('div');
@@ -65,35 +72,44 @@ const Footer = () => {
       agent.style.display = 'block';
       container.appendChild(agent);
 
-      // Create and load script with better error handling
-      const loadScript = () => {
-        return new Promise((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = 'https://elevenlabs.io/convai-widget/index.js';
-          script.async = true;
-          script.type = 'text/javascript';
-
-          script.onload = resolve;
-          script.onerror = () => {
-            reject(new Error('Failed to load ElevenLabs widget'));
-            cleanup(); // Clean up on error
-          };
-
-          if (!document.querySelector('script[src*="elevenlabs"]')) {
-            document.body.appendChild(script);
+      // Observe DOM for widget elements
+      observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.addedNodes.length) {
+            applyStyles();
           }
         });
-      };
-
-      // Load script with retry
-      loadScript().catch(error => {
-        console.error('Error loading widget:', error);
-        setTimeout(loadScript, 2000); // Retry once after 2 seconds
       });
 
-      return () => {
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+
+      // Load widget script
+      try {
+        const script = document.createElement('script');
+        script.src = 'https://elevenlabs.io/convai-widget/index.js';
+        script.async = true;
+        script.type = 'text/javascript';
+        
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = reject;
+          document.body.appendChild(script);
+        });
+
+        // Re-apply styles after script loads
+        setTimeout(applyStyles, 1000);
+      } catch (error) {
+        console.error('Failed to load ElevenLabs widget:', error);
         cleanup();
-      };
+      }
+    };
+
+    initializeWidget();
+
+    return cleanup;
     } catch (error) {
       console.error("Error loading ElevenLabs widget:", error);
     }
