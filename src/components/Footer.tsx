@@ -21,14 +21,29 @@ const Footer = () => {
       const style = document.createElement('style');
       style.setAttribute('data-elevenlabs', 'true');
       style.textContent = `
+        /* Target elements with specific class names */
+        [class*="footer"],
+        [class*="branding"],
+        [class*="powered"],
         .convai-by-elevenlabs,
         elevenlabs-convai::part(powered-by),
+        /* Target specific elements containing branding text */
+        div:has(span:contains("Powered by ElevenLabs")),
+        div:has(a[href*="elevenlabs.io"]),
+        /* Target direct elements */
         elevenlabs-convai div[class*="powered-by"],
-        elevenlabs-convai div[class*="watermark"] {
+        elevenlabs-convai div[class*="watermark"],
+        elevenlabs-convai div[class*="footer"],
+        elevenlabs-convai div[class*="branding"] {
           display: none !important;
           opacity: 0 !important;
           visibility: hidden !important;
           pointer-events: none !important;
+          height: 0 !important;
+          width: 0 !important;
+          position: absolute !important;
+          overflow: hidden !important;
+          clip: rect(0 0 0 0) !important;
         }
       `;
       document.head.appendChild(style);
