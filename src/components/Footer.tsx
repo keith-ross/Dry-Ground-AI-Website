@@ -5,27 +5,26 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
   React.useEffect(() => {
-    // Initialize new AI agent
-    const elevenlabsScript = document.createElement("script");
-    elevenlabsScript.src = "https://elevenlabs.io/convai-widget/index.js";
-    elevenlabsScript.async = true;
-    elevenlabsScript.type = "text/javascript";
-    document.body.appendChild(elevenlabsScript);
-
-    // Add the agent element with custom styling
+    // Add the agent element directly
     const agentElement = document.createElement("elevenlabs-convai");
     agentElement.setAttribute("agent-id", "Zf5qHjvSmfkmqR4p4001");
+    document.body.appendChild(agentElement);
     
     // Add style to hide the powered by text
     const styleElement = document.createElement("style");
-    styleElement.textContent = `
-      elevenlabs-convai::part(powered-by) {
+    styleElement.innerText = `
+      .convai-by-elevenlabs {
         display: none !important;
       }
     `;
     document.head.appendChild(styleElement);
     
-    document.body.appendChild(agentElement);
+    // Initialize script
+    const elevenlabsScript = document.createElement("script");
+    elevenlabsScript.src = "https://elevenlabs.io/convai-widget/index.js";
+    elevenlabsScript.async = true;
+    elevenlabsScript.type = "text/javascript";
+    document.body.appendChild(elevenlabsScript);
 
     return () => {
       if (document.body.contains(elevenlabsScript)) {
@@ -33,6 +32,9 @@ const Footer = () => {
       }
       if (document.body.contains(agentElement)) {
         document.body.removeChild(agentElement);
+      }
+      if (document.head.contains(styleElement)) {
+        document.head.removeChild(styleElement);
       }
     };
 
