@@ -21,38 +21,31 @@ const Footer = () => {
       const style = document.createElement('style');
       style.setAttribute('data-elevenlabs', 'true');
       style.textContent = `
-        /* Target shadow DOM */
-        elevenlabs-convai::part(footer),
-        elevenlabs-convai::part(branding),
-        elevenlabs-convai::part(powered-by),
-        elevenlabs-convai::part(watermark) {
-          display: none !important;
-        }
-
-        /* Target direct elements */
+        /* Hide all branding elements */
         elevenlabs-convai [class*="footer"],
         elevenlabs-convai [class*="branding"],
         elevenlabs-convai [class*="powered"],
-        elevenlabs-convai [class*="watermark"],
-        elevenlabs-convai [data-testid*="footer"],
-        elevenlabs-convai [data-testid*="branding"],
-        elevenlabs-convai [data-testid*="powered"],
-        elevenlabs-convai [data-testid*="watermark"] {
+        elevenlabs-convai div:has(> span:contains("Powered by ElevenLabs")),
+        elevenlabs-convai div:has(> a[href*="elevenlabs.io"]),
+        elevenlabs-convai::part(footer),
+        elevenlabs-convai::part(branding),
+        elevenlabs-convai::part(powered-by),
+        elevenlabs-convai::part(watermark),
+        elevenlabs-convai div[class*="powered-by"],
+        elevenlabs-convai div[class*="watermark"],
+        elevenlabs-convai div[class*="footer"],
+        elevenlabs-convai div[class*="branding"] {
           display: none !important;
           visibility: hidden !important;
           opacity: 0 !important;
           height: 0 !important;
+          padding: 0 !important;
+          margin: 0 !important;
           width: 0 !important;
           position: absolute !important;
+          overflow: hidden !important;
+          clip: rect(0 0 0 0) !important;
           pointer-events: none !important;
-          z-index: -9999 !important;
-        }
-
-        /* Target any element containing ElevenLabs text */
-        elevenlabs-convai *:has(a[href*="elevenlabs.io"]),
-        elevenlabs-convai *:has(span:contains("ElevenLabs")),
-        elevenlabs-convai *:has(div:contains("ElevenLabs")) {
-          display: none !important;
         }
       `;
       document.head.appendChild(style);
