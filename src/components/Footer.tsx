@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Mail } from 'lucide-react';
 import Logo from './Logo';
@@ -6,42 +5,62 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
   React.useEffect(() => {
-    // Remove any existing elements first
-    document.querySelectorAll('elevenlabs-convai').forEach(el => el.remove());
-    document.querySelectorAll('script[src*="elevenlabs"]').forEach(el => el.remove());
+    try {
+      // Cleanup any existing elements
+      const cleanup = () => {
+        document.querySelectorAll('elevenlabs-convai').forEach(el => el.remove());
+        document.querySelectorAll('script[src*="elevenlabs"]').forEach(el => el.remove());
+        document.querySelectorAll('style[data-elevenlabs]').forEach(el => el.remove());
+        const existingContainer = document.getElementById('elevenlabs-widget');
+        if (existingContainer) existingContainer.remove();
+      };
 
-    // Create and insert style to hide branding
-    const style = document.createElement('style');
-    style.textContent = `
-      .convai-by-elevenlabs,
-      elevenlabs-convai::part(powered-by) {
-        display: none !important;
-      }
-    `;
-    document.head.appendChild(style);
+      cleanup();
 
-    // Add widget container
-    const container = document.createElement('div');
-    container.id = 'elevenlabs-widget';
-    document.body.appendChild(container);
+      // Add styles to head
+      const style = document.createElement('style');
+      style.setAttribute('data-elevenlabs', 'true');
+      style.textContent = `
+        .convai-by-elevenlabs,
+        elevenlabs-convai::part(powered-by),
+        elevenlabs-convai div[class*="powered-by"],
+        elevenlabs-convai div[class*="watermark"] {
+          display: none !important;
+          opacity: 0 !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+        }
+      `;
+      document.head.appendChild(style);
 
-    // Add the agent element
-    const agent = document.createElement('elevenlabs-convai');
-    agent.setAttribute('agent-id', 'Zf5qHjvSmfkmqR4p4001');
-    container.appendChild(agent);
+      // Create container
+      const container = document.createElement('div');
+      container.id = 'elevenlabs-widget';
+      container.style.position = 'fixed';
+      container.style.bottom = '20px';
+      container.style.right = '20px';
+      container.style.zIndex = '9999';
+      document.body.appendChild(container);
 
-    // Add the script
-    const script = document.createElement('script');
-    script.src = 'https://elevenlabs.io/convai-widget/index.js';
-    script.async = true;
-    script.type = 'text/javascript';
-    document.body.appendChild(script);
+      // Add agent
+      const agent = document.createElement('elevenlabs-convai');
+      agent.setAttribute('agent-id', 'Zf5qHjvSmfkmqR4p4001');
+      agent.style.display = 'block';
+      container.appendChild(agent);
 
-    return () => {
-      container.remove();
-      style.remove();
-      script.remove();
-    };
+      // Load script
+      const script = document.createElement('script');
+      script.src = 'https://elevenlabs.io/convai-widget/index.js';
+      script.async = true;
+      script.type = 'text/javascript';
+      document.body.appendChild(script);
+
+      return () => {
+        cleanup();
+      };
+    } catch (error) {
+      console.error("Error loading ElevenLabs widget:", error);
+    }
   }, []);
 
   return (
