@@ -10,7 +10,7 @@ deploymentTarget = "cloudrun"
 build = ["sh", "-c", "npm run build"]
 
 [workflows]
-runButton = "Run API Server"
+runButton = "Dev Server"
 
 [[workflows.workflow]]
 name = "Start App"
@@ -34,7 +34,11 @@ author = 37597866
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node server.js & npx vite"
+args = "node server.js"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npx vite --host 0.0.0.0"
 
 [[workflows.workflow]]
 name = "Dev"
