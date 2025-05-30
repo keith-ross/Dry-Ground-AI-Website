@@ -11,7 +11,8 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
     name: '',
     email: '',
     phone: '',
-    message: ''
+    message: '',
+    smsConsent: false
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,13 +21,14 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
     name: '',
     email: '',
     phone: '',
-    message: ''
+    message: '',
+    smsConsent: ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
     setErrors(prev => ({...prev, [name]: ''})); //clear error on change
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const validatePhone = (phone: string) => {
@@ -41,7 +43,7 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    let formErrors = {name: '', email: '', phone: '', message: ''};
+    let formErrors = {name: '', email: '', phone: '', message: '', smsConsent: ''};
 
     if (!formData.name) {
       formErrors.name = 'Name is required';
@@ -60,6 +62,9 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
     }
     if (!formData.message) {
       formErrors.message = 'Message is required';
+    }
+    if (!formData.smsConsent) {
+      formErrors.smsConsent = 'You must consent to receive communications via SMS, email, and phone';
     }
 
     setErrors(formErrors);
@@ -183,6 +188,28 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
               className={`mt-1 block w-full rounded-md bg-gray-800 border ${errors.message ? 'border-red-500' : 'border-gray-700'} shadow-sm py-2 px-3 text-gray-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm`}
             />
             {errors.message && <p className="mt-1 text-sm text-red-500">{errors.message}</p>}
+          </div>
+          <div className="flex items-start">
+            <div className="flex items-center h-5">
+              <input
+                type="checkbox"
+                id="communicationConsent"
+                name="smsConsent"
+                checked={formData.smsConsent}
+                onChange={handleChange}
+                className="focus:ring-brand-primary h-4 w-4 text-brand-primary border-gray-700 rounded bg-gray-800"
+              />
+            </div>
+            <div className="ml-3 text-sm">
+              <label htmlFor="communicationConsent" className="ml-3 text-sm text-gray-300">
+                <span className="font-medium">Communication Consent Required:</span> By checking this box, I consent to receive communications from Dry Ground AI via SMS text messages, email, and phone calls at the contact information provided. 
+                I understand that message and data rates may apply for SMS communications, and I can opt out at any time by replying STOP to text messages, unsubscribing from emails, or requesting removal from phone communications. 
+                Communication frequency varies by method. For SMS help, reply HELP. 
+                <a href="/privacy-policy" className="text-brand-primary hover:text-brand-accent underline">Privacy Policy</a> and 
+                <a href="/terms-of-service" className="text-brand-primary hover:text-brand-accent underline ml-1">Terms of Service</a> apply.
+              </label>
+              {errors.smsConsent && <p className="mt-1 text-red-500">{errors.smsConsent}</p>}
+            </div>
           </div>
           <button
             type="submit"
