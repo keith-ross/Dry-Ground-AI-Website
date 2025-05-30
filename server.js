@@ -60,9 +60,9 @@ app.post("/api/contact", async (req, res) => {
 
   try {
     // Validate request body
-    const { name, email, phone, message } = req.body;
+    const { name, email, phone, message, smsConsent } = req.body;
 
-    if (!name || !email || !message) {
+    if (!name || !email || !message || !smsConsent) {
       console.error("Missing required fields in contact form submission");
       return res.status(400).json({
         success: false,
@@ -70,12 +70,20 @@ app.post("/api/contact", async (req, res) => {
       });
     }
 
+    // Validate consent
+    if (smsConsent !== true) {
+      return res.status(400).json({
+        success: false,
+        message: "Communication consent is required",
+      });
+    }
+
     // Insert into database
     const result = await pool.query(
-      `INSERT INTO contact_messages (name, email, phone, message) 
-       VALUES ($1, $2, $3, $4) 
+      `INSERT INTO contact_messages (name, email, phone, message, communication_consent) 
+       VALUES ($1, $2, $3, $4, $5) 
        RETURNING *`,
-      [name, email, phone || null, message],
+      [name, email, phone || null, message, smsConsent],
     );
 
     const savedMessage = result.rows[0];
@@ -96,6 +104,7 @@ app.post("/api/contact", async (req, res) => {
             email: savedMessage.email,
             phone: savedMessage.phone,
             message: savedMessage.message,
+            communication_consent: savedMessage.communication_consent,
             created_at: savedMessage.created_at,
           }),
         },

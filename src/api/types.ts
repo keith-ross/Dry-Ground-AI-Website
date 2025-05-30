@@ -7,6 +7,7 @@ export interface ContactFormData {
   email: string;
   phone?: string;
   message: string;
+  smsConsent: boolean;
 }
 
 /**

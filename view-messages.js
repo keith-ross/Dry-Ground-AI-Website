@@ -1,4 +1,3 @@
-
 import pg from 'pg';
 import dotenv from 'dotenv';
 const { Pool } = pg;
@@ -16,8 +15,10 @@ async function viewMessages() {
     const client = await pool.connect();
     try {
       console.log('Fetching contact messages...');
-      const result = await client.query('SELECT * FROM contact_messages ORDER BY created_at DESC');
-      
+      const result = await client.query(
+      'SELECT id, name, email, phone, message, communication_consent, created_at FROM contact_messages ORDER BY created_at DESC'
+    );
+
       if (result.rows.length === 0) {
         console.log('No messages found in the database.');
       } else {
@@ -29,6 +30,7 @@ async function viewMessages() {
           console.log(`Email: ${row.email}`);
           console.log(`Phone: ${row.phone || 'Not provided'}`);
           console.log(`Message: ${row.message}`);
+          console.log(`Communication Consent: ${row.communication_consent ? 'Yes' : 'No'}`);
           console.log(`Date: ${row.created_at}`);
         });
       }
