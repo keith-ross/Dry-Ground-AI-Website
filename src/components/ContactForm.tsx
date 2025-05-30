@@ -49,17 +49,15 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
     if (!formData.name) {
       formErrors.name = 'Name is required';
     }
-    if (!validateEmail(formData.email)) {
-      formErrors.email = 'Please enter a valid email address';
-    }
     if (!formData.email) {
       formErrors.email = 'Email is required';
-    }
-    if (!validatePhone(formData.phone)) {
-      formErrors.phone = 'Please enter a valid phone number (minimum 10 digits)';
+    } else if (!validateEmail(formData.email)) {
+      formErrors.email = 'Please enter a valid email address';
     }
     if (!formData.phone) {
       formErrors.phone = 'Phone number is required';
+    } else if (!validatePhone(formData.phone)) {
+      formErrors.phone = 'Please enter a valid phone number (minimum 10 digits)';
     }
     if (!formData.message) {
       formErrors.message = 'Message is required';
@@ -72,28 +70,23 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
 
     if (Object.values(formErrors).some(err => err !== '')) return;
 
-
     setIsSubmitting(true);
 
     try {
       console.log('Sending form data: ', formData);
 
-      // Determine if we're in production based on the URL
-      const isProduction = window.location.hostname.includes('replit.app');
-
-      // In production, use the full URL; in development, use the relative URL
-      const apiUrl = isProduction 
-        ? `${window.location.origin}/api/contact` 
-        : '/api/contact';
-
-      console.log('Submitting to:', apiUrl);
-
-      const response = await fetch(apiUrl, {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          message: formData.message,
+          smsConsent: formData.smsConsent
+        })
       });
 
       console.log('Response status:', response.status);
