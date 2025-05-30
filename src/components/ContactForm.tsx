@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
-import { Send } from 'lucide-react';
+import { Send, X } from 'lucide-react';
 
 interface ContactFormProps {
   className?: string;
@@ -17,6 +17,7 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false); // Added state for submission status
+  const [showConsentModal, setShowConsentModal] = useState(false);
   const [errors, setErrors] = useState({
     name: '',
     email: '',
@@ -189,27 +190,31 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
             />
             {errors.message && <p className="mt-1 text-sm text-red-500">{errors.message}</p>}
           </div>
-          <div className="flex items-start">
-            <div className="flex items-center h-5">
+          <div className="space-y-3">
+            <div className="flex items-start">
               <input
                 type="checkbox"
                 id="communicationConsent"
                 name="smsConsent"
                 checked={formData.smsConsent}
                 onChange={handleChange}
-                className="focus:ring-brand-primary h-4 w-4 text-brand-primary border-gray-700 rounded bg-gray-800"
+                required
+                className="mt-1 h-4 w-4 text-brand-primary bg-gray-800 border-gray-700 rounded focus:ring-brand-primary focus:ring-2"
               />
+              <div className="ml-3 text-sm">
+                <label htmlFor="communicationConsent" className="text-gray-300">
+                  <span className="font-medium">I consent to receive communications via SMS, email, and phone calls.</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowConsentModal(true)}
+                    className="ml-2 text-brand-primary hover:text-brand-accent underline"
+                  >
+                    View full consent details
+                  </button>
+                </label>
+              </div>
             </div>
-            <div className="ml-3 text-sm">
-              <label htmlFor="communicationConsent" className="ml-3 text-sm text-gray-300">
-                <span className="font-medium">Communication Consent Required:</span> By checking this box, I consent to receive communications from Dry Ground AI via SMS text messages, email, and phone calls at the contact information provided. 
-                I understand that message and data rates may apply for SMS communications, and I can opt out at any time by replying STOP to text messages, unsubscribing from emails, or requesting removal from phone communications. 
-                Communication frequency varies by method. For SMS help, reply HELP. 
-                <a href="/privacy-policy" className="text-brand-primary hover:text-brand-accent underline">Privacy Policy</a> and 
-                <a href="/terms-of-service" className="text-brand-primary hover:text-brand-accent underline ml-1">Terms of Service</a> apply.
-              </label>
-              {errors.smsConsent && <p className="mt-1 text-red-500">{errors.smsConsent}</p>}
-            </div>
+            {errors.smsConsent && <p className="text-sm text-red-500">{errors.smsConsent}</p>}
           </div>
           <button
             type="submit"
@@ -229,6 +234,84 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
         <div className="bg-brand-dark p-6 rounded-xl border border-gray-700 text-center">
           <h3 className="text-xl font-semibold text-gray-100 mb-4">Thank you for reaching out!</h3>
           <p className="text-gray-300">We have received your message and will be in touch soon.</p>
+        </div>
+      )}
+
+      {/* Consent Modal */}
+      {showConsentModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <h3 className="text-xl font-semibold text-gray-100">Communication Consent Details</h3>
+              <button
+                onClick={() => setShowConsentModal(false)}
+                className="text-gray-400 hover:text-gray-200 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <h4 className="font-semibold text-gray-200 mb-2">SMS Text Messages</h4>
+                <p className="text-gray-300 text-sm">
+                  By providing your phone number and checking the consent box, you agree to receive SMS text messages from Dry Ground AI. 
+                  Message and data rates may apply. Message frequency varies based on your interaction with our services. 
+                  You can opt out at any time by replying <strong>STOP</strong> to any text message. 
+                  For help, reply <strong>HELP</strong>.
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-gray-200 mb-2">Email Communications</h4>
+                <p className="text-gray-300 text-sm">
+                  By providing your email address and checking the consent box, you agree to receive email communications from Dry Ground AI 
+                  including but not limited to service updates, newsletters, promotional offers, and responses to your inquiries. 
+                  You can unsubscribe from email communications at any time by clicking the unsubscribe link in any email 
+                  or by contacting us directly.
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-gray-200 mb-2">Phone Calls</h4>
+                <p className="text-gray-300 text-sm">
+                  By providing your phone number and checking the consent box, you agree to receive phone calls from Dry Ground AI 
+                  for purposes including but not limited to customer service, appointment scheduling, follow-up communications, 
+                  and service-related discussions. You can request to be removed from our calling list at any time by 
+                  informing us during a call or contacting us directly.
+                </p>
+              </div>
+              
+              <div className="border-t border-gray-700 pt-4">
+                <h4 className="font-semibold text-gray-200 mb-2">Your Rights</h4>
+                <p className="text-gray-300 text-sm">
+                  You have the right to withdraw your consent at any time. Withdrawing consent will not affect the lawfulness 
+                  of processing based on consent before its withdrawal. Communication frequency varies by method and your 
+                  engagement with our services.
+                </p>
+              </div>
+              
+              <div className="border-t border-gray-700 pt-4">
+                <p className="text-gray-300 text-sm">
+                  For more information about how we handle your personal data, please review our{' '}
+                  <a href="/privacy-policy" className="text-brand-primary hover:text-brand-accent underline">
+                    Privacy Policy
+                  </a>{' '}
+                  and{' '}
+                  <a href="/terms-of-service" className="text-brand-primary hover:text-brand-accent underline">
+                    Terms of Service
+                  </a>.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end p-4 border-t border-gray-700">
+              <button
+                onClick={() => setShowConsentModal(false)}
+                className="px-4 py-2 bg-brand-primary text-white rounded-md hover:bg-brand-secondary transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </>
