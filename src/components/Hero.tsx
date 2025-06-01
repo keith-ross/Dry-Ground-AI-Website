@@ -21,8 +21,7 @@ const Hero = () => {
               <span className="block text-brand-primary">Dominate Your Industry</span>
             </h1>
             <p className="mt-4 text-xl text-gray-300 max-w-3xl">
-              We help new SMB owners with chaotic and inefficient operations get more sleep by leveraging AI 
-              to fast track stability and clarity. Our solutions turn complexity into strategic advantage.
+              We help companies scale chaos by engineering highly optimized business systems with Lean Six Sigma and powering them with AI. We help our clients dominate their industry.
             </p>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mt-8 max-w-2xl leading-tight">
               What's your AI strategy?
