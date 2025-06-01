@@ -18,7 +18,7 @@ const Hero = () => {
           <div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white max-w-3xl leading-tight">
               <span className="block">Full-Stack AI Solutions </span>
-              <span className="block text-brand-primary">Small Businesses</span>
+              <span className="block text-brand-primary">to Dominate Your Industry</span>
             </h1>
             <p className="mt-4 text-xl text-gray-300 max-w-3xl">
               We help new SMB owners with chaotic and inefficient operations get more sleep by leveraging AI 
