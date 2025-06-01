@@ -39,18 +39,21 @@ function startProcess(command, args, name) {
   return proc;
 }
 
-// Start backend API server
+// Start backend API server with proper TypeScript support
 console.log('Starting API server on port 3001...');
-const apiServer = startProcess('npx', ['ts-node', '--esm', 'server.ts'], 'API Server');
+const apiServer = startProcess('node', ['--loader', 'ts-node/esm', 'server.ts'], 'API Server');
 
-// Start frontend dev server
-console.log('Starting frontend dev server...');
-const frontendServer = startProcess('npx', ['vite', '--host', '0.0.0.0'], 'Frontend');
-
-// Cleanup on exit
-process.on('SIGINT', () => {
-  console.log('Shutting down dev environment...');
-  apiServer.kill();
-  frontendServer.kill();
-  process.exit(0);
-});
+// Give the API server time to start
+setTimeout(() => {
+  // Start frontend dev server
+  console.log('Starting frontend dev server...');
+  const frontendServer = startProcess('npx', ['vite', '--host', '0.0.0.0'], 'Frontend');
+  
+  // Cleanup on exit
+  process.on('SIGINT', () => {
+    console.log('Shutting down dev environment...');
+    apiServer.kill();
+    frontendServer.kill();
+    process.exit(0);
+  });
+}, 2000);
