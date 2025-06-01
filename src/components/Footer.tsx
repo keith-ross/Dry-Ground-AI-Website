@@ -34,7 +34,7 @@ const Footer = () => {
           <div className="col-span-1">
             <Logo />
             <p className="mt-4 text-gray-300 max-w-md">
-              AI Solutions for Small Businesses
+              Full-Stack AI Solutions to Dominate Your Industry
             </p>
             <div className="mt-6">
               <a href="mailto:info@dryground.ai" className="text-gray-400 hover:text-brand-primary transition-colors flex items-center">
