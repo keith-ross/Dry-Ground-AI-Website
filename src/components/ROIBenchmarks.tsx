@@ -6,7 +6,7 @@ const metrics = [
     icon: <TrendingUp className="h-10 w-10 text-brand-primary" />,
     title: "20-50%",
     description: "Efficiency Increase",
-    details: "Streamline chaotic operations and reduce manual tasks giving new SMB owners back valuable time and mental space."
+    details: "Streamline chaotic operations and reduce manual tasks giving leaders back valuable time and mental space."
   },
   {
     icon: <Users className="h-10 w-10 text-brand-accent" />,
