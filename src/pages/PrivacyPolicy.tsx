@@ -88,7 +88,23 @@ const PrivacyPolicy = () => {
           </section>
           
           <section className="space-y-4">
-            <h2 className="text-2xl font-bold text-white">7. Disclosure of Your Information</h2>
+            <h2 className="text-2xl font-bold text-white">7. SMS Terms and Conditions</h2>
+            <p className="text-lg text-gray-300">
+              By providing your mobile phone number, you consent to receive SMS messages from Dry Ground AI related to service updates, appointment reminders, follow-up communications, and responses to your inquiries.
+            </p>
+            <ul className="list-disc pl-6 text-lg text-gray-300 space-y-2">
+              <li><span className="font-semibold">Message Frequency:</span> Message frequency may vary.</li>
+              <li><span className="font-semibold">Message and Data Rates:</span> Standard message and data rates may apply depending on your carrier.</li>
+              <li><span className="font-semibold">Opting Out:</span> You may opt out of receiving SMS messages at any time by replying with "STOP" to any SMS message you receive from us. After opting out, you will receive a confirmation message, and we will cease sending SMS messages to your number.</li>
+              <li><span className="font-semibold">Help and Support:</span> If you need assistance or have questions about our SMS service, reply with "HELP" to any SMS message you receive, or contact our customer support team at <a href="mailto:info@dryground.ai" className="text-brand-primary hover:text-brand-accent">info@dryground.ai</a>.</li>
+            </ul>
+            <p className="text-lg text-gray-300">
+              <span className="font-semibold">SMS Privacy Policy:</span> Your phone number will be handled in accordance with this Privacy Policy. No mobile information will be shared with third parties/affiliates for marketing/promotional purposes. All the stated categories in this privacy policy exclude text messaging originator opt-in data and consent; this information will not be shared with any third parties.
+            </p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-2xl font-bold text-white">8. Disclosure of Your Information</h2>
             <p className="text-lg text-gray-300">
               We may disclose personal information that we collect or you provide as described in this privacy policy:
             </p>
@@ -103,10 +119,13 @@ const PrivacyPolicy = () => {
               <li>To enforce or apply our terms of use and other agreements</li>
               <li>If we believe disclosure is necessary to protect the rights, property, or safety of our company, our customers, or others</li>
             </ul>
+            <p className="text-lg text-gray-300 font-semibold">
+              Important: No mobile opt-in information will be shared with third parties for marketing purposes.
+            </p>
           </section>
           
           <section className="space-y-4">
-            <h2 className="text-2xl font-bold text-white">8. Data Retention</h2>
+            <h2 className="text-2xl font-bold text-white">9. Data Retention</h2>
             <p className="text-lg text-gray-300">
               We will only retain your personal data for as long as necessary to fulfill the purposes for which we collected it, including for the purposes of satisfying any legal, accounting, or reporting requirements.
             </p>
@@ -116,7 +135,7 @@ const PrivacyPolicy = () => {
           </section>
           
           <section className="space-y-4">
-            <h2 className="text-2xl font-bold text-white">9. Data Security</h2>
+            <h2 className="text-2xl font-bold text-white">10. Data Security</h2>
             <p className="text-lg text-gray-300">
               We have implemented measures designed to secure your personal information from accidental loss and from unauthorized access, use, alteration, and disclosure. All information you provide to us is stored on secure servers behind firewalls.
             </p>
@@ -126,7 +145,7 @@ const PrivacyPolicy = () => {
           </section>
           
           <section className="space-y-4">
-            <h2 className="text-2xl font-bold text-white">10. Your Data Protection Rights</h2>
+            <h2 className="text-2xl font-bold text-white">11. Your Data Protection Rights</h2>
             <p className="text-lg text-gray-300">
               Depending on your location, you may have the following rights with respect to your personal data:
             </p>
@@ -144,14 +163,14 @@ const PrivacyPolicy = () => {
           </section>
           
           <section className="space-y-4">
-            <h2 className="text-2xl font-bold text-white">11. Children's Privacy</h2>
+            <h2 className="text-2xl font-bold text-white">12. Children's Privacy</h2>
             <p className="text-lg text-gray-300">
               Our website is not intended for children under 16 years of age. No one under age 16 may provide any personal information to or on the website. We do not knowingly collect personal information from children under 16. If you are under 16, do not use or provide any information on this website. If we learn we have collected or received personal information from a child under 16 without verification of parental consent, we will delete that information.
             </p>
           </section>
           
           <section className="space-y-4">
-            <h2 className="text-2xl font-bold text-white">12. International Data Transfers</h2>
+            <h2 className="text-2xl font-bold text-white">13. International Data Transfers</h2>
             <p className="text-lg text-gray-300">
               We may transfer your personal data to countries outside of your home country. We ensure your personal data is protected by requiring all our group companies to follow the same rules when processing your personal data. These rules are called "binding corporate rules".
             </p>
@@ -161,7 +180,7 @@ const PrivacyPolicy = () => {
           </section>
           
           <section className="space-y-4">
-            <h2 className="text-2xl font-bold text-white">13. Changes to Our Privacy Policy</h2>
+            <h2 className="text-2xl font-bold text-white">14. Changes to Our Privacy Policy</h2>
             <p className="text-lg text-gray-300">
               We may update our Privacy Policy from time to time. If we make material changes, we will notify you by email 
               or by posting a notice on our website prior to the change becoming effective.
@@ -169,7 +188,7 @@ const PrivacyPolicy = () => {
           </section>
           
           <section className="space-y-4">
-            <h2 className="text-2xl font-bold text-white">14. Contact Information</h2>
+            <h2 className="text-2xl font-bold text-white">15. Contact Information</h2>
             <p className="text-lg text-gray-300">
               If you have any questions or concerns about this Privacy Policy, please contact us at:
               <br />

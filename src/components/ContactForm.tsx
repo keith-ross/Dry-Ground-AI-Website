@@ -196,11 +196,11 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
               />
               <div className="ml-3 text-sm">
                 <label htmlFor="communicationConsent" className="text-gray-300">
-                  <span className="font-medium">I consent to receive communications via SMS, email, and phone calls.</span>
+                  <span className="font-medium">I agree to receive communications by text message (service updates, appointment reminders, and follow-up communications) from Dry Ground AI. You may opt out by replying STOP or ask for more information by replying HELP. Message frequency varies. Message and data rates may apply. You may review our <a href="/privacy-policy" className="text-brand-primary hover:text-brand-accent underline">Privacy Policy</a> to learn how your data is used.</span>
                   <button
                     type="button"
                     onClick={() => setShowConsentModal(true)}
-                    className="ml-2 text-brand-primary hover:text-brand-accent underline"
+                    className="ml-2 text-brand-primary hover:text-brand-accent underline block mt-1"
                   >
                     View full consent details
                   </button>
