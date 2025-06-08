@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -7,13 +6,13 @@ const AIVelocityPage = () => {
   return (
     <div className="min-h-screen bg-brand-darker">
       <Navbar />
-      
+
       {/* Hero Section - Slide 1 */}
       <section className="pt-24 pb-16 bg-gradient-to-br from-brand-darker via-brand-dark to-brand-darker relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/5 to-brand-accent/5 opacity-50"></div>
         <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-brand-primary/10 rounded-full filter blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-brand-accent/10 rounded-full filter blur-3xl"></div>
-        
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -86,10 +85,6 @@ const AIVelocityPage = () => {
                   </div>
                 </div>
               </div>
-
-              <p className="text-sm text-gray-400 mt-12">
-                © 2025 Dry Ground AI. All rights reserved.
-              </p>
             </div>
           </div>
         </div>
@@ -109,17 +104,17 @@ const AIVelocityPage = () => {
                   <div className="bg-brand-primary/80 p-6 text-center rounded-t-lg border border-brand-primary">
                     <div className="text-white text-lg font-medium mb-2">👑</div>
                   </div>
-                  
+
                   {/* Analytics */}
                   <div className="bg-brand-primary/60 p-6 text-center border-l border-r border-brand-primary">
                     <div className="text-white text-lg font-medium mb-2">📊</div>
                   </div>
-                  
+
                   {/* Customer Service */}
                   <div className="bg-brand-primary/40 p-6 text-center border-l border-r border-brand-primary">
                     <div className="text-white text-lg font-medium mb-2">💬</div>
                   </div>
-                  
+
                   {/* Operations - Bottom */}
                   <div className="bg-brand-primary/20 p-6 text-center rounded-b-lg border border-brand-primary">
                     <div className="text-white text-lg font-medium mb-2">⚙️</div>
@@ -197,10 +192,6 @@ const AIVelocityPage = () => {
                   <p className="text-gray-300">Position for market acquisition</p>
                 </div>
               </div>
-
-              <p className="text-sm text-gray-400 mt-12">
-                © 2025 Dry Ground AI. All rights reserved.
-              </p>
             </div>
 
             <div className="hidden lg:block">
@@ -268,10 +259,6 @@ const AIVelocityPage = () => {
                   </div>
                 </div>
               </div>
-
-              <p className="text-sm text-gray-400 mt-12">
-                © 2025 Dry Ground AI. All rights reserved.
-              </p>
             </div>
           </div>
         </div>
@@ -327,10 +314,6 @@ const AIVelocityPage = () => {
               </ul>
             </div>
           </div>
-
-          <p className="text-sm text-gray-400 mt-16">
-            © 2025 Dry Ground AI. All rights reserved.
-          </p>
         </div>
       </section>
 
@@ -354,11 +337,11 @@ const AIVelocityPage = () => {
                       <span className="text-brand-primary">👤</span>
                     </div>
                   </div>
-                  
+
                   <div className="w-24 h-24 bg-brand-primary/30 rounded-full mx-auto mb-8 flex items-center justify-center">
                     <span className="text-2xl">🧠</span>
                   </div>
-                  
+
                   <div className="flex justify-center space-x-4">
                     <div className="text-center">
                       <div className="w-16 h-16 bg-brand-primary/20 rounded border border-brand-primary flex items-center justify-center mb-2">
@@ -432,10 +415,6 @@ const AIVelocityPage = () => {
                   </div>
                 </div>
               </div>
-
-              <p className="text-sm text-gray-400 mt-12">
-                © 2025 Dry Ground AI. All rights reserved.
-              </p>
             </div>
           </div>
         </div>
@@ -519,17 +498,13 @@ const AIVelocityPage = () => {
               </ul>
             </div>
           </div>
-
-          <p className="text-sm text-gray-400 mt-16">
-            © 2025 Dry Ground AI. All rights reserved.
-          </p>
         </div>
       </section>
 
       {/* Let's Build Market Leaders Together - Slide 9 */}
       <section className="py-20 bg-brand-darker relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          
+
 
           {/* Hero image placeholder */}
           <div className="h-64 bg-gradient-to-r from-brand-primary/20 to-purple-500/20 rounded-lg border border-brand-primary/30 mb-16 flex items-center justify-center">
