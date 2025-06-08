@@ -29,9 +29,13 @@ const AIVelocityPage = () => {
               </div>
             </div>
             <div className="hidden lg:block">
-              {/* Placeholder for futuristic city illustration */}
-              <div className="h-96 bg-gradient-to-br from-brand-primary/20 to-brand-accent/20 rounded-lg border border-brand-primary/30 flex items-center justify-center">
-                <span className="text-6xl text-brand-primary opacity-50">AI</span>
+              {/* AI City illustration */}
+              <div className="h-96 rounded-lg overflow-hidden border border-brand-primary/30 shadow-xl">
+                <img 
+                  src="/AI-City.png" 
+                  alt="AI-powered futuristic city" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
@@ -43,9 +47,13 @@ const AIVelocityPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="hidden lg:block">
-              {/* Placeholder for boardroom illustration */}
-              <div className="h-96 bg-gradient-to-br from-brand-primary/20 to-brand-accent/20 rounded-lg border border-brand-primary/30 flex items-center justify-center">
-                <span className="text-4xl text-brand-primary opacity-50">AI TRANSFORMATION ROADMAP</span>
+              {/* AI Transformation Roadmap */}
+              <div className="h-96 rounded-lg overflow-hidden border border-brand-primary/30 shadow-xl">
+                <img 
+                  src="/AI-Roadmap.png" 
+                  alt="AI Transformation Roadmap" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
             <div>
@@ -188,9 +196,13 @@ const AIVelocityPage = () => {
             </div>
 
             <div className="hidden lg:block">
-              {/* Placeholder for running businesspeople illustration */}
-              <div className="h-96 bg-gradient-to-br from-brand-primary/20 to-purple-500/20 rounded-lg border border-brand-primary/30 flex items-center justify-center">
-                <span className="text-6xl">🏃‍♂️💼</span>
+              {/* Running businesspeople illustration */}
+              <div className="h-96 rounded-lg overflow-hidden border border-brand-primary/30 shadow-xl">
+                <img 
+                  src="/Running.png" 
+                  alt="Business professionals running with urgency" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
@@ -315,47 +327,13 @@ const AIVelocityPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="hidden lg:block">
-              {/* Organizational chart visualization */}
-              <div className="space-y-8">
-                <div className="text-center">
-                  <div className="text-sm text-brand-primary font-medium mb-4">EXECUTIVE DIGITAL TWINS</div>
-                  <div className="flex justify-center space-x-4 mb-8">
-                    <div className="w-16 h-16 bg-brand-primary/20 rounded border border-brand-primary flex items-center justify-center">
-                      <span className="text-brand-primary">👤</span>
-                    </div>
-                    <div className="w-16 h-16 bg-brand-primary/20 rounded border border-brand-primary flex items-center justify-center">
-                      <span className="text-brand-primary">👤</span>
-                    </div>
-                    <div className="w-16 h-16 bg-brand-primary/20 rounded border border-brand-primary flex items-center justify-center">
-                      <span className="text-brand-primary">👤</span>
-                    </div>
-                  </div>
-
-                  <div className="w-24 h-24 bg-brand-primary/30 rounded-full mx-auto mb-8 flex items-center justify-center">
-                    <span className="text-2xl">🧠</span>
-                  </div>
-
-                  <div className="flex justify-center space-x-4">
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-brand-primary/20 rounded border border-brand-primary flex items-center justify-center mb-2">
-                        <span className="text-brand-primary">👤</span>
-                      </div>
-                      <div className="text-xs text-brand-primary">DEPARTMENT A</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-brand-primary/20 rounded border border-brand-primary flex items-center justify-center mb-2">
-                        <span className="text-brand-primary">👤</span>
-                      </div>
-                      <div className="text-xs text-brand-primary">DEPARTMENT B</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-brand-primary/20 rounded border border-brand-primary flex items-center justify-center mb-2">
-                        <span className="text-brand-primary">👤</span>
-                      </div>
-                      <div className="text-xs text-brand-primary">DEPARTMENT C</div>
-                    </div>
-                  </div>
-                </div>
+              {/* AI Organization Chart */}
+              <div className="h-96 rounded-lg overflow-hidden border border-brand-primary/30 shadow-xl">
+                <img 
+                  src="/AI-Org-Chart.png" 
+                  alt="AI Organization Chart showing the future of work" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
 
@@ -499,9 +477,13 @@ const AIVelocityPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
 
-          {/* Hero image placeholder */}
-          <div className="h-64 bg-gradient-to-r from-brand-primary/20 to-purple-500/20 rounded-lg border border-brand-primary/30 mb-16 flex items-center justify-center">
-            <span className="text-4xl">👥🎉📈</span>
+          {/* Market Leadership hero image */}
+          <div className="h-64 rounded-lg overflow-hidden border border-brand-primary/30 shadow-xl mb-16">
+            <img 
+              src="/Market-Leadership.png" 
+              alt="Building market leaders together" 
+              className="w-full h-full object-cover"
+            />
           </div>
 
           <h2 className="text-4xl font-bold text-white mb-16 text-center">
