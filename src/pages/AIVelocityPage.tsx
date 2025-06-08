@@ -27,9 +27,6 @@ const AIVelocityPage = () => {
                   Dominate Your Industry
                 </h2>
               </div>
-              <p className="text-sm text-gray-400">
-                © 2025 Dry Ground AI. All rights reserved.
-              </p>
             </div>
             <div className="hidden lg:block">
               {/* Placeholder for futuristic city illustration */}
@@ -157,10 +154,6 @@ const AIVelocityPage = () => {
               </div>
             </div>
           </div>
-
-          <p className="text-sm text-gray-400 mt-16">
-            © 2025 Dry Ground AI. All rights reserved.
-          </p>
         </div>
       </section>
 
@@ -551,10 +544,6 @@ const AIVelocityPage = () => {
               Try Our AI Strategizer
             </a>
           </div>
-
-          <p className="text-sm text-gray-400 mt-16 text-center">
-            © 2025 Dry Ground AI. All rights reserved.
-          </p>
         </div>
       </section>
 
