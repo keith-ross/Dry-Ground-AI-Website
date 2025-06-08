@@ -27,10 +27,6 @@ const AIVelocityPage = () => {
                 <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
                   Dominate Your Industry
                 </h2>
-                <div className="flex items-center space-x-4">
-                  <img src="/logo.svg" alt="Dry Ground AI" className="h-12 w-auto" />
-                  <span className="text-brand-primary font-semibold text-lg">DRY GROUND AI</span>
-                </div>
               </div>
               <p className="text-sm text-gray-400">
                 © 2025 Dry Ground AI. All rights reserved.
@@ -57,13 +53,6 @@ const AIVelocityPage = () => {
               </div>
             </div>
             <div>
-              <div className="flex justify-end mb-8">
-                <div className="flex items-center space-x-2">
-                  <img src="/logo.svg" alt="Dry Ground AI" className="h-8 w-auto" />
-                  <span className="text-brand-primary font-semibold text-sm">DRY GROUND AI</span>
-                </div>
-              </div>
-              
               <h2 className="text-4xl font-bold text-white mb-12">The AI Imperative</h2>
 
               <div className="space-y-8">
@@ -109,13 +98,6 @@ const AIVelocityPage = () => {
       {/* What is Full-Stack AI - Slide 3 */}
       <section className="py-20 bg-brand-darker relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex justify-end mb-8">
-            <div className="flex items-center space-x-2">
-              <img src="/logo.svg" alt="Dry Ground AI" className="h-8 w-auto" />
-              <span className="text-brand-primary font-semibold text-sm">DRY GROUND AI</span>
-            </div>
-          </div>
-
           <h2 className="text-4xl font-bold text-white mb-16">What is Full-Stack AI?</h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -243,13 +225,6 @@ const AIVelocityPage = () => {
             </div>
 
             <div>
-              <div className="flex justify-end mb-8">
-                <div className="flex items-center space-x-2">
-                  <img src="/logo.svg" alt="Dry Ground AI" className="h-8 w-auto" />
-                  <span className="text-brand-primary font-semibold text-sm">DRY GROUND AI</span>
-                </div>
-              </div>
-
               <h2 className="text-4xl font-bold text-white mb-12">Why Dry Ground AI?</h2>
 
               <div className="space-y-8">
@@ -305,13 +280,6 @@ const AIVelocityPage = () => {
       {/* Bolt-On Velocity Partnership - Slide 6 */}
       <section className="py-20 bg-brand-dark relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex justify-end mb-8">
-            <div className="flex items-center space-x-2">
-              <img src="/logo.svg" alt="Dry Ground AI" className="h-8 w-auto" />
-              <span className="text-brand-primary font-semibold text-sm">DRY GROUND AI</span>
-            </div>
-          </div>
-
           <h2 className="text-4xl font-bold text-white mb-16">Bolt-On Velocity Partnership</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
@@ -416,13 +384,6 @@ const AIVelocityPage = () => {
             </div>
 
             <div>
-              <div className="flex justify-end mb-8">
-                <div className="flex items-center space-x-2">
-                  <img src="/logo.svg" alt="Dry Ground AI" className="h-8 w-auto" />
-                  <span className="text-brand-primary font-semibold text-sm">DRY GROUND AI</span>
-                </div>
-              </div>
-
               <h2 className="text-4xl font-bold text-white mb-4">
                 AI Organization Chart: The Future of Work
               </h2>
@@ -483,13 +444,6 @@ const AIVelocityPage = () => {
       {/* AI Velocity Plan Tiers - Slide 8 */}
       <section className="py-20 bg-brand-dark relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex justify-end mb-8">
-            <div className="flex items-center space-x-2">
-              <img src="/logo.svg" alt="Dry Ground AI" className="h-8 w-auto" />
-              <span className="text-brand-primary font-semibold text-sm">DRY GROUND AI</span>
-            </div>
-          </div>
-
           <h2 className="text-4xl font-bold text-white mb-16">AI Velocity Plan Tiers</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -575,12 +529,7 @@ const AIVelocityPage = () => {
       {/* Let's Build Market Leaders Together - Slide 9 */}
       <section className="py-20 bg-brand-darker relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex justify-end mb-8">
-            <div className="flex items-center space-x-2">
-              <img src="/logo.svg" alt="Dry Ground AI" className="h-8 w-auto" />
-              <span className="text-brand-primary font-semibold text-sm">DRY GROUND AI</span>
-            </div>
-          </div>
+          
 
           {/* Hero image placeholder */}
           <div className="h-64 bg-gradient-to-r from-brand-primary/20 to-purple-500/20 rounded-lg border border-brand-primary/30 mb-16 flex items-center justify-center">
@@ -613,7 +562,7 @@ const AIVelocityPage = () => {
 
           <div className="text-center mt-16">
             <a
-              href="#contact"
+              href="/#contact"
               className="inline-flex items-center px-8 py-4 bg-brand-primary text-white font-medium rounded-md hover:bg-brand-secondary transition-colors duration-300 mr-4"
             >
               Get Started Today
