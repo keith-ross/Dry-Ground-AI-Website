@@ -196,7 +196,7 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
               />
               <div className="ml-3 text-sm">
                 <label htmlFor="communicationConsent" className="text-gray-300">
-                  <span className="font-medium">I agree to receive communications by text message (service updates, appointment reminders, and follow-up communications) from Dry Ground AI. You may opt out by replying STOP or ask for more information by replying HELP. Message frequency varies. Message and data rates may apply. You may review our <a href="/privacy-policy" className="text-brand-primary hover:text-brand-accent underline">Privacy Policy</a> to learn how your data is used.</span>
+                  <span className="font-medium">I agree to receive communications by text message (service updates, marketing, appointment reminders, and follow-up communications) from Dry Ground AI. You may opt out by replying STOP or ask for more information by replying HELP. Message frequency varies. Message and data rates may apply. You may review our <a href="/privacy-policy" className="text-brand-primary hover:text-brand-accent underline">Privacy Policy</a> to learn how your data is used.</span>
                   <button
                     type="button"
                     onClick={() => setShowConsentModal(true)}
@@ -247,7 +247,8 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
               <div>
                 <h4 className="font-semibold text-gray-200 mb-2">SMS Text Messages</h4>
                 <p className="text-gray-300 text-sm">
-                  By providing your phone number and checking the consent box, you agree to receive SMS text messages from Dry Ground AI. 
+                  By providing your phone number and checking the consent box, you agree to receive SMS text messages from Dry Ground AI 
+                  including service updates, marketing communications, appointment reminders, and follow-up communications. 
                   Message and data rates may apply. Message frequency varies based on your interaction with our services. 
                   You can opt out at any time by replying <strong>STOP</strong> to any text message. 
                   For help, reply <strong>HELP</strong>.
@@ -258,7 +259,7 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
                 <h4 className="font-semibold text-gray-200 mb-2">Email Communications</h4>
                 <p className="text-gray-300 text-sm">
                   By providing your email address and checking the consent box, you agree to receive email communications from Dry Ground AI 
-                  including but not limited to service updates, newsletters, promotional offers, and responses to your inquiries. 
+                  including but not limited to service updates, marketing communications, newsletters, promotional offers, and responses to your inquiries. 
                   You can unsubscribe from email communications at any time by clicking the unsubscribe link in any email 
                   or by contacting us directly.
                 </p>
@@ -268,7 +269,7 @@ export default function ContactForm({ className = '' }: ContactFormProps) {
                 <h4 className="font-semibold text-gray-200 mb-2">Phone Calls</h4>
                 <p className="text-gray-300 text-sm">
                   By providing your phone number and checking the consent box, you agree to receive phone calls from Dry Ground AI 
-                  for purposes including but not limited to customer service, appointment scheduling, follow-up communications, 
+                  for purposes including but not limited to customer service, marketing communications, appointment scheduling, follow-up communications, 
                   and service-related discussions. You can request to be removed from our calling list at any time by 
                   informing us during a call or contacting us directly.
                 </p>
