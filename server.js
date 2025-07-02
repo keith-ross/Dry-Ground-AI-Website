@@ -54,7 +54,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// Contact form endpoint
+// Redirect routes
+app.get("/kr", (req, res) => {
+  res.redirect(301, "https://www.linkedin.com/in/dryground");
+});
+
+// API Routes
 app.post("/api/contact", async (req, res) => {
   console.log("Contact form submission received:", req.body);
 
