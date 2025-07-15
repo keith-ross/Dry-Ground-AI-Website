@@ -34,9 +34,28 @@
     <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
-        const shadowRoot = document.querySelector('.convai').shadowRoot;
-        const spanElement = shadowRoot.querySelectorAll('.overlay')[1].querySelector('span');
-        spanElement.textContent = 'Dry Ground AI'
+        function waitForWidget() {
+          const convaiElement = document.querySelector('elevenlabs-convai');
+          if (convaiElement && convaiElement.shadowRoot) {
+            try {
+              const overlays = convaiElement.shadowRoot.querySelectorAll('.overlay');
+              if (overlays && overlays[1]) {
+                const spanElement = overlays[1].querySelector('span');
+                if (spanElement) {
+                  spanElement.textContent = 'Dry Ground AI';
+                  return; // Success, exit
+                }
+              }
+            } catch (error) {
+              console.log('Widget not ready yet, retrying...');
+            }
+          }
+          // Retry after 500ms if widget isn't ready
+          setTimeout(waitForWidget, 500);
+        }
+        
+        // Start checking for the widget
+        waitForWidget();
       });
     </script>
   </head>
