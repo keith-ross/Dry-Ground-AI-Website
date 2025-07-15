@@ -21,6 +21,7 @@ function HomePage() {
       <Testimonials />
       <CallToAction />
       <Footer />
+      <elevenlabs-convai agent-id="agent_01jzx9g2b2esarv0c05qr08w7c"></elevenlabs-convai>
     </div>
   );
 }
