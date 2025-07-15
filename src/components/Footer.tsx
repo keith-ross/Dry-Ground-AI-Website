@@ -57,10 +57,7 @@ const Footer = () => {
         </div>
       </div>
       
-      <div style={{ width: 0, height: 0 }} id="VG_OVERLAY_CONTAINER">
-        {/* Here is where TIXAE Agents renders the widget. */}
-        {/* Set render to 'full-width' then adjust the width and height to 500px (for example) to render the chatbot itself without the popup. */}
-      </div>
+      
     </footer>
   );
 };
