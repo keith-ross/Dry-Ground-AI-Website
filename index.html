@@ -32,6 +32,13 @@
     <meta property="twitter:description" content="We help companies scale chaos by engineering highly optimized business systems with Lean Six Sigma and powering them with AI. We help our clients dominate their industry.">
     <meta property="twitter:image" content="https://dryground.ai/logo.svg">
     <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        const shadowRoot = document.querySelector('.convai').shadowRoot;
+        const spanElement = shadowRoot.querySelectorAll('.overlay')[1].querySelector('span');
+        spanElement.textContent = 'Dry Ground AI'
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
