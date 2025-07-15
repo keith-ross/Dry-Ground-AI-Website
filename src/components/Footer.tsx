@@ -4,29 +4,6 @@ import Logo from './Logo';
 import { Link } from 'react-router-dom';
 
 const Footer = () => {
-  React.useEffect(() => {
-    // Initialize AI agent script
-    window.VG_CONFIG = {
-      ID: "2uuwikul2u04ke1f",
-      region: 'na',
-      render: 'bottom-right',
-      stylesheets: [
-        "https://vg-bunny-cdn.b-cdn.net/vg_live_build/styles.css",
-      ],
-    };
-    
-    const VG_SCRIPT = document.createElement("script");
-    VG_SCRIPT.src = "https://vg-bunny-cdn.b-cdn.net/vg_live_build/vg_bundle.js";
-    VG_SCRIPT.defer = true;
-    document.body.appendChild(VG_SCRIPT);
-    
-    return () => {
-      if (document.body.contains(VG_SCRIPT)) {
-        document.body.removeChild(VG_SCRIPT);
-      }
-    };
-  }, []);
-
   return (
     <footer className="bg-brand-darker border-t border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -44,7 +21,7 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">
             &copy; {new Date().getFullYear()} Dry Ground AI. All rights reserved.
@@ -56,8 +33,6 @@ const Footer = () => {
           </div>
         </div>
       </div>
-      
-      
     </footer>
   );
 };
