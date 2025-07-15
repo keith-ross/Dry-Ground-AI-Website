@@ -43,8 +43,15 @@
                 const spanElement = overlays[1].querySelector('span');
                 if (spanElement) {
                   spanElement.textContent = 'Dry Ground AI';
-                  return; // Success, exit
                 }
+                
+                // Remove the link under "Conversational AI"
+                const linkElement = overlays[1].querySelector('a');
+                if (linkElement) {
+                  linkElement.remove();
+                }
+                
+                return; // Success, exit
               }
             } catch (error) {
               console.log('Widget not ready yet, retrying...');
