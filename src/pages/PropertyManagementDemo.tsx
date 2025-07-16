@@ -43,8 +43,8 @@ const PropertyManagementDemo = () => {
               </p>
               <div className="bg-brand-primary/20 p-4 rounded-lg border border-brand-primary/30">
                 <p className="text-white font-medium flex items-center">
-                  <MessageSquare className="w-5 h-5 text-brand-primary mr-2" />
-                  Test our agent in the chat widget in the bottom corner - you can text with it or call using your computer microphone.
+                  <MessageSquare className="w-8 h-8 text-brand-primary mr-3" />
+                  Test our agent with the chat widget below - text or voice enabled.
                 </p>
               </div>
             </div>
