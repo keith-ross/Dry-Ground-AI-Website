@@ -13,15 +13,35 @@ const PropertyManagementDemo = () => {
     script.type = 'text/javascript';
     document.head.appendChild(script);
 
-    // Add CSS to fix z-index issues
+    // Add CSS to fix z-index issues with maximum z-index
     const style = document.createElement('style');
     style.textContent = `
       elevenlabs-convai {
-        z-index: 999999 !important;
+        z-index: 2147483647 !important;
+        position: fixed !important;
       }
       
       elevenlabs-convai * {
-        z-index: 999999 !important;
+        z-index: 2147483647 !important;
+      }
+      
+      elevenlabs-convai div {
+        z-index: 2147483647 !important;
+      }
+      
+      elevenlabs-convai iframe {
+        z-index: 2147483647 !important;
+      }
+      
+      /* Target common chat widget containers */
+      [data-widget] {
+        z-index: 2147483647 !important;
+      }
+      
+      /* Ensure the widget appears above everything */
+      body elevenlabs-convai {
+        z-index: 2147483647 !important;
+        position: fixed !important;
       }
     `;
     document.head.appendChild(style);
