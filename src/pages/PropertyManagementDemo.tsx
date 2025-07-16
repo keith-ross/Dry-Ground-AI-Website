@@ -97,77 +97,54 @@ const PropertyManagementDemo = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-            {/* Chat Widget Section */}
-            <div className="bg-brand-dark p-8 rounded-lg border border-brand-primary/30">
-              <div className="text-center mb-6">
-                <MessageSquare className="w-12 h-12 text-brand-primary mx-auto mb-4" />
-                <h3 className="text-2xl font-bold text-white mb-2">Live Chat Demo</h3>
-                <p className="text-gray-300">
-                  Try our AI assistant right now! Ask about UrbanNest Apartments, pricing, amenities, or schedule a tour.
-                </p>
-              </div>
-              
-              {/* Demo placeholder */}
-              <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/20 min-h-[400px] flex items-center justify-center">
-                <div className="text-center text-gray-300">
-                  <MessageSquare className="w-16 h-16 text-brand-primary mx-auto mb-4" />
-                  <p className="text-lg">AI Chat Demo</p>
-                  <p className="text-sm mt-2">This is where the AI assistant would appear in a live implementation.</p>
-                  <p className="text-sm mt-2 text-brand-primary">Contact us to see the live demo!</p>
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
+              <Phone className="w-10 h-10 text-brand-primary mb-4" />
+              <h3 className="text-xl font-bold text-white mb-3">Voice Interaction</h3>
+              <p className="text-gray-300 mb-4">
+                Experience natural voice conversations with our AI assistant. Click the microphone icon in the chat widget to start speaking.
+              </p>
+              <div className="flex items-center space-x-2 text-sm text-gray-400">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Voice-enabled in chat widget</span>
               </div>
             </div>
 
-            {/* Additional Options */}
-            <div className="space-y-6">
-              <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
-                <Phone className="w-10 h-10 text-brand-primary mb-4" />
-                <h3 className="text-xl font-bold text-white mb-3">Voice Interaction</h3>
-                <p className="text-gray-300 mb-4">
-                  Experience natural voice conversations with our AI assistant. Click the microphone icon in the chat widget to start speaking.
-                </p>
-                <div className="flex items-center space-x-2 text-sm text-gray-400">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>Voice-enabled in chat widget</span>
-                </div>
-              </div>
-
-              <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
-                <Calendar className="w-10 h-10 text-brand-primary mb-4" />
-                <h3 className="text-xl font-bold text-white mb-3">Schedule Tours</h3>
-                <p className="text-gray-300 mb-4">
-                  Ask the AI assistant to schedule apartment tours, check availability, or get information about move-in specials.
-                </p>
-                <div className="flex items-center space-x-2 text-sm text-gray-400">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span>Available 24/7</span>
-                </div>
-              </div>
-
-              <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
-                <Shield className="w-10 h-10 text-brand-primary mb-4" />
-                <h3 className="text-xl font-bold text-white mb-3">Maintenance Support</h3>
-                <p className="text-gray-300 mb-4">
-                  The AI can help with maintenance requests, provide status updates, and handle emergency situations.
-                </p>
-                <div className="flex items-center space-x-2 text-sm text-gray-400">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                  <span>Emergency priority handling</span>
-                </div>
-              </div>
-
-              <div className="bg-brand-primary/10 p-6 rounded-lg border border-brand-primary/30">
-                <h4 className="text-lg font-bold text-white mb-3">Try asking about:</h4>
-                <ul className="space-y-2 text-gray-300 text-sm">
-                  <li>• "What apartments are available?"</li>
-                  <li>• "Can I schedule a tour?"</li>
-                  <li>• "What are your pet policies?"</li>
-                  <li>• "How much is rent for a 2-bedroom?"</li>
-                  <li>• "What amenities do you have?"</li>
-                </ul>
+            <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
+              <Calendar className="w-10 h-10 text-brand-primary mb-4" />
+              <h3 className="text-xl font-bold text-white mb-3">Schedule Tours</h3>
+              <p className="text-gray-300 mb-4">
+                Ask the AI assistant to schedule apartment tours, check availability, or get information about move-in specials.
+              </p>
+              <div className="flex items-center space-x-2 text-sm text-gray-400">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span>Available 24/7</span>
               </div>
             </div>
+
+            <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
+              <Shield className="w-10 h-10 text-brand-primary mb-4" />
+              <h3 className="text-xl font-bold text-white mb-3">Maintenance Support</h3>
+              <p className="text-gray-300 mb-4">
+                The AI can help with maintenance requests, provide status updates, and handle emergency situations.
+              </p>
+              <div className="flex items-center space-x-2 text-sm text-gray-400">
+                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <span>Emergency priority handling</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-8 bg-brand-primary/10 p-6 rounded-lg border border-brand-primary/30">
+            <h4 className="text-lg font-bold text-white mb-3">Try asking about:</h4>
+            <ul className="space-y-2 text-gray-300 text-sm">
+              <li>• "What apartments are available?"</li>
+              <li>• "Can I schedule a tour?"</li>
+              <li>• "What are your pet policies?"</li>
+              <li>• "How much is rent for a 2-bedroom?"</li>
+              <li>• "What amenities do you have?"</li>
+            </ul>
+          </div>
           </div>
         </div>
       </section>
