@@ -13,10 +13,26 @@ const PropertyManagementDemo = () => {
     script.type = 'text/javascript';
     document.head.appendChild(script);
 
+    // Add CSS to fix z-index issues
+    const style = document.createElement('style');
+    style.textContent = `
+      elevenlabs-convai {
+        z-index: 999999 !important;
+      }
+      
+      elevenlabs-convai * {
+        z-index: 999999 !important;
+      }
+    `;
+    document.head.appendChild(style);
+
     return () => {
-      // Cleanup script on unmount
+      // Cleanup script and style on unmount
       if (document.head.contains(script)) {
         document.head.removeChild(script);
+      }
+      if (document.head.contains(style)) {
+        document.head.removeChild(style);
       }
     };
   }, []);
