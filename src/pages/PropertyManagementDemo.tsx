@@ -41,6 +41,12 @@ const PropertyManagementDemo = () => {
               <p className="text-xl text-gray-300 mb-8">
                 Experience our AI virtual assistant designed to function as a 24/7 apartment complex receptionist, handling leasing calls, answering property questions, and managing maintenance requests.
               </p>
+              <div className="bg-brand-primary/20 p-4 rounded-lg border border-brand-primary/30">
+                <p className="text-white font-medium flex items-center">
+                  <MessageSquare className="w-5 h-5 text-brand-primary mr-2" />
+                  Test our agent in the chat widget in the bottom corner - you can text with it or call using your computer microphone.
+                </p>
+              </div>
             </div>
             <div className="relative">
               <img 
@@ -87,66 +93,7 @@ const PropertyManagementDemo = () => {
         </div>
       </section>
 
-      {/* Interactive Demo Section */}
-      <section className="py-20 bg-brand-darker relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-white mb-6">Experience Our AI Assistant in Action</h2>
-            <p className="text-xl text-gray-300 mb-8">
-              Chat with our AI assistant below or try it through voice interaction
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
-              <Phone className="w-10 h-10 text-brand-primary mb-4" />
-              <h3 className="text-xl font-bold text-white mb-3">Voice Interaction</h3>
-              <p className="text-gray-300 mb-4">
-                Experience natural voice conversations with our AI assistant. Click the microphone icon in the chat widget to start speaking.
-              </p>
-              <div className="flex items-center space-x-2 text-sm text-gray-400">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>Voice-enabled in chat widget</span>
-              </div>
-            </div>
-
-            <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
-              <Calendar className="w-10 h-10 text-brand-primary mb-4" />
-              <h3 className="text-xl font-bold text-white mb-3">Schedule Tours</h3>
-              <p className="text-gray-300 mb-4">
-                Ask the AI assistant to schedule apartment tours, check availability, or get information about move-in specials.
-              </p>
-              <div className="flex items-center space-x-2 text-sm text-gray-400">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span>Available 24/7</span>
-              </div>
-            </div>
-
-            <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
-              <Shield className="w-10 h-10 text-brand-primary mb-4" />
-              <h3 className="text-xl font-bold text-white mb-3">Maintenance Support</h3>
-              <p className="text-gray-300 mb-4">
-                The AI can help with maintenance requests, provide status updates, and handle emergency situations.
-              </p>
-              <div className="flex items-center space-x-2 text-sm text-gray-400">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <span>Emergency priority handling</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-8 bg-brand-primary/10 p-6 rounded-lg border border-brand-primary/30">
-            <h4 className="text-lg font-bold text-white mb-3">Try asking about:</h4>
-            <ul className="space-y-2 text-gray-300 text-sm">
-              <li>• "What apartments are available?"</li>
-              <li>• "Can I schedule a tour?"</li>
-              <li>• "What are your pet policies?"</li>
-              <li>• "How much is rent for a 2-bedroom?"</li>
-              <li>• "What amenities do you have?"</li>
-            </ul>
-          </div>
-        </div>
-      </section>
+      
 
       {/* Property Information */}
       <section className="py-20 bg-brand-dark relative overflow-hidden">
