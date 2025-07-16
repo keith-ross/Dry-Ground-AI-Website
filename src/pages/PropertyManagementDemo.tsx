@@ -145,7 +145,6 @@ const PropertyManagementDemo = () => {
               <li>• "What amenities do you have?"</li>
             </ul>
           </div>
-          </div>
         </div>
       </section>
 
