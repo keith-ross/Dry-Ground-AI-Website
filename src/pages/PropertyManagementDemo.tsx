@@ -13,9 +13,33 @@ const PropertyManagementDemo = () => {
     script.type = 'text/javascript';
     document.head.appendChild(script);
 
+    // Add CSS to properly position the chat widget
+    const style = document.createElement('style');
+    style.textContent = `
+      elevenlabs-convai {
+        position: relative !important;
+        width: 100% !important;
+        height: 400px !important;
+      }
+      
+      elevenlabs-convai::part(chat-widget) {
+        position: relative !important;
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 0.5rem !important;
+        border: 1px solid rgba(99, 102, 241, 0.3) !important;
+      }
+    `;
+    document.head.appendChild(style);
+
     return () => {
-      // Cleanup script on unmount
-      document.head.removeChild(script);
+      // Cleanup script and style on unmount
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+      if (document.head.contains(style)) {
+        document.head.removeChild(style);
+      }
     };
   }, []);
 
