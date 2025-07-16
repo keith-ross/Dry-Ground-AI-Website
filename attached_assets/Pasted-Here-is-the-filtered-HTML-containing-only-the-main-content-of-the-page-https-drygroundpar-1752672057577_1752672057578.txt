@@ -1,0 +1,97 @@
+Here is the **filtered HTML** containing only the **main content** of the page `https://drygroundpartners.com/demo-property-management/`, preserving the structure and organization while removing all scripts, head metadata, styles, navigation, and footer elements:
+
+```html
+<article>
+  <header>
+    <h1>Protected: Demo: Property Management</h1>
+  </header>
+
+  <section>
+    <img src="https://i0.wp.com/drygroundpartners.com/wp-content/uploads/2024/09/AI-Receptionist.jpeg?resize=1024%2C683&amp;ssl=1" alt="AI Assistant" style="aspect-ratio:16/9;object-fit:cover"/>
+
+    <p><strong>How Our AI Assistant Works as Your Apartment Complex Receptionist:</strong></p>
+    <ul>
+      <li><strong>Leasing Calls:</strong> Answer leasing inquiries, provide information on available units, schedule tours, explain leasing terms, and guide prospects through the application process.</li>
+      <li><strong>Property Questions:</strong> Provide detailed and accurate responses to questions about amenities, pet policies, move-in specials, etc.</li>
+      <li><strong>Maintenance Requests:</strong> Manage and prioritize maintenance requests and provide service updates.</li>
+    </ul>
+
+    <h2>Property Management Company</h2>
+    <p><strong>AI Solutions Tailored for Apartment Complex Reception, Leasing, and Maintenance tasks</strong></p>
+    <p>Our AI virtual assistants are designed to function as a 24/7 apartment complex receptionist, handling leasing calls, answering property questions, and managing maintenance requests.</p>
+
+    <div>
+      <p><strong>COMING SOON!</strong></p>
+      <p><strong>Example Call Recording</strong></p>
+      <ul>
+        <li><a href="#">Listen to Call Recording</a></li>
+      </ul>
+      <p><strong>Experience Our AI Assistant in Action</strong></p>
+      <ul>
+        <li><a href="#">Chat with our AI Assistant</a></li>
+        <li><a href="#">Talk with it on the Phone</a></li>
+        <li><a href="#">Speak Through Your Computer</a></li>
+      </ul>
+    </div>
+
+    <h2>Property Knowledge Base Information:</h2>
+    <p><strong>Example/Demo Apartment Name:</strong><br>UrbanNest Apartments</p>
+    <p><strong>Address and Phone:</strong><br>123 Elm Street, Dallas, TX 75201<br>Phone: (214) 555-0123</p>
+
+    <p><strong>Property Overview:</strong><br>UrbanNest Apartments offers modern, pet-friendly living in Dallas and Waco with one to three-bedroom units and luxury amenities.</p>
+
+    <p><strong>Services Offered:</strong></p>
+    <ul>
+      <li>Leasing and tenant management</li>
+      <li>24/7 maintenance and emergency repair services</li>
+      <li>Online rent payment and resident portal access</li>
+      <li>On-site property management and security services</li>
+      <li>Resident events and community engagement</li>
+    </ul>
+
+    <p><strong>Pricing:</strong></p>
+    <ul>
+      <li><strong>One-Bedroom Apartments:</strong> Starting at $1,200/month</li>
+      <li><strong>Two-Bedroom Apartments:</strong> Starting at $1,500/month</li>
+      <li><strong>Three-Bedroom Apartments:</strong> Starting at $1,800/month</li>
+      <li><strong>Security Deposit:</strong> $500 (refundable)</li>
+      <li><strong>Application Fee:</strong> $50 per applicant</li>
+      <li><strong>Pet Fee:</strong> $300 non-refundable + $25/month per pet</li>
+    </ul>
+
+    <p><strong>Amenities:</strong></p>
+    <ul>
+      <li>Resort-style swimming pool and fitness center</li>
+      <li>On-site laundry facilities</li>
+      <li>Business center and coworking spaces</li>
+      <li>Package lockers and secure mailroom</li>
+      <li>Pet-friendly with designated pet relief areas</li>
+    </ul>
+
+    <p><strong>FAQ Information:</strong></p>
+    <ol>
+      <li><strong>How do I apply for an apartment?</strong><br>Apply online or visit the leasing office. Provide income proof, ID, and application fee.</li>
+      <li><strong>What is included in the rent?</strong><br>Water, trash, maintenance, and amenities. Electricity and internet are billed separately.</li>
+      <li><strong>Do you have any move-in specials?</strong><br>Check with the leasing office for current promotions.</li>
+      <li><strong>How does maintenance work?</strong><br>Submit requests via the portal or call the hotline. Emergency issues get priority.</li>
+      <li><strong>What is your pet policy?</strong><br>Pets allowed with $300 fee and $25/month per pet. Restrictions and 2-pet limit apply.</li>
+    </ol>
+
+    <p><strong>Additional Information:</strong></p>
+    <ul>
+      <li><strong>Office Hours:</strong> Mon–Fri 9 AM–6 PM; Sat 10 AM–4 PM</li>
+      <li><strong>Lease Terms:</strong> 6 to 18 months</li>
+      <li><strong>Parking:</strong> Reserved covered parking at $50/month</li>
+    </ul>
+
+    <p><strong>Resident Services:</strong></p>
+    <ul>
+      <li>Online rent payment and maintenance requests</li>
+      <li>Community events and resident nights</li>
+      <li>Package acceptance and secure lockers</li>
+    </ul>
+  </section>
+</article>
+```
+
+Let me know if you'd like this saved as a downloadable file or want it adapted into a different format like Markdown or PDF.
