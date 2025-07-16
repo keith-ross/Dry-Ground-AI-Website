@@ -1,10 +1,25 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Phone, MessageSquare, Calendar, Shield, Clock, MapPin } from 'lucide-react';
 
 const PropertyManagementDemo = () => {
+  useEffect(() => {
+    // Load ElevenLabs script
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/@elevenlabs/convai-widget-embed';
+    script.async = true;
+    script.type = 'text/javascript';
+    document.head.appendChild(script);
+
+    return () => {
+      // Cleanup script on unmount
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-brand-darker">
@@ -299,6 +314,9 @@ const PropertyManagementDemo = () => {
       </section>
 
       <Footer />
+      
+      {/* ElevenLabs Chat Widget */}
+      <elevenlabs-convai agent-id="agent_01k09qpb9yejf9pe3wmv594xvv"></elevenlabs-convai>
     </div>
   );
 };
