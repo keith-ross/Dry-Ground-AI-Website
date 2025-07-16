@@ -13,32 +13,10 @@ const PropertyManagementDemo = () => {
     script.type = 'text/javascript';
     document.head.appendChild(script);
 
-    // Add CSS to properly position the chat widget
-    const style = document.createElement('style');
-    style.textContent = `
-      elevenlabs-convai {
-        position: relative !important;
-        width: 100% !important;
-        height: 400px !important;
-      }
-      
-      elevenlabs-convai::part(chat-widget) {
-        position: relative !important;
-        width: 100% !important;
-        height: 100% !important;
-        border-radius: 0.5rem !important;
-        border: 1px solid rgba(99, 102, 241, 0.3) !important;
-      }
-    `;
-    document.head.appendChild(style);
-
     return () => {
-      // Cleanup script and style on unmount
+      // Cleanup script on unmount
       if (document.head.contains(script)) {
         document.head.removeChild(script);
-      }
-      if (document.head.contains(style)) {
-        document.head.removeChild(style);
       }
     };
   }, []);
@@ -130,12 +108,17 @@ const PropertyManagementDemo = () => {
                 </p>
               </div>
               
-              {/* Widget Container */}
+              {/* Widget will appear as floating chat */}
               <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/20 min-h-[400px] flex items-center justify-center">
-                <div className="w-full">
-                  <elevenlabs-convai agent-id="agent_01k09qpb9yejf9pe3wmv594xvv"></elevenlabs-convai>
+                <div className="text-center text-gray-300">
+                  <MessageSquare className="w-16 h-16 text-brand-primary mx-auto mb-4" />
+                  <p className="text-lg">The chat widget will appear as a floating chat button in the bottom-right corner of your screen.</p>
+                  <p className="text-sm mt-2">Look for the chat icon to start a conversation!</p>
                 </div>
               </div>
+              
+              {/* Hidden widget that will float */}
+              <elevenlabs-convai agent-id="agent_01k09qpb9yejf9pe3wmv594xvv"></elevenlabs-convai>
             </div>
 
             {/* Additional Options */}
