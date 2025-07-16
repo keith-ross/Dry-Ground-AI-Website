@@ -1,61 +1,10 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Phone, MessageSquare, Calendar, Shield, Clock, MapPin } from 'lucide-react';
 
 const PropertyManagementDemo = () => {
-  useEffect(() => {
-    // Load ElevenLabs script
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/@elevenlabs/convai-widget-embed';
-    script.async = true;
-    script.type = 'text/javascript';
-    document.head.appendChild(script);
-
-    // Add CSS to fix z-index issues with maximum z-index
-    const style = document.createElement('style');
-    style.textContent = `
-      elevenlabs-convai {
-        z-index: 2147483647 !important;
-        position: fixed !important;
-      }
-      
-      elevenlabs-convai * {
-        z-index: 2147483647 !important;
-      }
-      
-      elevenlabs-convai div {
-        z-index: 2147483647 !important;
-      }
-      
-      elevenlabs-convai iframe {
-        z-index: 2147483647 !important;
-      }
-      
-      /* Target common chat widget containers */
-      [data-widget] {
-        z-index: 2147483647 !important;
-      }
-      
-      /* Ensure the widget appears above everything */
-      body elevenlabs-convai {
-        z-index: 2147483647 !important;
-        position: fixed !important;
-      }
-    `;
-    document.head.appendChild(style);
-
-    return () => {
-      // Cleanup script and style on unmount
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
-      }
-      if (document.head.contains(style)) {
-        document.head.removeChild(style);
-      }
-    };
-  }, []);
 
   return (
     <div className="min-h-screen bg-brand-darker">
@@ -144,17 +93,15 @@ const PropertyManagementDemo = () => {
                 </p>
               </div>
               
-              {/* Widget will appear as floating chat */}
+              {/* Demo placeholder */}
               <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/20 min-h-[400px] flex items-center justify-center">
                 <div className="text-center text-gray-300">
                   <MessageSquare className="w-16 h-16 text-brand-primary mx-auto mb-4" />
-                  <p className="text-lg">The chat widget will appear as a floating chat button in the bottom-right corner of your screen.</p>
-                  <p className="text-sm mt-2">Look for the chat icon to start a conversation!</p>
+                  <p className="text-lg">AI Chat Demo</p>
+                  <p className="text-sm mt-2">This is where the AI assistant would appear in a live implementation.</p>
+                  <p className="text-sm mt-2 text-brand-primary">Contact us to see the live demo!</p>
                 </div>
               </div>
-              
-              {/* Hidden widget that will float */}
-              <elevenlabs-convai agent-id="agent_01k09qpb9yejf9pe3wmv594xvv"></elevenlabs-convai>
             </div>
 
             {/* Additional Options */}
