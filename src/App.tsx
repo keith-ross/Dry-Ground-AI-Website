@@ -7,7 +7,8 @@ import TermsOfService from './pages/TermsOfService';
 import CookiePolicy from './pages/CookiePolicy';
 import CookieConsent from './components/CookieConsent';
 import CookieConsentProvider from './context/CookieConsentContext';
-import PropertyManagementDemo from './pages/PropertyManagementDemo'; // Import the new component
+import PropertyManagementDemo from './pages/PropertyManagementDemo';
+import DemosPage from './pages/DemosPage';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/ai-velocity" element={<AIVelocityPage />} />
+          <Route path="/demos" element={<DemosPage />} />
           <Route path="/property-management-demo" element={<PropertyManagementDemo />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
