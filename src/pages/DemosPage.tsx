@@ -165,11 +165,13 @@ const DemosPage = () => {
                 <p className="text-gray-300 mb-6">
                   Our AI assistants are designed to support home service businesses like plumbing, electrical, and HVAC companies by handling appointment scheduling, providing service estimates, and efficiently managing customer communications. With our AI assistants, your business can offer 24/7 support.
                 </p>
-                <div className="bg-brand-primary/20 p-4 rounded-lg border border-brand-primary/30 mb-6">
-                  <p className="text-white font-medium text-center">
-                    <strong>COMING SOON!</strong> - Home Services Demo
-                  </p>
-                </div>
+                <a 
+                  href="/home-services-demo" 
+                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brand-primary hover:bg-brand-secondary transition-colors duration-300"
+                >
+                  Try Home Services Demo
+                  <Wrench className="ml-2 h-5 w-5" />
+                </a>
               </div>
             </div>
             

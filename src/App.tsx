@@ -9,6 +9,7 @@ import CookieConsent from './components/CookieConsent';
 import CookieConsentProvider from './context/CookieConsentContext';
 import PropertyManagementDemo from './pages/PropertyManagementDemo';
 import HealthcareDemo from './pages/HealthcareDemo';
+import HomeServicesDemo from './pages/HomeServicesDemo';
 import DemosPage from './pages/DemosPage';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
           <Route path="/demos" element={<DemosPage />} />
           <Route path="/property-management-demo" element={<PropertyManagementDemo />} />
           <Route path="/healthcare-demo" element={<HealthcareDemo />} />
+          <Route path="/home-services-demo" element={<HomeServicesDemo />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/cookie-policy" element={<CookiePolicy />} />
