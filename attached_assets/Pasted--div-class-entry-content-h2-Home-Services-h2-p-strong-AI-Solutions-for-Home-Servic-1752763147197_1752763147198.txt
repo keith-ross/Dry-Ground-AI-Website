@@ -1,0 +1,71 @@
+<div class="entry-content">
+
+  <h2>Home Services</h2>
+
+  <p><strong>AI Solutions for Home Service Providers</strong></p>
+  <p>Our AI assistants are designed to support home service businesses like plumbing, electrical, and HVAC companies by handling appointment scheduling, providing service estimates, and efficiently managing customer communications. With our AI assistants, your business can offer 24/7 support, ensuring no customer inquiry is missed while you focus on delivering top-quality services.</p>
+
+  <h3>Additional AI Use Cases for Home Services</h3>
+  <ul>
+    <li><strong>Answering Customer Questions 24/7:</strong> Instant responses to FAQs about services, pricing, and availability.</li>
+    <li><strong>Scheduling Service Calls:</strong> Handles appointments, reschedules, and cancellations with real-time availability.</li>
+    <li><strong>Collecting Customer Feedback:</strong> Gathers feedback post-service to assess quality and improvement areas.</li>
+    <li><strong>Encouraging Online Reviews:</strong> Prompts happy customers to leave reviews on Google or Yelp.</li>
+  </ul>
+
+  <h3>Example/Demo Company Information</h3>
+  <p><strong>Company:</strong> ProFix Home Services</p>
+  <p><strong>Address:</strong> 789 Maple Lane, Dallas, TX 75202</p>
+  <p><strong>Phone:</strong> (972) 555-3456</p>
+  <p><strong>Service Areas:</strong> Dallas, TX and Surrounding Areas</p>
+
+  <h3>Services Offered</h3>
+  <ul>
+    <li><strong>Plumbing Repairs and Installations:</strong> Leak fixes, water heater replacement, sewer repairs, fixture installs.</li>
+    <li><strong>Electrical Services:</strong> Rewiring, panel upgrades, lighting, safety inspections.</li>
+    <li><strong>HVAC Installation, Maintenance, and Repair:</strong> Installations, bi-annual service, emergency repairs.</li>
+    <li><strong>Home Inspections and Energy Audits:</strong> Safety and efficiency checks with improvement recommendations.</li>
+    <li><strong>Emergency 24/7 Service Calls:</strong> Immediate help for urgent plumbing, electrical, or HVAC issues.</li>
+  </ul>
+
+  <h3>Pricing</h3>
+  <ul>
+    <li><strong>Service Call Fee:</strong> $75 (waived if repair is completed)</li>
+    <li><strong>Hourly Rate:</strong> $95/hour for plumbing and electrical</li>
+    <li><strong>HVAC Maintenance Plan:</strong> $150/year per unit</li>
+    <li><strong>Emergency Service Fee:</strong> $50 additional for after-hours</li>
+  </ul>
+
+  <h3>FAQ</h3>
+  <ol>
+    <li><strong>What is included in the HVAC Maintenance Plan?</strong> Two seasonal check-ups, priority scheduling, 10% discount.</li>
+    <li><strong>Do you offer same-day service?</strong> Yes, subject to technician availability.</li>
+    <li><strong>Are your technicians licensed and insured?</strong> Yes, fully licensed, bonded, and insured.</li>
+    <li><strong>Do you provide free estimates?</strong> Yes for larger jobs; diagnostic fee may apply for small ones.</li>
+    <li><strong>Can I book a service call online?</strong> Yes, anytime via website or AI assistant.</li>
+    <li><strong>What should I do in case of an emergency?</strong> Contact the AI assistant for fast technician dispatch.</li>
+    <li><strong>How do I know what services I need?</strong> The AI assistant guides you with diagnostic questions.</li>
+    <li><strong>How long does a typical service call take?</strong> Most take 1–2 hours; AI provides time estimates.</li>
+    <li><strong>What payment methods do you accept?</strong> Credit, check, cash; financing available.</li>
+    <li><strong>What should I do before the technician arrives?</strong> Clear the area, secure pets, follow checklist.</li>
+    <li><strong>Do you offer maintenance plans for plumbing and electrical?</strong> Yes, with regular inspections and discounts.</li>
+    <li><strong>What is your satisfaction guarantee?</strong> 100% satisfaction or a follow-up visit at no cost.</li>
+    <li><strong>Can I get an estimate before scheduling?</strong> Ballpark estimates via AI, full quotes with in-person visits.</li>
+  </ol>
+
+  <h3>Additional Information</h3>
+  <ul>
+    <li><strong>Office Hours:</strong> Mon-Fri: 7 AM – 7 PM, Sat: 8 AM – 2 PM</li>
+    <li><strong>Satisfaction Guarantee:</strong> 100% on all work</li>
+    <li><strong>Booking Options:</strong> 24/7 via AI assistant</li>
+  </ul>
+
+  <h3>Demo Actions</h3>
+  <ul>
+    <li><a href="#">Listen to Call Recording</a></li>
+    <li><a href="#">Chat with our AI Assistant</a></li>
+    <li><a href="#">Talk with it on the Phone</a></li>
+    <li><a href="#">Speak Through Your Computer</a></li>
+  </ul>
+
+</div>
