@@ -24,7 +24,6 @@ const Navbar = () => {
                 >
                   AI Strategizer
                 </a>
-                <a href="/demos" className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-brand-primary transition-colors">Demos</a>
                 <a href="#services" className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-brand-primary transition-colors">Services</a>
                 <a href="#case-studies" className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-brand-primary transition-colors">Case Studies</a>
                 <a href="#testimonials" className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-brand-primary transition-colors">Testimonials</a>
@@ -59,7 +58,6 @@ const Navbar = () => {
             >
               AI Strategizer
             </a>
-            <a href="/demos" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-brand-primary">Demos</a>
             <a href="#services" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-brand-primary">Services</a>
             <a href="#case-studies" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-brand-primary">Case Studies</a>
             <a href="#testimonials" className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-brand-primary">Testimonials</a>
