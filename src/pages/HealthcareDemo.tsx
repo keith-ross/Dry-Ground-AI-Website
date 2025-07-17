@@ -43,7 +43,7 @@ const HealthcareDemo = () => {
               </p>
               <div className="bg-brand-primary/20 p-4 rounded-lg border border-brand-primary/30">
                 <p className="text-white font-medium text-center">
-                  <strong>COMING SOON!</strong> - Healthcare Demo
+                  Test our agent with the chat widget below via text or voice.
                 </p>
               </div>
             </div>
@@ -265,8 +265,9 @@ const HealthcareDemo = () => {
 
       <Footer />
       
-      {/* ElevenLabs Chat Widget - Placeholder for future implementation */}
-      {/* <elevenlabs-convai agent-id="healthcare-agent-id"></elevenlabs-convai> */}
+      {/* ElevenLabs Chat Widget */}
+      <elevenlabs-convai agent-id="agent_01k0cch03pe04s8k0dr6770e8m"></elevenlabs-convai>
+      <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
     </div>
   );
 };
