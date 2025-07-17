@@ -93,10 +93,8 @@ const PropertyManagementDemo = () => {
         </div>
       </section>
 
-      
-
-      {/* Property Information */}
-      <section className="py-20 bg-brand-dark relative overflow-hidden">
+      {/* Property Knowledge Base Information */}
+      <section className="py-20 bg-brand-darker relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <h2 className="text-4xl font-bold text-white mb-12 text-center">Property Knowledge Base Information</h2>
           
@@ -203,32 +201,32 @@ const PropertyManagementDemo = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-brand-darker relative overflow-hidden">
+      <section className="py-20 bg-brand-dark relative overflow-hidden">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <h2 className="text-4xl font-bold text-white mb-12 text-center">Frequently Asked Questions</h2>
           
           <div className="space-y-6">
-            <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
+            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
               <h3 className="text-lg font-bold text-white mb-3">How do I apply for an apartment?</h3>
               <p className="text-gray-300">Apply online or visit the leasing office. Provide income proof, ID, and application fee.</p>
             </div>
 
-            <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
+            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
               <h3 className="text-lg font-bold text-white mb-3">What is included in the rent?</h3>
               <p className="text-gray-300">Water, trash, maintenance, and amenities. Electricity and internet are billed separately.</p>
             </div>
 
-            <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
+            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
               <h3 className="text-lg font-bold text-white mb-3">Do you have any move-in specials?</h3>
               <p className="text-gray-300">Check with the leasing office for current promotions.</p>
             </div>
 
-            <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
+            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
               <h3 className="text-lg font-bold text-white mb-3">How does maintenance work?</h3>
               <p className="text-gray-300">Submit requests via the portal or call the hotline. Emergency issues get priority.</p>
             </div>
 
-            <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
+            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
               <h3 className="text-lg font-bold text-white mb-3">What is your pet policy?</h3>
               <p className="text-gray-300">Pets allowed with $300 fee and $25/month per pet. Restrictions and 2-pet limit apply.</p>
             </div>

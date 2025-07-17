@@ -46,7 +46,7 @@ const HomeServicesDemo = () => {
                 Home Services
                 <span className="text-brand-primary"> AI Assistant</span>
               </h1>
-              <p className="text-lg text-gray-300 mb-8">
+              <p className="text-xl text-gray-300 mb-8">
                 Our AI assistants are designed to support home service
                 businesses like plumbing, electrical, and HVAC companies by
                 handling appointment scheduling, providing service estimates,
@@ -71,324 +71,202 @@ const HomeServicesDemo = () => {
         </div>
       </section>
 
-      {/* AI Use Cases Section */}
+      {/* How Our AI Assistant Works */}
       <section className="py-20 bg-brand-dark relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <h2 className="text-4xl font-bold text-white mb-12 text-center">
-            Additional AI Use Cases for Home Services
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
-              <Clock className="w-8 h-8 text-brand-primary mb-4" />
-              <h3 className="text-lg font-bold text-white mb-3">
-                Answering Customer Questions 24/7
-              </h3>
+          <h2 className="text-4xl font-bold text-white mb-12 text-center">How Our AI Assistant Works for Home Services</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-brand-primary/20 p-8 rounded-lg border border-brand-primary/30">
+              <Calendar className="w-12 h-12 text-brand-primary mb-6" />
+              <h3 className="text-xl font-bold text-white mb-4">24/7 Scheduling & Availability</h3>
               <p className="text-gray-300">
-                Instant responses to FAQs about services, pricing, and
-                availability.
+                Handle appointment bookings, reschedules, and cancellations with real-time availability. Answer customer questions about services and pricing around the clock.
               </p>
             </div>
 
-            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
-              <Calendar className="w-8 h-8 text-brand-primary mb-4" />
-              <h3 className="text-lg font-bold text-white mb-3">
-                Scheduling Service Calls
-              </h3>
+            <div className="bg-brand-primary/20 p-8 rounded-lg border border-brand-primary/30">
+              <MessageSquare className="w-12 h-12 text-brand-primary mb-6" />
+              <h3 className="text-xl font-bold text-white mb-4">Service Estimates & Guidance</h3>
               <p className="text-gray-300">
-                Handles appointments, reschedules, and cancellations with
-                real-time availability.
+                Provide preliminary estimates based on customer descriptions and guide them through diagnostic questions to determine the right services needed.
               </p>
             </div>
 
-            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
-              <MessageSquare className="w-8 h-8 text-brand-primary mb-4" />
-              <h3 className="text-lg font-bold text-white mb-3">
-                Collecting Customer Feedback
-              </h3>
+            <div className="bg-brand-primary/20 p-8 rounded-lg border border-brand-primary/30">
+              <CheckCircle className="w-12 h-12 text-brand-primary mb-6" />
+              <h3 className="text-xl font-bold text-white mb-4">Customer Follow-up & Reviews</h3>
               <p className="text-gray-300">
-                Gathers feedback post-service to assess quality and improvement
-                areas.
-              </p>
-            </div>
-
-            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
-              <CheckCircle className="w-8 h-8 text-brand-primary mb-4" />
-              <h3 className="text-lg font-bold text-white mb-3">
-                Encouraging Online Reviews
-              </h3>
-              <p className="text-gray-300">
-                Prompts happy customers to leave reviews on Google or Yelp.
+                Collect feedback post-service, encourage satisfied customers to leave online reviews, and handle emergency dispatch coordination.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Company Information Section */}
-      <section className="py-16 bg-brand-darker">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Company Knowledge Base Information */}
+      <section className="py-20 bg-brand-darker relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <h2 className="text-4xl font-bold text-white mb-12 text-center">Company Knowledge Base Information</h2>
+          
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-8">
-                Example/Demo Company Information
-              </h2>
-
-              <div className="bg-brand-dark p-8 rounded-lg border border-brand-primary/30">
-                <h3 className="text-2xl font-bold text-white mb-6">
+            <div className="space-y-8">
+              <div className="bg-brand-primary/10 p-6 rounded-lg border border-brand-primary/30">
+                <h3 className="text-2xl font-bold text-white mb-4 flex items-center">
+                  <MapPin className="w-6 h-6 text-brand-primary mr-2" />
                   ProFix Home Services
                 </h3>
+                <p className="text-gray-300 mb-2">789 Maple Lane, Dallas, TX 75202</p>
+                <p className="text-gray-300">Phone: (972) 555-3456</p>
+                <p className="text-gray-300 mt-4">
+                  Professional home service solutions for plumbing, electrical, and HVAC needs in Dallas, TX and surrounding areas.
+                </p>
+              </div>
 
-                <div className="space-y-4">
-                  <div className="flex items-center">
-                    <MapPin className="w-5 h-5 text-brand-primary mr-3" />
-                    <div>
-                      <p className="text-white font-semibold">Address:</p>
-                      <p className="text-gray-300">
-                        789 Maple Lane, Dallas, TX 75202
-                      </p>
-                    </div>
+              <div className="bg-brand-primary/10 p-6 rounded-lg border border-brand-primary/30">
+                <h3 className="text-xl font-bold text-white mb-4">Services Offered</h3>
+                <ul className="space-y-2 text-gray-300">
+                  <li>• Plumbing repairs and installations</li>
+                  <li>• Electrical services and panel upgrades</li>
+                  <li>• HVAC installation, maintenance, and repair</li>
+                  <li>• Home inspections and energy audits</li>
+                  <li>• Emergency 24/7 service calls</li>
+                </ul>
+              </div>
+
+              <div className="bg-brand-primary/10 p-6 rounded-lg border border-brand-primary/30">
+                <h3 className="text-xl font-bold text-white mb-4">Additional Information</h3>
+                <div className="space-y-3 text-gray-300">
+                  <div>
+                    <span className="font-semibold">Service Areas:</span>
+                    <p>Dallas, TX and Surrounding Areas</p>
                   </div>
-
-                  <div className="flex items-center">
-                    <Phone className="w-5 h-5 text-brand-primary mr-3" />
-                    <div>
-                      <p className="text-white font-semibold">Phone:</p>
-                      <p className="text-gray-300">(972) 555-3456</p>
-                    </div>
+                  <div>
+                    <span className="font-semibold">Emergency Service:</span>
+                    <p>Available 24/7 with $50 after-hours fee</p>
                   </div>
-
-                  <div className="flex items-center">
-                    <MapPin className="w-5 h-5 text-brand-primary mr-3" />
-                    <div>
-                      <p className="text-white font-semibold">Service Areas:</p>
-                      <p className="text-gray-300">
-                        Dallas, TX and Surrounding Areas
-                      </p>
-                    </div>
+                  <div>
+                    <span className="font-semibold">Licensing:</span>
+                    <p>Fully licensed, bonded, and insured</p>
+                  </div>
+                  <div>
+                    <span className="font-semibold">Guarantee:</span>
+                    <p>100% satisfaction or follow-up visit at no cost</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-8">
-                Services Offered
-              </h2>
-
-              <div className="space-y-4">
-                <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
-                  <h4 className="text-lg font-bold text-white mb-2">
-                    Plumbing Repairs and Installations
-                  </h4>
-                  <p className="text-gray-300">
-                    Leak fixes, water heater replacement, sewer repairs, fixture
-                    installs.
-                  </p>
-                </div>
-
-                <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
-                  <h4 className="text-lg font-bold text-white mb-2">
-                    Electrical Services
-                  </h4>
-                  <p className="text-gray-300">
-                    Rewiring, panel upgrades, lighting, safety inspections.
-                  </p>
-                </div>
-
-                <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
-                  <h4 className="text-lg font-bold text-white mb-2">
-                    HVAC Installation, Maintenance, and Repair
-                  </h4>
-                  <p className="text-gray-300">
-                    Installations, bi-annual service, emergency repairs.
-                  </p>
-                </div>
-
-                <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
-                  <h4 className="text-lg font-bold text-white mb-2">
-                    Home Inspections and Energy Audits
-                  </h4>
-                  <p className="text-gray-300">
-                    Safety and efficiency checks with improvement
-                    recommendations.
-                  </p>
-                </div>
-
-                <div className="bg-brand-dark p-6 rounded-lg border border-brand-primary/30">
-                  <h4 className="text-lg font-bold text-white mb-2">
-                    Emergency 24/7 Service Calls
-                  </h4>
-                  <p className="text-gray-300">
-                    Immediate help for urgent plumbing, electrical, or HVAC
-                    issues.
-                  </p>
+            <div className="space-y-8">
+              <div className="bg-brand-primary/10 p-6 rounded-lg border border-brand-primary/30">
+                <h3 className="text-xl font-bold text-white mb-4">Pricing</h3>
+                <div className="space-y-3 text-gray-300">
+                  <div className="flex justify-between">
+                    <span>Service Call Fee:</span>
+                    <span className="text-brand-primary font-semibold">$75 (waived if repair completed)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Hourly Rate:</span>
+                    <span className="text-brand-primary font-semibold">$95/hour</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>HVAC Maintenance Plan:</span>
+                    <span className="text-brand-primary font-semibold">$150/year per unit</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Emergency Service Fee:</span>
+                    <span className="text-brand-primary font-semibold">$50 additional for after-hours</span>
+                  </div>
+                  <hr className="border-brand-primary/30 my-4" />
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Free Estimates:</span>
+                      <span>Yes for larger jobs</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Payment Methods:</span>
+                      <span>Credit, check, cash, financing</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Pricing Section */}
-      <section className="py-16 bg-brand-dark">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-white mb-12 text-center">
-            Pricing
-          </h2>
+              <div className="bg-brand-primary/10 p-6 rounded-lg border border-brand-primary/30">
+                <h3 className="text-xl font-bold text-white mb-4">Maintenance Plans</h3>
+                <ul className="space-y-2 text-gray-300">
+                  <li>• HVAC: Two seasonal check-ups, priority scheduling, and 10% discount on repairs.</li>
+                  <li>• Plumbing: Annual inspections and discounts</li>
+                  <li>• Electrical: Safety inspections and maintenance</li>
+                  <li>• All plans include priority scheduling</li>
+                </ul>
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30 text-center">
-              <DollarSign className="w-8 h-8 text-brand-primary mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-white mb-3">
-                Service Call Fee
-              </h3>
-              <p className="text-gray-300">
-                $75 (waived if repair is completed)
-              </p>
-            </div>
-
-            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30 text-center">
-              <Clock className="w-8 h-8 text-brand-primary mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-white mb-3">Hourly Rate</h3>
-              <p className="text-gray-300">
-                $95/hour for plumbing and electrical
-              </p>
-            </div>
-
-            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30 text-center">
-              <CheckCircle className="w-8 h-8 text-brand-primary mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-white mb-3">
-                HVAC Maintenance Plan
-              </h3>
-              <p className="text-gray-300">$150/year per unit</p>
-            </div>
-
-            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30 text-center">
-              <Phone className="w-8 h-8 text-brand-primary mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-white mb-3">
-                Emergency Service Fee
-              </h3>
-              <p className="text-gray-300">$50 additional for after-hours</p>
+              <div className="bg-brand-primary/10 p-6 rounded-lg border border-brand-primary/30">
+                <h3 className="text-xl font-bold text-white mb-4">Service Information</h3>
+                <div className="space-y-3 text-gray-300">
+                  <div>
+                    <span className="font-semibold">Typical Service Duration:</span>
+                    <p>Most jobs take 1–2 hours</p>
+                  </div>
+                  <div>
+                    <span className="font-semibold">Same-Day Service:</span>
+                    <p>Available subject to technician availability</p>
+                  </div>
+                  <div>
+                    <span className="font-semibold">Booking:</span>
+                    <p>Available 24/7 via website or AI assistant</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-16 bg-brand-dark">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-white mb-12 text-center">
-            Frequently Asked Questions
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <section className="py-20 bg-brand-dark relative overflow-hidden">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <h2 className="text-4xl font-bold text-white mb-12 text-center">Frequently Asked Questions</h2>
+          
+          <div className="space-y-6">
             <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
-              <h3 className="text-lg font-bold text-white mb-3">
-                What is included in the HVAC Maintenance Plan?
-              </h3>
-              <p className="text-gray-300">
-                Two seasonal check-ups, priority scheduling, 10% discount.
-              </p>
+              <h3 className="text-lg font-bold text-white mb-3">What is included in the HVAC Maintenance Plan?</h3>
+              <p className="text-gray-300">Two seasonal check-ups, priority scheduling, and 10% discount on repairs.</p>
             </div>
 
             <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
-              <h3 className="text-lg font-bold text-white mb-3">
-                Do you offer same-day service?
-              </h3>
-              <p className="text-gray-300">
-                Yes, subject to technician availability.
-              </p>
+              <h3 className="text-lg font-bold text-white mb-3">Do you offer same-day service?</h3>
+              <p className="text-gray-300">Yes, subject to technician availability. Contact us early for best availability.</p>
             </div>
 
             <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
-              <h3 className="text-lg font-bold text-white mb-3">
-                Are your technicians licensed and insured?
-              </h3>
-              <p className="text-gray-300">
-                Yes, fully licensed, bonded, and insured.
-              </p>
+              <h3 className="text-lg font-bold text-white mb-3">Are your technicians licensed and insured?</h3>
+              <p className="text-gray-300">Yes, all technicians are fully licensed, bonded, and insured for your protection.</p>
             </div>
 
             <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
-              <h3 className="text-lg font-bold text-white mb-3">
-                Do you provide free estimates?
-              </h3>
-              <p className="text-gray-300">
-                Yes for larger jobs; diagnostic fee may apply for small ones.
-              </p>
+              <h3 className="text-lg font-bold text-white mb-3">Do you provide free estimates?</h3>
+              <p className="text-gray-300">Yes for larger jobs. A diagnostic fee may apply for smaller repairs, which is waived if you proceed with the work.</p>
             </div>
 
             <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
-              <h3 className="text-lg font-bold text-white mb-3">
-                Can I book a service call online?
-              </h3>
-              <p className="text-gray-300">
-                Yes, anytime via website or AI assistant.
-              </p>
+              <h3 className="text-lg font-bold text-white mb-3">Can I book a service call online?</h3>
+              <p className="text-gray-300">Yes, you can book anytime via our website or AI assistant, available 24/7.</p>
             </div>
 
             <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
-              <h3 className="text-lg font-bold text-white mb-3">
-                What should I do in case of an emergency?
-              </h3>
-              <p className="text-gray-300">
-                Contact the AI assistant for fast technician dispatch.
-              </p>
+              <h3 className="text-lg font-bold text-white mb-3">What should I do in case of an emergency?</h3>
+              <p className="text-gray-300">Contact our AI assistant immediately for fast technician dispatch. Emergency service available 24/7.</p>
             </div>
 
             <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
-              <h3 className="text-lg font-bold text-white mb-3">
-                How do I know what services I need?
-              </h3>
-              <p className="text-gray-300">
-                The AI assistant guides you with diagnostic questions.
-              </p>
+              <h3 className="text-lg font-bold text-white mb-3">How do I know what services I need?</h3>
+              <p className="text-gray-300">Our AI assistant will guide you through diagnostic questions to determine the right services.</p>
             </div>
 
             <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
-              <h3 className="text-lg font-bold text-white mb-3">
-                How long does a typical service call take?
-              </h3>
-              <p className="text-gray-300">
-                Most take 1–2 hours; AI provides time estimates.
-              </p>
-            </div>
-
-            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
-              <h3 className="text-lg font-bold text-white mb-3">
-                What payment methods do you accept?
-              </h3>
-              <p className="text-gray-300">
-                Credit, check, cash; financing available.
-              </p>
-            </div>
-
-            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
-              <h3 className="text-lg font-bold text-white mb-3">
-                What should I do before the technician arrives?
-              </h3>
-              <p className="text-gray-300">
-                Clear the area, secure pets, follow checklist.
-              </p>
-            </div>
-
-            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
-              <h3 className="text-lg font-bold text-white mb-3">
-                Do you offer maintenance plans for plumbing and electrical?
-              </h3>
-              <p className="text-gray-300">
-                Yes, with regular inspections and discounts.
-              </p>
-            </div>
-
-            <div className="bg-brand-darker p-6 rounded-lg border border-brand-primary/30">
-              <h3 className="text-lg font-bold text-white mb-3">
-                What is your satisfaction guarantee?
-              </h3>
-              <p className="text-gray-300">
-                100% satisfaction or a follow-up visit at no cost.
-              </p>
+              <h3 className="text-lg font-bold text-white mb-3">What is your satisfaction guarantee?</h3>
+              <p className="text-gray-300">We guarantee 100% satisfaction or provide a follow-up visit at no additional cost.</p>
             </div>
           </div>
         </div>
@@ -397,12 +275,7 @@ const HomeServicesDemo = () => {
       <Footer />
 
       {/* ElevenLabs Chat Widget */}
-      <elevenlabs-convai agent-id="agent_01k0cch03pe04s8k0dr6770e8m"></elevenlabs-convai>
-      <script
-        src="https://unpkg.com/@elevenlabs/convai-widget-embed"
-        async
-        type="text/javascript"
-      ></script>
+      <elevenlabs-convai agent-id="agent_01k0ce10p4fwqbxtpzs2tsges5"></elevenlabs-convai>
     </div>
   );
 };
