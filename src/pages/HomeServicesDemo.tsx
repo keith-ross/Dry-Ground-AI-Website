@@ -32,27 +32,32 @@ const HomeServicesDemo = () => {
         <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-brand-accent/10 rounded-full filter blur-3xl"></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center">
-            <div className="flex justify-center items-center mb-6">
-              <Wrench className="w-12 h-12 text-brand-primary mr-4" />
-              <h1 className="text-5xl font-bold text-white leading-tight">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h1 className="text-5xl font-bold text-white mb-6 leading-tight">
                 Home Services
                 <span className="text-brand-primary"> AI Assistant</span>
               </h1>
+              <p className="text-xl text-gray-300 mb-6">
+                <strong>AI Solutions for Home Service Providers</strong>
+              </p>
+              <p className="text-lg text-gray-300 mb-8">
+                Our AI assistants are designed to support home service businesses like plumbing, electrical, and HVAC companies by handling appointment scheduling, providing service estimates, and efficiently managing customer communications. With our AI assistants, your business can offer 24/7 support, ensuring no customer inquiry is missed while you focus on delivering top-quality services.
+              </p>
+              <div className="bg-brand-primary/20 p-4 rounded-lg border border-brand-primary/30">
+                <p className="text-white font-medium text-center">
+                  <strong>COMING SOON!</strong> - Home Services Demo
+                </p>
+              </div>
             </div>
-            <div className="mb-8 p-6 bg-gradient-to-r from-brand-primary/20 to-brand-accent/20 rounded-lg border border-brand-primary/30 max-w-4xl mx-auto">
+            <div className="relative">
               <img 
                 src="https://images.unsplash.com/photo-1621905251918-48416bd8575a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
                 alt="Home Services" 
-                className="w-full h-64 object-cover rounded-lg mb-4"
+                className="w-full h-96 object-cover rounded-lg border border-brand-primary/30 shadow-xl"
+                style={{aspectRatio: '16/9'}}
               />
             </div>
-            <p className="text-xl text-gray-300 mb-6 max-w-4xl mx-auto">
-              <strong>AI Solutions for Home Service Providers</strong>
-            </p>
-            <p className="text-lg text-gray-300 mb-8 max-w-4xl mx-auto">
-              Our AI assistants are designed to support home service businesses like plumbing, electrical, and HVAC companies by handling appointment scheduling, providing service estimates, and efficiently managing customer communications. With our AI assistants, your business can offer 24/7 support, ensuring no customer inquiry is missed while you focus on delivering top-quality services.
-            </p>
           </div>
         </div>
       </section>
