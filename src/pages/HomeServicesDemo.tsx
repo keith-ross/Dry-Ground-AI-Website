@@ -38,9 +38,6 @@ const HomeServicesDemo = () => {
                 Home Services
                 <span className="text-brand-primary"> AI Assistant</span>
               </h1>
-              <p className="text-xl text-gray-300 mb-6">
-                AI Solutions for Home Service Providers
-              </p>
               <p className="text-lg text-gray-300 mb-8">
                 Our AI assistants are designed to support home service businesses like plumbing, electrical, and HVAC companies by handling appointment scheduling, providing service estimates, and efficiently managing customer communications. With our AI assistants, your business can offer 24/7 support, ensuring no customer inquiry is missed while you focus on delivering top-quality services.
               </p>
