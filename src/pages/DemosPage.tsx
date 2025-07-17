@@ -136,11 +136,13 @@ const DemosPage = () => {
                 <p className="text-gray-300 mb-6">
                   Our AI solutions for healthcare providers help clinics manage patient appointments, answer questions about the practice, and handle insurance and billing inquiries—ensuring that no potential customer is missed. Whether you're a dentist, chiropractor, or smaller physician practice, our AI assistants offer patients 24/7 service.
                 </p>
-                <div className="bg-brand-primary/20 p-4 rounded-lg border border-brand-primary/30 mb-6">
-                  <p className="text-white font-medium text-center">
-                    <strong>COMING SOON!</strong> - Healthcare Demo
-                  </p>
-                </div>
+                <a 
+                  href="/healthcare-demo" 
+                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brand-primary hover:bg-brand-secondary transition-colors duration-300"
+                >
+                  Try Healthcare Demo
+                  <Stethoscope className="ml-2 h-5 w-5" />
+                </a>
               </div>
             </div>
           </div>
