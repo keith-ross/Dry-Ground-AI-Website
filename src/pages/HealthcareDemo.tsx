@@ -44,7 +44,7 @@ const HealthcareDemo = () => {
               <div className="bg-brand-primary/20 p-4 rounded-lg border border-brand-primary/30">
                 <p className="text-white font-medium flex items-center">
                   <MessageSquare className="w-8 h-8 text-brand-primary mr-3" />
-                  Test our agent with the chat widget below via text or voice.
+                  Test our agent with the chat widget via text or voice.
                 </p>
               </div>
             </div>
