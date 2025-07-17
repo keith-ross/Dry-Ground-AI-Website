@@ -35,7 +35,7 @@ const PropertyManagementDemo = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-5xl font-bold text-white mb-6 leading-tight">
-                Demo: Property Management
+                Property Management
                 <span className="text-brand-primary"> AI Assistant</span>
               </h1>
               <p className="text-xl text-gray-300 mb-8">
