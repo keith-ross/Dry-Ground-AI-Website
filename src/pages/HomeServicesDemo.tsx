@@ -41,12 +41,18 @@ const HomeServicesDemo = () => {
       <section className="pt-24 pb-16 bg-gradient-to-br from-brand-darker via-brand-dark to-brand-darker relative overflow-hidden">
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-brand-darker via-brand-secondary/20 to-brand-darker opacity-70"></div>
-        
+
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-brand-primary/10 rounded-full filter blur-3xl animate-pulse"></div>
-          <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-brand-accent/10 rounded-full filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-          <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-brand-primary/5 rounded-full filter blur-2xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div
+            className="absolute top-3/4 right-1/4 w-96 h-96 bg-brand-accent/10 rounded-full filter blur-3xl animate-pulse"
+            style={{ animationDelay: "2s" }}
+          ></div>
+          <div
+            className="absolute top-1/2 left-1/2 w-32 h-32 bg-brand-primary/5 rounded-full filter blur-2xl animate-pulse"
+            style={{ animationDelay: "1s" }}
+          ></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -99,20 +105,23 @@ const HomeServicesDemo = () => {
       <section className="py-20 bg-brand-dark relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-base font-semibold text-brand-primary tracking-wide uppercase">AI Capabilities</h2>
+            <h2 className="text-base font-semibold text-brand-primary tracking-wide uppercase">
+              AI Capabilities
+            </h2>
             <p className="mt-2 text-3xl font-extrabold text-white sm:text-4xl">
               How Our AI Assistant Works for Home Services
             </p>
             <p className="mt-4 max-w-2xl text-xl text-gray-300 mx-auto">
-              Advanced AI technology designed specifically for home service businesses.
+              Advanced AI technology designed specifically for home service
+              businesses.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="group relative bg-brand-darker p-8 rounded-xl overflow-hidden transition-all duration-300 hover:bg-gray-750 hover:shadow-xl hover:shadow-brand-primary/10 hover:transform hover:scale-105">
               {/* Decorative gradient */}
               <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/5 to-brand-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              
+
               <div className="relative">
                 <div className="flex justify-between items-start mb-6">
                   <div className="p-4 inline-flex items-center justify-center rounded-xl bg-brand-dark group-hover:bg-brand-dark/70 transition-colors duration-300">
@@ -126,7 +135,9 @@ const HomeServicesDemo = () => {
                   24/7 Scheduling & Availability
                 </h3>
                 <p className="text-gray-300 group-hover:text-gray-200 transition-colors duration-300 mb-4">
-                  Handle appointment bookings, reschedules, and cancellations with real-time availability. Answer customer questions about services and pricing around the clock.
+                  Handle appointment bookings, reschedules, and cancellations
+                  with real-time availability. Answer customer questions about
+                  services and pricing around the clock.
                 </p>
                 <div className="flex items-center text-sm text-brand-accent">
                   <CheckCircle className="w-4 h-4 mr-2" />
@@ -137,7 +148,7 @@ const HomeServicesDemo = () => {
 
             <div className="group relative bg-brand-darker p-8 rounded-xl overflow-hidden transition-all duration-300 hover:bg-gray-750 hover:shadow-xl hover:shadow-brand-accent/10 hover:transform hover:scale-105">
               <div className="absolute inset-0 bg-gradient-to-br from-brand-accent/5 to-brand-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              
+
               <div className="relative">
                 <div className="flex justify-between items-start mb-6">
                   <div className="p-4 inline-flex items-center justify-center rounded-xl bg-brand-dark group-hover:bg-brand-dark/70 transition-colors duration-300">
@@ -151,7 +162,9 @@ const HomeServicesDemo = () => {
                   Service Estimates & Guidance
                 </h3>
                 <p className="text-gray-300 group-hover:text-gray-200 transition-colors duration-300 mb-4">
-                  Provide preliminary estimates based on customer descriptions and guide them through diagnostic questions to determine the right services needed.
+                  Provide preliminary estimates based on customer descriptions
+                  and guide them through diagnostic questions to determine the
+                  right services needed.
                 </p>
                 <div className="flex items-center text-sm text-brand-primary">
                   <Star className="w-4 h-4 mr-2" />
@@ -162,7 +175,7 @@ const HomeServicesDemo = () => {
 
             <div className="group relative bg-brand-darker p-8 rounded-xl overflow-hidden transition-all duration-300 hover:bg-gray-750 hover:shadow-xl hover:shadow-brand-primary/10 hover:transform hover:scale-105">
               <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/5 to-brand-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              
+
               <div className="relative">
                 <div className="flex justify-between items-start mb-6">
                   <div className="p-4 inline-flex items-center justify-center rounded-xl bg-brand-dark group-hover:bg-brand-dark/70 transition-colors duration-300">
@@ -176,7 +189,9 @@ const HomeServicesDemo = () => {
                   Customer Follow-up & Reviews
                 </h3>
                 <p className="text-gray-300 group-hover:text-gray-200 transition-colors duration-300 mb-4">
-                  Collect feedback post-service, encourage satisfied customers to leave online reviews, and handle emergency dispatch coordination.
+                  Collect feedback post-service, encourage satisfied customers
+                  to leave online reviews, and handle emergency dispatch
+                  coordination.
                 </p>
                 <div className="flex items-center text-sm text-brand-accent">
                   <CheckCircle className="w-4 h-4 mr-2" />
@@ -192,18 +207,21 @@ const HomeServicesDemo = () => {
       <section className="py-20 bg-brand-darker relative overflow-hidden">
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-brand-secondary/10 to-brand-primary/5"></div>
-        
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-base font-semibold text-brand-primary tracking-wide uppercase">Demo Company</h2>
+            <h2 className="text-base font-semibold text-brand-primary tracking-wide uppercase">
+              Demo Company
+            </h2>
             <p className="mt-2 text-3xl font-extrabold text-white sm:text-4xl">
               Company Knowledge Base Information
             </p>
             <p className="mt-4 max-w-2xl text-xl text-gray-300 mx-auto">
-              See how our AI assistant handles real company information and customer inquiries.
+              See how our AI assistant handles real company information and
+              customer inquiries.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div className="space-y-8">
               <div className="bg-gradient-to-br from-brand-primary/10 to-brand-accent/10 p-8 rounded-xl border border-brand-primary/30 backdrop-blur-sm">
@@ -223,7 +241,9 @@ const HomeServicesDemo = () => {
                     (972) 555-3456
                   </p>
                   <p className="mt-4 text-gray-300 leading-relaxed">
-                    Professional home service solutions for plumbing, electrical, and HVAC needs in Dallas, TX and surrounding areas.
+                    Professional home service solutions for plumbing,
+                    electrical, and HVAC needs in Dallas, TX and surrounding
+                    areas.
                   </p>
                 </div>
               </div>
@@ -264,20 +284,30 @@ const HomeServicesDemo = () => {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-300">
                   <div>
-                    <span className="font-semibold text-white">Service Areas:</span>
+                    <span className="font-semibold text-white">
+                      Service Areas:
+                    </span>
                     <p className="text-sm">Dallas, TX and Surrounding Areas</p>
                   </div>
                   <div>
-                    <span className="font-semibold text-white">Emergency Service:</span>
-                    <p className="text-sm">Available 24/7 with $50 after-hours fee</p>
+                    <span className="font-semibold text-white">
+                      Emergency Service:
+                    </span>
+                    <p className="text-sm">
+                      Available 24/7 with $50 after-hours fee
+                    </p>
                   </div>
                   <div>
                     <span className="font-semibold text-white">Licensing:</span>
-                    <p className="text-sm">Fully licensed, bonded, and insured</p>
+                    <p className="text-sm">
+                      Fully licensed, bonded, and insured
+                    </p>
                   </div>
                   <div>
                     <span className="font-semibold text-white">Guarantee:</span>
-                    <p className="text-sm">100% satisfaction or follow-up visit at no cost</p>
+                    <p className="text-sm">
+                      100% satisfaction or follow-up visit at no cost
+                    </p>
                   </div>
                 </div>
               </div>
@@ -292,31 +322,49 @@ const HomeServicesDemo = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center p-3 bg-brand-dark/50 rounded-lg">
                     <span className="text-gray-300">Service Call Fee:</span>
-                    <span className="text-brand-primary font-semibold">$75 (waived if repair completed)</span>
+                    <span className="text-brand-primary font-semibold">
+                      $75 (waived if repair completed)
+                    </span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-brand-dark/50 rounded-lg">
                     <span className="text-gray-300">Hourly Rate:</span>
-                    <span className="text-brand-primary font-semibold">$95/hour</span>
+                    <span className="text-brand-primary font-semibold">
+                      $95/hour
+                    </span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-brand-dark/50 rounded-lg">
-                    <span className="text-gray-300">HVAC Maintenance Plan:</span>
-                    <span className="text-brand-primary font-semibold">$150/year per unit</span>
+                    <span className="text-gray-300">
+                      HVAC Maintenance Plan:
+                    </span>
+                    <span className="text-brand-primary font-semibold">
+                      $150/year per unit
+                    </span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-brand-dark/50 rounded-lg">
-                    <span className="text-gray-300">Emergency Service Fee:</span>
-                    <span className="text-brand-primary font-semibold">$50 additional for after-hours</span>
+                    <span className="text-gray-300">
+                      Emergency Service Fee:
+                    </span>
+                    <span className="text-brand-primary font-semibold">
+                      $50 additional for after-hours
+                    </span>
                   </div>
                 </div>
-                
+
                 <div className="mt-6 pt-6 border-t border-brand-primary/30">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="font-semibold text-white">Free Estimates:</span>
+                      <span className="font-semibold text-white">
+                        Free Estimates:
+                      </span>
                       <p className="text-gray-300">Yes for larger jobs</p>
                     </div>
                     <div>
-                      <span className="font-semibold text-white">Payment Methods:</span>
-                      <p className="text-gray-300">Credit, check, cash, financing</p>
+                      <span className="font-semibold text-white">
+                        Payment Methods:
+                      </span>
+                      <p className="text-gray-300">
+                        Credit, check, cash, financing
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -331,17 +379,29 @@ const HomeServicesDemo = () => {
                   <div className="p-3 bg-brand-dark/30 rounded-lg">
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium text-white">HVAC Plan</span>
-                      <span className="text-brand-primary text-sm font-medium">Most Popular</span>
+                      <span className="text-brand-primary text-sm font-medium">
+                        Most Popular
+                      </span>
                     </div>
-                    <p className="text-sm text-gray-300">Two seasonal check-ups, priority scheduling, 10% discount</p>
+                    <p className="text-sm text-gray-300">
+                      Two seasonal check-ups, priority scheduling, 10% discount
+                    </p>
                   </div>
                   <div className="p-3 bg-brand-dark/30 rounded-lg">
-                    <span className="font-medium text-white">Plumbing Plan</span>
-                    <p className="text-sm text-gray-300">Annual inspections and discounts</p>
+                    <span className="font-medium text-white">
+                      Plumbing Plan
+                    </span>
+                    <p className="text-sm text-gray-300">
+                      Annual inspections and discounts
+                    </p>
                   </div>
                   <div className="p-3 bg-brand-dark/30 rounded-lg">
-                    <span className="font-medium text-white">Electrical Plan</span>
-                    <p className="text-sm text-gray-300">Safety inspections and maintenance</p>
+                    <span className="font-medium text-white">
+                      Electrical Plan
+                    </span>
+                    <p className="text-sm text-gray-300">
+                      Safety inspections and maintenance
+                    </p>
                   </div>
                 </div>
               </div>
@@ -353,16 +413,24 @@ const HomeServicesDemo = () => {
                 </h3>
                 <div className="space-y-3 text-gray-300">
                   <div>
-                    <span className="font-semibold text-white">Typical Service Duration:</span>
+                    <span className="font-semibold text-white">
+                      Typical Service Duration:
+                    </span>
                     <p className="text-sm">Most jobs take 1–2 hours</p>
                   </div>
                   <div>
-                    <span className="font-semibold text-white">Same-Day Service:</span>
-                    <p className="text-sm">Available subject to technician availability</p>
+                    <span className="font-semibold text-white">
+                      Same-Day Service:
+                    </span>
+                    <p className="text-sm">
+                      Available subject to technician availability
+                    </p>
                   </div>
                   <div>
                     <span className="font-semibold text-white">Booking:</span>
-                    <p className="text-sm">Available 24/7 via website or AI assistant</p>
+                    <p className="text-sm">
+                      Available 24/7 via website or AI assistant
+                    </p>
                   </div>
                 </div>
               </div>
@@ -375,7 +443,9 @@ const HomeServicesDemo = () => {
       <section className="py-20 bg-brand-dark relative overflow-hidden">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-base font-semibold text-brand-primary tracking-wide uppercase">Support</h2>
+            <h2 className="text-base font-semibold text-brand-primary tracking-wide uppercase">
+              Support
+            </h2>
             <p className="mt-2 text-3xl font-extrabold text-white sm:text-4xl">
               Frequently Asked Questions
             </p>
@@ -383,44 +453,55 @@ const HomeServicesDemo = () => {
               See how our AI assistant handles common customer inquiries.
             </p>
           </div>
-          
+
           <div className="space-y-6">
             {[
               {
                 question: "What is included in the HVAC Maintenance Plan?",
-                answer: "Two seasonal check-ups, priority scheduling, and 10% discount on repairs.",
-                popular: true
+                answer:
+                  "Two seasonal check-ups, priority scheduling, and 10% discount on repairs.",
+                popular: true,
               },
               {
                 question: "Do you offer same-day service?",
-                answer: "Yes, subject to technician availability. Contact us early for best availability."
+                answer:
+                  "Yes, subject to technician availability. Contact us early for best availability.",
               },
               {
                 question: "Are your technicians licensed and insured?",
-                answer: "Yes, all technicians are fully licensed, bonded, and insured for your protection."
+                answer:
+                  "Yes, all technicians are fully licensed, bonded, and insured for your protection.",
               },
               {
                 question: "Do you provide free estimates?",
-                answer: "Yes for larger jobs. A diagnostic fee may apply for smaller repairs, which is waived if you proceed with the work."
+                answer:
+                  "Yes for larger jobs. A diagnostic fee may apply for smaller repairs, which is waived if you proceed with the work.",
               },
               {
                 question: "Can I book a service call online?",
-                answer: "Yes, you can book anytime via our website or AI assistant, available 24/7."
+                answer:
+                  "Yes, you can book anytime via our website or AI assistant, available 24/7.",
               },
               {
                 question: "What should I do in case of an emergency?",
-                answer: "Contact our AI assistant immediately for fast technician dispatch. Emergency service available 24/7."
+                answer:
+                  "Contact our AI assistant immediately for fast technician dispatch. Emergency service available 24/7.",
               },
               {
                 question: "How do I know what services I need?",
-                answer: "Our AI assistant will guide you through diagnostic questions to determine the right services."
+                answer:
+                  "Our AI assistant will guide you through diagnostic questions to determine the right services.",
               },
               {
                 question: "What is your satisfaction guarantee?",
-                answer: "We guarantee 100% satisfaction or provide a follow-up visit at no additional cost."
-              }
+                answer:
+                  "We guarantee 100% satisfaction or provide a follow-up visit at no additional cost.",
+              },
             ].map((faq, index) => (
-              <div key={index} className="group bg-brand-darker p-6 rounded-xl border border-brand-primary/30 hover:border-brand-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-brand-primary/10">
+              <div
+                key={index}
+                className="group bg-brand-darker p-6 rounded-xl border border-brand-primary/30 hover:border-brand-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-brand-primary/10"
+              >
                 <div className="flex items-start justify-between">
                   <h3 className="text-lg font-bold text-white group-hover:text-brand-primary transition-colors duration-300 flex-1">
                     {faq.question}
@@ -438,7 +519,7 @@ const HomeServicesDemo = () => {
       <Footer />
 
       {/* ElevenLabs Chat Widget */}
-      <elevenlabs-convai agent-id="agent_01k0cch03pe04s8k0dr6770e8m"></elevenlabs-convai>
+      <elevenlabs-convai agent-id="agent_01k0ce10p4fwqbxtpzs2tsges5"></elevenlabs-convai>
     </div>
   );
 };
