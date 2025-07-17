@@ -1,0 +1,87 @@
+<article>
+  <header>
+    <h1>Protected: Demo: Healthcare</h1>
+    <div class="entry-header-bg" style="background-image: url('https://drygroundpartners.com/wp-content/uploads/2024/09/Healthcare-scaled-e1726793265459.jpeg');"></div>
+  </header>
+
+  <div class="entry-content">
+    <img src="https://i0.wp.com/drygroundpartners.com/wp-content/uploads/2024/09/AI-Nurse.jpeg?resize=1024%2C574&#038;ssl=1" alt="AI Nurse" style="aspect-ratio:16/9;object-fit:cover">
+
+    <p><strong>How Our AI Assistants Support Your Practice:</strong></p>
+    <ul>
+      <li><strong>24/7 Availability:</strong> The AI assistant is always available to manage bookings, answer questions, and handle insurance and billing.</li>
+      <li><strong>Practice Information and FAQ Management:</strong> Patients can get answers without tying up staff.</li>
+      <li><strong>Appointment Scheduling and Management:</strong> Manages bookings, rescheduling, and cancellations efficiently.</li>
+    </ul>
+
+    <h2>Healthcare (Dentists, Chiropractors, Physicians)</h2>
+    <p><strong>AI Assistants for Healthcare Providers</strong></p>
+    <p>Our AI helps clinics manage appointments, answer practice questions, and handle insurance and billing to improve satisfaction and efficiency.</p>
+
+    <div>
+      <p><strong>COMING SOON!</strong></p>
+      <p><strong>Example Call Recording</strong></p>
+      <ul>
+        <li><a href="#">Listen to Call Recording</a></li>
+      </ul>
+      <p><strong>Experience Our AI Assistant in Action</strong></p>
+      <ul>
+        <li><a href="#">Chat with our AI Assistant</a></li>
+        <li><a href="#">Talk with it on the Phone</a></li>
+        <li><a href="#">Speak Through Your Computer</a></li>
+      </ul>
+    </div>
+
+    <h3><strong>Practice Knowledge Base Information:</strong></h3>
+    <p><strong>Example/Demo Practice Name:</strong><br>Cedar Health and Wellness</p>
+    <p><strong>Address and Phone:</strong><br>456 Oak Avenue, Waco, TX 76701<br>Phone: (254) 555-6789</p>
+    <p><strong>Areas Serviced:</strong><br>Waco, TX</p>
+
+    <h3><strong>Services Offered:</strong></h3>
+    <ul>
+      <li><strong>General Dentistry:</strong> Cleanings, fillings, crowns, and bridges. Routine cleanings recommended every six months.</li>
+      <li><strong>Orthodontics:</strong> Braces, aligners, and whitening. Treatment spans 12–24 months.</li>
+      <li><strong>Chiropractic Services:</strong> Adjustments, decompression, and sports injury treatment.</li>
+      <li><strong>Physical Therapy:</strong> Rehab, prevention, and mobility enhancement.</li>
+      <li><strong>Nutritional Counseling:</strong> Diet plans, weight management, and wellness programs.</li>
+    </ul>
+
+    <h3><strong>Pricing:</strong></h3>
+    <ul>
+      <li><strong>Dental Cleaning:</strong> $95</li>
+      <li><strong>Fillings:</strong> From $150</li>
+      <li><strong>Chiropractic Adjustment:</strong> $65</li>
+      <li><strong>New Patient Exam:</strong> $50</li>
+      <li><strong>Orthodontics Consultation:</strong> Free</li>
+    </ul>
+
+    <h3><strong>FAQ Information:</strong></h3>
+    <ol>
+      <li><strong>Do you accept insurance?</strong><br>Yes, most major plans accepted. AI assistant can verify coverage.</li>
+      <li><strong>How do I schedule?</strong><br>Use the website or phone, 24/7 via AI assistant.</li>
+      <li><strong>Payment methods?</strong><br>Cash, cards, CareCredit, and payment plans.</li>
+      <li><strong>First visit expectations?</strong><br>Varies by service. AI assistant provides instructions.</li>
+      <li><strong>Can I reschedule?</strong><br>Yes, via web or phone. Preferably 24 hours in advance.</li>
+      <li><strong>Emergency dental?</strong><br>Call the office. AI can prioritize your care.</li>
+      <li><strong>Teeth whitening?</strong><br>In-office and take-home options available.</li>
+      <li><strong>What to bring?</strong><br>ID, insurance card, and records. AI can send checklist.</li>
+      <li><strong>Pediatric services?</strong><br>Yes. Friendly care for children including evaluations.</li>
+      <li><strong>Appointment durations?</strong><br>Dental: 30–45 min, Chiropractic: 30 min, PT: 45–60 min.</li>
+      <li><strong>Estimates before scheduling?</strong><br>AI assistant can provide preliminary estimates.</li>
+      <li><strong>Chiropractic prep?</strong><br>Wear comfortable clothing, avoid heavy meals.</li>
+      <li><strong>Insurance claims?</strong><br>Managed directly. AI can help guide the process.</li>
+      <li><strong>Wellness programs?</strong><br>Includes diet, fitness, and stress management support.</li>
+      <li><strong>Teeth cleaning cost without insurance?</strong><br>$95, with possible discounts or financing.</li>
+      <li><strong>Are consultations free?</strong><br>Yes, for several services. AI can schedule them.</li>
+    </ol>
+
+    <h3><strong>Additional Information:</strong></h3>
+    <ul>
+      <li><strong>Office Hours:</strong> Mon–Thu 8 AM–6 PM, Fri 8 AM–2 PM</li>
+      <li><strong>Emergency Care:</strong> Available during business hours for patients</li>
+      <li><strong>Parking:</strong> Free, with handicap spaces</li>
+      <li><strong>Telehealth:</strong> Available for nutrition and follow-ups</li>
+      <li><strong>COVID-19 Precautions:</strong> Masks, cleaning, and telehealth options</li>
+    </ul>
+  </div>
+</article>
