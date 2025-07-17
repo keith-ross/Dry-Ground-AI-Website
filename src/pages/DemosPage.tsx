@@ -209,29 +209,32 @@ const DemosPage = () => {
       </section>
 
       {/* Call to Action */}
-      <section className="py-20 bg-gradient-to-r from-brand-primary to-brand-accent">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="py-20 bg-brand-dark relative overflow-hidden">
+        {/* Background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-secondary/20 to-brand-primary/10"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <h2 className="text-4xl font-bold text-white mb-6">
             Ready to Transform Your Business?
           </h2>
-          <p className="text-xl text-white mb-8 max-w-2xl mx-auto">
-            Experience how our AI assistants can revolutionize your customer service and streamline your operations.
+          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+            Experience how our AI assistants can revolutionize your customer service and streamline your operations. Choose a demo that fits your industry or schedule a consultation to discuss your specific needs.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <a
-              href="https://dryground.ai/consultation"
+              href="https://drygroundpartners.com/consultation"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-brand-primary bg-white hover:bg-gray-100 transition-colors duration-300"
+              className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brand-primary hover:bg-brand-secondary transition-colors duration-300"
             >
               Schedule Consultation
               <Calendar className="ml-2 h-5 w-5" />
             </a>
             <a
-              href="/property-management-demo"
-              className="inline-flex items-center px-8 py-3 border border-white text-base font-medium rounded-md text-white bg-transparent hover:bg-white hover:text-brand-primary transition-colors duration-300"
+              href="#demos"
+              className="inline-flex items-center px-8 py-3 border border-gray-700 text-base font-medium rounded-md text-gray-200 hover:bg-brand-dark transition-colors duration-300"
             >
-              Try Live Demo
+              Explore All Demos
               <MessageSquare className="ml-2 h-5 w-5" />
             </a>
           </div>
