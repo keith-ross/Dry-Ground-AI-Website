@@ -42,7 +42,8 @@ const HealthcareDemo = () => {
                 Our AI solutions for healthcare providers help clinics manage patient appointments, answer questions about the practice, and handle insurance and billing inquiries—ensuring that no potential patient is missed.
               </p>
               <div className="bg-brand-primary/20 p-4 rounded-lg border border-brand-primary/30">
-                <p className="text-white font-medium text-center">
+                <p className="text-white font-medium flex items-center">
+                  <MessageSquare className="w-8 h-8 text-brand-primary mr-3" />
                   Test our agent with the chat widget below via text or voice.
                 </p>
               </div>
