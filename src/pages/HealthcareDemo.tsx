@@ -55,7 +55,7 @@ const HealthcareDemo = () => {
               </div>
               <div className="mt-8 flex flex-wrap gap-4">
                 <a
-                  href="https://drygroundpartners.com/consultation"
+                  href="/consultation"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-6 py-3 border border-gray-700 text-base font-medium rounded-md text-gray-200 hover:bg-brand-dark transition-all duration-300 flex items-center"
