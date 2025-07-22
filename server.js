@@ -59,6 +59,10 @@ app.get("/kr", (req, res) => {
   res.redirect(301, "https://www.linkedin.com/in/dryground");
 });
 
+app.get("/consultation", (req, res) => {
+  res.redirect(301, "https://calendly.com/dg-keith/consultation");
+});
+
 // API Routes
 app.post("/api/contact", async (req, res) => {
   console.log("Contact form submission received:", req.body);
