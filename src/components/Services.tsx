@@ -60,7 +60,7 @@ const Services = () => {
           </p>
           <div className="mt-8">
             <a
-              href="https://drygroundpartners.com/consultation"
+              href="/consultation"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brand-primary hover:bg-brand-secondary transition-colors duration-300"
