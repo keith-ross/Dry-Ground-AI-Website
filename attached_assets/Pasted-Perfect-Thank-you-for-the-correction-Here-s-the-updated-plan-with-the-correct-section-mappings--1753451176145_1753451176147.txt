@@ -1,0 +1,339 @@
+Perfect! Thank you for the correction. Here's the updated plan with the correct section mappings:
+
+## **Updated Final Plan: SSE-Based Agent Navigation System**
+
+### **Phase 1: Backend SSE Implementation (server.js)**
+
+#### **1.1 Core Endpoints**
+```javascript
+// Navigation command endpoint
+POST /api/interact/{page_name}/navigate
+
+// SSE stream endpoint  
+GET /api/commands/{sessionId}/stream
+```
+
+#### **1.2 In-Memory Command Management**
+```javascript
+// Command storage per session
+const sessionCommands = new Map(); // sessionId → command queue
+const sseClients = new Map();      // sessionId → SSE response objects
+
+// Command structure
+{
+  type: 'navigate',
+  section: 'ai-capabilities',
+  timestamp: Date.now(),
+  id: 'cmd_' + Date.now()
+}
+```
+
+#### **1.3 SSE Connection Management**
+```javascript
+// Store SSE clients by session
+app.get('/api/commands/:sessionId/stream', (req, res) => {
+  const { sessionId } = req.params;
+  
+  // Set SSE headers
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*'
+  });
+
+  // Store client connection
+  sseClients.set(sessionId, res);
+  
+  // Send initial connection message
+  res.write('data: {"type":"connected"}\n\n');
+
+  // Cleanup on disconnect
+  req.on('close', () => {
+    sseClients.delete(sessionId);
+  });
+});
+```
+
+#### **1.4 Navigation Endpoint Implementation**
+```javascript
+app.post('/api/interact/:pageName/navigate', (req, res) => {
+  const { pageName } = req.params;
+  const { sessionId, section } = req.body;
+
+  // Validate inputs
+  if (!sessionId || !section) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'sessionId and section required' 
+    });
+  }
+
+  // Validate section for page
+  if (!validateSection(pageName, section)) {
+    return res.status(400).json({
+      success: false,
+      error: `Invalid section '${section}' for page '${pageName}'`,
+      validSections: VALID_SECTIONS[pageName] || []
+    });
+  }
+
+  // Send command via SSE
+  const sseClient = sseClients.get(sessionId);
+  if (sseClient) {
+    const command = {
+      type: 'navigate',
+      section: section,
+      page: pageName,
+      timestamp: Date.now()
+    };
+    
+    sseClient.write(`data: ${JSON.stringify(command)}\n\n`);
+  }
+
+  // Respond to agent
+  res.json({
+    success: true,
+    message: 'Navigation command sent',
+    sessionId,
+    section
+  });
+});
+```
+
+### **Phase 2: Frontend SSE Integration**
+
+#### **2.1 SSE Hook Creation**
+```typescript
+// src/hooks/useAgentCommands.ts
+import { useEffect } from 'react';
+
+export const useAgentCommands = (sessionId: string) => {
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const eventSource = new EventSource(`/api/commands/${sessionId}/stream`);
+    
+    eventSource.onmessage = (event) => {
+      try {
+        const command = JSON.parse(event.data);
+        
+        if (command.type === 'navigate') {
+          navigateToSection(command.section);
+        }
+      } catch (error) {
+        console.error('Error parsing SSE command:', error);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error('SSE connection error:', error);
+    };
+
+    eventSource.onopen = () => {
+      console.log('SSE connection established for session:', sessionId);
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, [sessionId]);
+
+  const navigateToSection = (section: string) => {
+    const element = document.getElementById(section);
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start',
+        inline: 'nearest'
+      });
+      console.log(`Navigated to section: ${section}`);
+    } else {
+      console.warn(`Section not found: ${section}`);
+    }
+  };
+};
+```
+
+#### **2.2 Page Integration Pattern**
+```typescript
+// In each page component (HealthcareDemo.tsx, etc.)
+import { useAgentCommands } from '../hooks/useAgentCommands';
+
+const HealthcareDemo = () => {
+  const [sessionId, setSessionId] = useState<string>('');
+
+  // Existing session setup...
+  useEffect(() => {
+    const currentSessionId = getSessionId();
+    setSessionId(currentSessionId);
+  }, []);
+
+  // NEW: SSE command listener
+  useAgentCommands(sessionId);
+
+  return (
+    <div>
+      <section id="hero">...</section>
+      <section id="ai-capabilities">...</section>
+      <section id="knowledge-base">...</section>
+      <section id="faq">...</section>
+      {/* ... */}
+    </div>
+  );
+};
+```
+
+### **Phase 3: Updated Section ID Mapping**
+
+#### **3.1 Corrected Section IDs**
+
+**HealthcareDemo:**
+- `hero` - Main hero banner
+- `ai-capabilities` - AI capabilities section
+- `knowledge-base` - Knowledge base section
+- `faq` - FAQ section
+
+**PropertyManagement:**
+- `hero` - Property showcase hero
+- `ai-capabilities` - AI capabilities section
+- `knowledge-base` - Knowledge base section
+- `faq` - FAQ section
+
+**HomeServices:**
+- `hero` - Main hero banner
+- `ai-capabilities` - AI capabilities section
+- `knowledge-base` - Knowledge base section
+- `faq` - FAQ section
+
+**HomePage:**
+- `hero` - Main hero banner
+- `roi` - ROI benchmarks section
+- `strategizer` - AI strategizer section
+- `services` - Services overview
+- `case-studies` - Case studies section
+- `testimonials` - Client testimonials
+- `contact` - Contact/CTA section
+
+#### **3.2 Updated Section Validation**
+```javascript
+// Backend validation with corrected sections
+const VALID_SECTIONS = {
+  'healthcare-demo': ['hero', 'ai-capabilities', 'knowledge-base', 'faq'],
+  'property-management': ['hero', 'ai-capabilities', 'knowledge-base', 'faq'],
+  'home-services': ['hero', 'ai-capabilities', 'knowledge-base', 'faq'],
+  'homepage': ['hero', 'roi', 'strategizer', 'services', 'case-studies', 'testimonials', 'contact']
+};
+
+const validateSection = (pageName, section) => {
+  return VALID_SECTIONS[pageName]?.includes(section) || false;
+};
+```
+
+### **Phase 4: Error Handling & Edge Cases**
+
+#### **4.1 SSE Connection Management**
+- **Automatic Reconnection**: Browser handles this automatically
+- **Connection Timeout**: Set reasonable timeout limits
+- **Multiple Tabs**: Each tab gets own SSE connection with same sessionId
+
+#### **4.2 Updated Error Responses**
+```javascript
+// Invalid section examples
+{
+  "success": false,
+  "error": "Invalid section 'services' for page 'healthcare-demo'",
+  "validSections": ["hero", "ai-capabilities", "knowledge-base", "faq"]
+}
+
+{
+  "success": false,
+  "error": "Invalid section 'hero' for page 'unknown-page'",
+  "validSections": []
+}
+```
+
+### **Phase 5: Implementation Order**
+
+#### **Step 1: Backend SSE Setup**
+1. Add SSE endpoint `/api/commands/{sessionId}/stream`
+2. Add navigation endpoint for healthcare-demo with corrected sections
+3. Implement command broadcasting with validation
+4. Test with curl/Postman
+
+#### **Step 2: Frontend Integration**
+1. Create `useAgentCommands` hook
+2. Add correct section IDs to HealthcareDemo (`hero`, `ai-capabilities`, `knowledge-base`, `faq`)
+3. Integrate SSE hook in HealthcareDemo
+4. Test navigation
+
+#### **Step 3: Full Implementation**
+1. Add navigation endpoints for all pages with correct sections
+2. Add correct section IDs to all pages
+3. Integrate SSE hook in all pages
+4. Add comprehensive section validation
+
+#### **Step 4: Polish**
+1. Error handling improvements
+2. Connection management
+3. Logging and debugging
+4. Performance testing
+
+### **Phase 6: Testing Strategy**
+
+#### **6.1 Manual Testing Examples**
+```bash
+# Test healthcare demo navigation
+curl -X POST http://localhost:3001/api/interact/healthcare-demo/navigate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sessionId": "session_123", 
+    "section": "ai-capabilities"
+  }'
+
+# Test homepage navigation
+curl -X POST http://localhost:3001/api/interact/homepage/navigate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sessionId": "session_123", 
+    "section": "strategizer"
+  }'
+
+# Test invalid section (should return error)
+curl -X POST http://localhost:3001/api/interact/healthcare-demo/navigate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sessionId": "session_123", 
+    "section": "invalid-section"
+  }'
+```
+
+#### **6.2 SSE Testing**
+```bash
+# Test SSE connection
+curl -N http://localhost:3001/api/commands/session_123/stream
+```
+
+### **Key Changes Made:**
+✅ **Updated section mappings** to match your actual page structure  
+✅ **Consistent demo page sections** (all demos have same 4 sections)  
+✅ **Homepage has unique sections** (7 different sections)  
+✅ **Proper validation** against correct section names  
+✅ **Updated examples** using correct section names  
+
+### **Expected Agent Usage Examples:**
+```bash
+# Healthcare demo - navigate to AI capabilities
+POST /api/interact/healthcare-demo/navigate
+{"sessionId": "session_123", "section": "ai-capabilities"}
+
+# Homepage - navigate to ROI section  
+POST /api/interact/homepage/navigate
+{"sessionId": "session_123", "section": "roi"}
+
+# Property management - navigate to knowledge base
+POST /api/interact/property-management/navigate  
+{"sessionId": "session_123", "section": "knowledge-base"}
+```
+
+Ready to implement with the corrected section mappings!
