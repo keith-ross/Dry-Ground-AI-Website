@@ -3,6 +3,8 @@ import cors from 'cors';
 import path from 'path';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
+import { WebSocketServer } from 'ws';
+import { createServer } from 'http';
 import pkg from 'pg';
 const { Pool } = pkg;
 
@@ -71,6 +73,46 @@ async function submitContactForm(req, res) {
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const WS_PORT = 3003;
+
+// Create HTTP server
+const server = createServer(app);
+
+// WebSocket server for agent commands
+const wss = new WebSocketServer({ port: WS_PORT, host: '0.0.0.0' });
+
+// Store session connections
+const sessionConnections = new Map<string, any>();
+
+wss.on('connection', (ws, req) => {
+  console.log('WebSocket connection established');
+  
+  ws.on('message', (message) => {
+    try {
+      const data = JSON.parse(message.toString());
+      if (data.type === 'register_session' && data.sessionId) {
+        sessionConnections.set(data.sessionId, ws);
+        console.log(`Session ${data.sessionId} registered for WebSocket`);
+        ws.send(JSON.stringify({ type: 'session_registered', sessionId: data.sessionId }));
+      }
+    } catch (error) {
+      console.error('Error processing WebSocket message:', error);
+    }
+  });
+  
+  ws.on('close', () => {
+    // Remove connection from session map
+    for (const [sessionId, connection] of sessionConnections.entries()) {
+      if (connection === ws) {
+        sessionConnections.delete(sessionId);
+        console.log(`Session ${sessionId} disconnected`);
+        break;
+      }
+    }
+  });
+});
+
+console.log(`🔌 WebSocket server running on port ${WS_PORT}`);
 
 // CORS configuration
 app.use(cors({
@@ -98,6 +140,71 @@ app.use((req, res, next) => {
 
 // API Routes
 app.post('/api/contact', submitContactForm);
+
+// Agent interaction endpoints
+app.post('/api/interact/:pageName/navigate', async (req, res) => {
+  try {
+    const { pageName } = req.params;
+    const { sessionId, section } = req.body;
+    
+    console.log(`Navigation request: ${pageName} -> ${section} for session ${sessionId}`);
+    
+    if (!sessionId || !section) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing sessionId or section' 
+      });
+    }
+    
+    // Get WebSocket connection for this session
+    const ws = sessionConnections.get(sessionId);
+    
+    if (!ws || ws.readyState !== 1) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Session not connected' 
+      });
+    }
+    
+    // Define valid sections for each page
+    const validSections = {
+      'home': ['hero', 'services', 'strategy', 'testimonials', 'contact'],
+      'healthcare': ['hero', 'how-it-works', 'benefits', 'contact'],
+      'property-management': ['hero', 'how-it-works', 'benefits', 'contact'],
+      'home-services': ['hero', 'how-it-works', 'benefits', 'contact'],
+      'ai-velocity': ['hero', 'what-is-full-stack', 'benefits', 'plan-tiers', 'contact']
+    };
+    
+    const allowedSections = validSections[pageName] || [];
+    
+    if (!allowedSections.includes(section)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: `Invalid section "${section}" for page "${pageName}"`,
+        validSections: allowedSections
+      });
+    }
+    
+    // Send navigation command via WebSocket
+    ws.send(JSON.stringify({
+      type: 'navigate',
+      section: section,
+      pageName: pageName
+    }));
+    
+    res.json({ 
+      success: true, 
+      message: `Navigation to ${section} sent successfully` 
+    });
+    
+  } catch (error) {
+    console.error('Error in navigation endpoint:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Internal server error' 
+    });
+  }
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -139,10 +246,12 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // Start the server
-app.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🔌 WebSocket server running on port ${WS_PORT}`);
   console.log(`📊 Health check: http://0.0.0.0:${PORT}/api/health`);
   console.log(`📑 API endpoints: http://0.0.0.0:${PORT}/api/contact`);
+  console.log(`🤖 Agent interaction: http://0.0.0.0:${PORT}/api/interact/{page}/navigate`);
   console.log(`💻 Server address: 0.0.0.0:${PORT}`);
 });
 

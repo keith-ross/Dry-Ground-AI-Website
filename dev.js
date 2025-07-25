@@ -41,7 +41,7 @@ function startProcess(command, args, name) {
 
 // Start backend API server with proper TypeScript support
 console.log('Starting API server on port 3001...');
-const apiServer = startProcess('node', ['--loader', 'ts-node/esm', 'server.ts'], 'API Server');
+const apiServer = startProcess('npx', ['tsx', 'server.ts'], 'API Server');
 
 // Give the API server time to start
 setTimeout(() => {
