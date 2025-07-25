@@ -22,13 +22,19 @@ export const useAgentCommands = (sessionId: string) => {
 
   const connect = () => {
     try {
-      // Use the correct WebSocket port - handle Replit's domain properly
+      // Use the correct WebSocket URL for Replit environment
       const isReplit = window.location.hostname.includes('replit.dev');
-      const wsUrl = isReplit 
-        ? `wss://${window.location.hostname.replace(/:\d+$/, '')}:3003`
-        : `ws://${window.location.hostname}:3003`;
-      console.log(`Connecting to WebSocket: ${wsUrl}`);
+      let wsUrl;
       
+      if (isReplit) {
+        // For Replit, use the same domain but with wss and specific port
+        const replitDomain = window.location.hostname;
+        wsUrl = `wss://${replitDomain.replace(/-00-[^.]+/, '-00-296ha0dcfh9ax')}:3003`;
+      } else {
+        wsUrl = `ws://${window.location.hostname}:3003`;
+      }
+      
+      console.log(`Connecting to WebSocket: ${wsUrl}`);
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
