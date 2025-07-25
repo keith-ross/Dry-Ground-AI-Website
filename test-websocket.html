@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>WebSocket Navigation Test</h1>
+    <div id="status">Connecting...</div>
+    <div id="messages"></div>
+    
+    <script>
+        const sessionId = 'test_session_' + Date.now();
+        const wsUrl = `ws://${window.location.hostname}:3003`;
+        
+        console.log('Connecting to:', wsUrl);
+        const ws = new WebSocket(wsUrl);
+        
+        ws.onopen = () => {
+            document.getElementById('status').textContent = 'Connected!';
+            // Register session
+            ws.send(JSON.stringify({
+                type: 'register_session',
+                sessionId: sessionId
+            }));
+        };
+        
+        ws.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            document.getElementById('messages').innerHTML += 
+                '<div>Received: ' + JSON.stringify(message) + '</div>';
+        };
+        
+        ws.onerror = (error) => {
+            document.getElementById('status').textContent = 'Error: ' + error;
+        };
+        
+        ws.onclose = () => {
+            document.getElementById('status').textContent = 'Disconnected';
+        };
+    </script>
+</body>
+</html>
