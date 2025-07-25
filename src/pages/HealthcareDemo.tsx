@@ -1,11 +1,19 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Phone, MessageSquare, Calendar, Shield, Clock, MapPin, Stethoscope, Users, Heart, ArrowRight, Star, CheckCircle, Zap } from 'lucide-react';
+import { getSessionId } from '../lib/sessionManager';
 
 const HealthcareDemo = () => {
+  const [sessionId, setSessionId] = useState<string>('');
+
   useEffect(() => {
+    // Get session ID for ElevenLabs agent
+    const currentSessionId = getSessionId();
+    setSessionId(currentSessionId);
+    console.log('HealthcareDemo session ID:', currentSessionId);
+
     // Load ElevenLabs script
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/@elevenlabs/convai-widget-embed';
@@ -426,7 +434,10 @@ const HealthcareDemo = () => {
       <Footer />
       
       {/* ElevenLabs Chat Widget */}
-      <elevenlabs-convai agent-id="agent_01k0cch03pe04s8k0dr6770e8m"></elevenlabs-convai>
+      <elevenlabs-convai 
+        agent-id="agent_01k0cch03pe04s8k0dr6770e8m"
+        dynamic-variables={JSON.stringify({ website_session_id: sessionId })}
+      ></elevenlabs-convai>
     </div>
   );
 };

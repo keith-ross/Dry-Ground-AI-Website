@@ -1,11 +1,19 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Phone, MessageSquare, Calendar, Shield, Clock, MapPin, ArrowRight, Home, Star, Users, CheckCircle, Zap } from 'lucide-react';
+import { getSessionId } from '../lib/sessionManager';
 
 const PropertyManagementDemo = () => {
+  const [sessionId, setSessionId] = useState<string>('');
+
   useEffect(() => {
+    // Get session ID for ElevenLabs agent
+    const currentSessionId = getSessionId();
+    setSessionId(currentSessionId);
+    console.log('PropertyManagementDemo session ID:', currentSessionId);
+
     // Load ElevenLabs script
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/@elevenlabs/convai-widget-embed';
@@ -415,7 +423,10 @@ const PropertyManagementDemo = () => {
       <Footer />
       
       {/* ElevenLabs Chat Widget */}
-      <elevenlabs-convai agent-id="agent_01k09qpb9yejf9pe3wmv594xvv"></elevenlabs-convai>
+      <elevenlabs-convai 
+        agent-id="agent_2201k0w8xhdyfxkaqtzt1n5775bk"
+        dynamic-variables={JSON.stringify({ website_session_id: sessionId })}
+      ></elevenlabs-convai>
     </div>
   );
 };

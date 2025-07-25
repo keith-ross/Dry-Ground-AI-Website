@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
@@ -15,9 +15,17 @@ import {
   Users,
   Star,
 } from "lucide-react";
+import { getSessionId } from "../lib/sessionManager";
 
 const HomeServicesDemo = () => {
+  const [sessionId, setSessionId] = useState<string>('');
+
   useEffect(() => {
+    // Get session ID for ElevenLabs agent
+    const currentSessionId = getSessionId();
+    setSessionId(currentSessionId);
+    console.log('HomeServicesDemo session ID:', currentSessionId);
+
     // Load ElevenLabs script
     const script = document.createElement("script");
     script.src = "https://unpkg.com/@elevenlabs/convai-widget-embed";
@@ -519,7 +527,10 @@ const HomeServicesDemo = () => {
       <Footer />
 
       {/* ElevenLabs Chat Widget */}
-      <elevenlabs-convai agent-id="agent_01k0ce10p4fwqbxtpzs2tsges5"></elevenlabs-convai>
+      <elevenlabs-convai 
+        agent-id="agent_01k0ce10p4fwqbxtpzs2tsges5"
+        dynamic-variables={JSON.stringify({ website_session_id: sessionId })}
+      ></elevenlabs-convai>
     </div>
   );
 };
